@@ -1,0 +1,45 @@
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+/build/
+*.lock
+*.js
+*.js.map
+
+# PWA / Web
+web/canvaskit/
+web/icons/Icon-192.png
+web/icons/Icon-512.png
+
+# Env & secrets
+.env
+.env.*
+SENSIBLE/
+*.pem
+*.key
+
+# Worktrees (AGENTS.md)
+.worktrees/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Backend (Dart Frog / Supabase)
+backend/.dart_tool/
+backend/build/
+supabase/.branches/
+supabase/.temp/
+
+# Hive / generated
+*.g.dart
+*.freezed.dart
+*.hive
+*.box

@@ -15,7 +15,7 @@ La vuelta al mundo en 80 días no la hace el Sr. Phileas Fogg. En 2026 la retoma
                                   │
                  ┌────────────────┴────────────────┐
                  │                                 │
-     Arthur Phileas Fogg (1875–1948)      Elena Aouda Fogg (1878–1955)
+     Arthur Fogg (1875–1948)          Elena Aouda Fogg (1878–1955)
      ═══ Margaret Sterling                        │
      │                                     (Rama secundaria)
      │
@@ -33,25 +33,6 @@ La vuelta al mundo en 80 días no la hace el Sr. Phileas Fogg. En 2026 la retoma
             │                     │
    Phoebe Fogg (2005–)     Rohan Fogg (2009–)
    [21 años en 2026]      [17 años, cumple 18 en 2027]
-```
-
-### Mermaid (para render en GitHub/docs)
-
-```mermaid
-graph TD
-  PF["Phileas Fogg<br/>1832–1910"] --- AOUDA["Princesa Aouda<br/>1850–1928"]
-  PF --> ARTHUR["Arthur Phileas Fogg<br/>1875–1948"]
-  PF --> ELENA["Elena Aouda Fogg<br/>1878–1955"]
-  ARTHUR --- MARGARET["Margaret Sterling"]
-  ARTHUR --> THOMAS["Thomas Fogg<br/>1908–1982"]
-  THOMAS --- SAVITRI["Savitri Nehru<br/>1912–1995"]
-  THOMAS --> PF2["Phileas Fogg II<br/>1942–2018"]
-  THOMAS --> ALISTAIR["Alistair Fogg<br/>1946–"]
-  PF2 --- ELEANOR["Eleanor Vance"]
-  PF2 --> MARCUS["Marcus Fogg<br/>1976–"]
-  MARCUS --- PRIYA["Priya Sharma<br/>1978–"]
-  MARCUS --> PHOEBE["Phoebe Fogg<br/>2005– (21 en 2026)"]
-  MARCUS --> ROHAN["Rohan Fogg<br/>2009– (17, cumple 18)"]
 ```
 
 ---

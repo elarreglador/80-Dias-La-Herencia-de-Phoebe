@@ -1,4 +1,4 @@
-# TODO — Phileas Fogg 2026: Diario de Viaje
+# TODO — 80 Días – La Herencia de Phoebe
 
 Checklist vivo. Marque con `[x]` al completar.
 
@@ -10,7 +10,7 @@ Checklist vivo. Marque con `[x]` al completar.
 - [ ] Scaffold `frontend` Flutter Web `eu.elarreglador.pf2026` (Package by Layer: `presentation/domain/data/services/utils`)
 - [ ] `shared_models` (Position, Leg, TransportMode, DiaryEntry, WeatherSnapshot)
 - [ ] PWA mínima (`web/manifest.json`, `service_worker`, iconos 192/512, prompt instalación móvil)
-- [ ] `flutter_map` + OSM + marcador Fogg + overlay día/noche simplificado
+- [ ] `flutter_map` + OSM + marcador Fogg (`foggPosition`, Phoebe) + overlay día/noche simplificado
 - [ ] `TimeEngine` (START_DATE configurable, TIME_SCALE dev-only con guardarraíl prod, ciclo descanso 5–8 h, flag `sleeper`)
 - [ ] Ruta 5 ciudades este (Londres → París → Estambul → Bombay → Tokio) + interpolación minuto a minuto (GeoJSON recto)
 - [ ] Catálogo mock 3 transportes (train/ship/foot) con `price | departureTime | sleeper | availabilityRule`
@@ -40,11 +40,14 @@ Checklist vivo. Marque con `[x]` al completar.
 - [ ] Leaderboard por usuario (quién llega con más presupuesto)
 - [ ] Build PWA prod + deploy
 
+### Narrativa / Lore (solo narrativa, no mecánica MVP)
+- [ ] `docs/LORE.md` — árbol genealógico Phileas → Phoebe (2005) / Rohan (2009) + apuesta del hermano (idea de Rohan, deuda estudios)
+
 ### Futuro
 - [ ] `StoryGenerator` LLM (inyectable, sin tocar dominio)
 - [ ] Tema victoriano/steampunk intercambiable
 - [ ] Web Push opcional (próxima salida / carta)
-- [ ] Modo multijugador / Fogg global compartido
+- [ ] Modo multijugador / Fogg global compartido (Phoebe como anfitriona)
 
 ---
 
@@ -57,7 +60,7 @@ Checklist vivo. Marque con `[x]` al completar.
 ## Tareas finalizadas
 
 - [x] Definición del proyecto y decisiones Q1–Q9 (stack, mapa, backend, meteo, fecha, ruta, presupuesto, idioma, estética)
-- [x] Ciclo Fogg (descanso local, sleeper, carta antes de dormir)
+- [x] Ciclo Fogg (descanso local, sleeper, carta antes de dormir) — en 2026 protagonizado por Phoebe Fogg
 - [x] Regla asíncrona (auto-reserva más caro) y regla del Este por omisión
 - [x] Estructura base (.worktrees, SENSIBLE, .gitignore)
 - [x] README.md fundacional (castellano, código en inglés, `eu.elarreglador.pf2026`)

@@ -1,13 +1,14 @@
-# Phileas Fogg 2026: Diario de Viaje
+# 80 Días – La Herencia de Phoebe
 
-> Dar la vuelta al mundo en 80 días, sin avión, minuto a minuto. PWA instalable.
+> Phileas Fogg 2026: Diario de Viaje — Dar la vuelta al mundo en 80 días, sin avión, minuto a minuto. PWA instalable.
+> En 2026, su tataranieta **Phoebe Fogg** retoma la ruta de 1872. Ver [Herencia y árbol genealógico](docs/LORE.md).
 
 [![Flutter](https://img.shields.io/badge/Flutter-Web-02569B?logo=flutter)](https://flutter.dev)
 [![PWA](https://img.shields.io/badge/PWA-instalable-5A0FC0)](https://web.dev/progressive-web-apps/)
 [![Open-Meteo](https://img.shields.io/badge/meteo-Open--Meteo-2E7D32)](https://open-meteo.com)
 [![Licencia](https://img.shields.io/badge/licencia-MIT-informational)](LICENSE)
 
-Simulación visual y narrativa automatizada de 80 días que emula el espíritu del viaje original en la época actual. La aplicación sigue de forma autónoma la ruta terrestre y marítima de Phileas Fogg alrededor del globo, respetando la estricta condición de **no utilizar el avión**. Cada usuario controla su propio viaje.
+Simulación visual y narrativa automatizada de 80 días que emula el espíritu del viaje original en la época actual. La aplicación sigue de forma autónoma la ruta terrestre y marítima que Phileas Fogg trazó en 1872, ahora retomada en 2026 por su tataranieta **Phoebe Fogg**, respetando la estricta condición de **no utilizar el avión**. Cada usuario controla su propio viaje. Detalles genealógicos en [docs/LORE.md](docs/LORE.md).
 
 ---
 
@@ -39,7 +40,11 @@ Simulación visual y narrativa automatizada de 80 días que emula el espíritu d
 
 Recrear el desafío de Julio Verne en 2026 sin anacronismos aéreos: tren, barco y, cuando la infraestructura no llega, caballo, camello, globo, motocicleta, moto de nieve, a pie o burro — siempre hacia el este, siempre con presupuesto y meteorología reales.
 
-La app no es un juego de acción sino un **diario de seguimiento en tiempo real**: usted observa, decide entre las opciones disponibles y lee cada mañana la carta que Fogg le ha escrito antes de dormir.
+La app no es un juego de acción sino un **diario de seguimiento en tiempo real**: usted observa, decide entre las opciones disponibles y lee cada mañana la carta que **Phoebe Fogg** le ha escrito antes de dormir.
+
+### Herencia — Phoebe Fogg (2005–)
+
+Tataranieta de Phileas Fogg y la princesa Aouda. Nativa digital, curiosa e independiente, recibe al cumplir 18 años (2023) el cuaderno original de bitácora que Phileas dejó en el gabinete de Savile Row. En 2026, con 21 años, decide emprender el mismo viaje hacia el este, sin avión, durante 80 días. Su hermano menor **Rohan Fogg (2009–)**, a punto de cumplir 18 y ante una deuda de estudios, propone la apuesta que motiva el viaje — ver [docs/LORE.md](docs/LORE.md) para el árbol completo y los términos.
 
 ## MVP actual — versión super simplificada
 
@@ -65,13 +70,14 @@ La app no es un juego de acción sino un **diario de seguimiento en tiempo real*
 
 | Pilar | Descripción |
 |-------|-------------|
-| **Seguimiento en tiempo real** | Avance minuto a minuto durante 80 días desde `START_DATE`. Durante la noche local (5–8 h) Fogg descansa y el avance se detiene, salvo en transportes `sleeper` (tren/barco) donde se viaja durmiendo. |
+| **Seguimiento en tiempo real** | Avance minuto a minuto durante 80 días desde `START_DATE`. Durante la noche local (5–8 h) Phoebe descansa y el avance se detiene, salvo en transportes `sleeper` (tren/barco) donde se viaja durmiendo. |
 | **Mapamundi interactivo** | Trazado continuo ajustado a vías férreas y rutas marítimas (GeoJSON). Posición interpolada minuto a minuto y sombreado día/noche por terminador solar. |
 | **Carta diaria** | Cada mañana, al terminar el descanso, se publica una entrada con trayecto realizado, meteorología real (Open-Meteo) y balance de presupuesto. |
 | **Elección de itinerario** | El usuario elige entre destinos hacia el este según transporte disponible. Ventana asíncrona; sin elección, auto-reserva del más caro. |
 | **PWA** | Instalable desde el móvil, funciona offline con caché `Hive` y sincroniza con el backend al reconectar. |
 
 ## Cómo funciona — el ciclo de Fogg
+> En 2026 el ciclo lo protagoniza **Phoebe Fogg**, heredera del ciclo original de Phileas (1872). El apellido `Fogg` se mantiene como término ubicuo (`foggPosition`).
 
 ```
 06:00 local ──► Publicación carta del día anterior
@@ -104,12 +110,12 @@ La app no es un juego de acción sino un **diario de seguimiento en tiempo real*
   1. Base OSM
   2. Trazado GeoJSON ferroviario/marítimo (MVP: polilíneas rectas; final: OpenRailwayMap + OpenSeaMap)
   3. Overlay día/noche (cálculo solar por `solar_calculator`, sombreado semitransparente)
-  4. Marcador Fogg + popup (ciudad, hora local, transporte, presupuesto)
+  4. Marcador Fogg (`foggPosition`) + popup (ciudad, hora local, transporte, presupuesto) — Phoebe en 2026
 - **Actualización:** `PositionStream` emite `LatLng` cada minuto simulado (cada segundo real en `TIME_SCALE=60`).
 
 ## La regla del Este
 
-> Fogg solo avanza hacia el este. Retroceder no es una opción — literalmente no se ofrece.
+> Los Fogg solo avanzan hacia el este. Phoebe, como Phileas en 1872, no contempla el oeste. Retroceder no es una opción — literalmente no se ofrece.
 
 - El backend filtra el catálogo: solo destinos con `destination.lng > current.lng` y `population > threshold` (gran ciudad).
 - El frontend nunca renderiza un botón hacia el oeste. No hay validación punitiva necesaria; la regla se aplica por omisión.
@@ -133,7 +139,7 @@ Catálogo extensible. MVP con 3; final con 10+.
 
 Cada opción declara `price`, `departureTime` (puede ser al día siguiente) y `availabilityRule`. Datos mock basados en corredores reales (ej. Londres–París Eurostar, Suez en barco).
 
-**Selección asíncrona:** si el usuario no elige antes de `departureTime`, `TransportSelector.autoBookMostExpensive()` reserva la opción más cara viable hacia el este y Fogg embarca. El usuario lo sabrá en la siguiente carta — con el humor seco que corresponde a quien paga de más.
+**Selección asíncrona:** si el usuario no elige antes de `departureTime`, `TransportSelector.autoBookMostExpensive()` reserva la opción más cara viable hacia el este y Phoebe embarca. El usuario lo sabrá en la siguiente carta — con el humor seco que corresponde a quien paga de más.
 
 ## Economía y eventos
 
@@ -142,7 +148,7 @@ Cada opción declara `price`, `departureTime` (puede ser al día siguiente) y `a
 - **EventEngine:**
   - Aleatorios: huelga, control fronterizo, avería.
   - Dependientes de clima (Open-Meteo): tormenta retrasa barco, nieve bloquea moto, viento impide globo.
-  - Notificación diferida: el evento se refleja en la carta siguiente; Fogg ya habrá tomado el siguiente transporte viable.
+  - Notificación diferida: el evento se refleja en la carta siguiente; Phoebe ya habrá tomado el siguiente transporte viable.
 
 ## Carta diaria
 
@@ -191,7 +197,7 @@ PF2026/
 
 Al visitar la web en móvil, el navegador propone **Instalar app**. Requisitos:
 
-- `web/manifest.json` (`name: "Phileas Fogg 2026"`, `display: standalone`, `start_url: /`)
+- `web/manifest.json` (`name: "80 Días – La Herencia de Phoebe"`, `short_name: "Herencia Phoebe"`, `display: standalone`, `start_url: /`)
 - `web/service_worker.js` (cache-first para shell, network-first para `Position`/`Diary`)
 - Iconos 192/512
 

@@ -173,6 +173,12 @@ class _WorldMapWidgetState extends ConsumerState<WorldMapWidget>
         interactionOptions: const InteractionOptions(
           flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
         ),
+        cameraConstraint: CameraConstraint.contain(
+          bounds: LatLngBounds(
+            const LatLng(-90, -180),
+            const LatLng(90, 180),
+          ),
+        ),
         minZoom: 2.0,
         maxZoom: 18.0,
         backgroundColor: _offlineBg,

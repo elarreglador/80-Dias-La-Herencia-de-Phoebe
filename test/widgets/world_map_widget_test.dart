@@ -262,5 +262,28 @@ void main() {
       expect(flutterMap.options.interactionOptions.flags & InteractiveFlag.drag, isNot(0));
       expect(flutterMap.options.interactionOptions.flags & InteractiveFlag.pinchZoom, isNot(0));
     });
+
+    testWidgets('no permite desplazar más allá del borde del mundo', (tester) async {
+      await tester.pumpWidget(
+        const ProviderScope(
+          child: MaterialApp(
+            home: Scaffold(
+              body: SizedBox(
+                width: 800,
+                height: 600,
+                child: WorldMapWidget(route: mockFoggRoute),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final flutterMap = tester.widget<FlutterMap>(find.byType(FlutterMap));
+      final constraint = flutterMap.options.cameraConstraint;
+      // Debe ser contain con bounds mundiales, no unconstrained
+      expect(constraint, isNot(const CameraConstraint.unconstrained()));
+      // Verifica que es contain (no containCenter ni unconstrained)
+      expect(constraint.toString(), contains('ContainCamera'));
+    });
   });
 }

@@ -57,10 +57,13 @@ void main() {
       expect(polylines.first.color, const Color(0xFFC0392B).withValues(alpha: 0.95));
       expect(polylines.first.strokeWidth, 4.0);
 
-      // Verifica MarkerLayer con 5 markers (puntos rojos)
-      final markerLayer = tester.widgetList<MarkerLayer>(find.byType(MarkerLayer));
-      expect(markerLayer.length, 1);
-      expect(markerLayer.first.markers.length, 5);
+      // Verifica MarkerLayer: 5 ciudades + 1 Phoebe = 2 capas, 5 en primera
+      final markerLayers = tester.widgetList<MarkerLayer>(find.byType(MarkerLayer)).toList();
+      expect(markerLayers.length, 2); // ciudades + Phoebe distintivo
+      expect(markerLayers.first.markers.length, 5); // 5 ciudades
+      final allMarkers = markerLayers.expand((l) => l.markers).toList();
+      expect(allMarkers.length, 6); // 5 ciudades + 1 Phoebe
+      // Verifica que la polyline pasa exactamente por los puntos (nuevo alignment center)
 
       // Verifica que al menos un label visible (a zoom 3, colisión puede ocultar 1)
       // Con zoom inicial 3, se espera al menos 4 labels
@@ -89,16 +92,17 @@ void main() {
 
       // Verifica colisión inspeccionando MarkerLayer fuente (evita culling offscreen)
       int countLabelsFromMarkers() {
-        final markerLayer = tester.widget<MarkerLayer>(find.byType(MarkerLayer));
+        final layers = tester.widgetList<MarkerLayer>(find.byType(MarkerLayer)).toList();
+        // Primera capa = ciudades (5), segunda = Phoebe (1) si existe
+        final cityLayer = layers.firstWhere((l) => l.markers.length == 5, orElse: () => layers.first);
         int count = 0;
-        for (final m in markerLayer.markers) {
+        for (final m in cityLayer.markers) {
           final child = m.child;
-          if (child is Column) {
-            // Si tiene label, Column tiene 3 hijos (label, SizedBox, punto)
-            // si no, solo 1 hijo (punto)
+          if (child is Stack) {
+            // Stack con 2 hijos (punto + label) si visible, 1 si oculto
+            if (child.children.length == 2) count++;
+          } else if (child is Column) {
             if (child.children.length == 3) count++;
-            // alternativo: buscar Text dentro de Column
-            // for (final c in child.children) if (c is Container) count++ ...
           }
         }
         return count;

@@ -89,6 +89,17 @@ class CenterFoggButton extends StatelessWidget {
               ? null
               : () {
                   final currentZoom = mapController.camera.zoom;
+                  // Feedback inmediato — aclara que centra en Phoebe (Londres al inicio)
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Centrando en Phoebe — ${foggPosition!.latitude.toStringAsFixed(2)}, ${foggPosition!.longitude.toStringAsFixed(2)} (la línea roja va hasta Tokio)',
+                      ),
+                      duration: const Duration(seconds: 2),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                  HapticFeedback.lightImpact();
                   onAnimate(foggPosition!, currentZoom);
                 },
         ),

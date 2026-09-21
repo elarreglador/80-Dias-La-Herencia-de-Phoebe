@@ -215,32 +215,12 @@ class _WorldMapWidgetState extends ConsumerState<WorldMapWidget>
             return Marker(
               point: LatLng(city.lat, city.lng),
               width: 80,
-              height: 50,
-              alignment: Alignment.topCenter,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
+              height: 60,
+              alignment: Alignment.center,
+              child: Stack(
+                alignment: Alignment.center,
                 children: [
-                  if (showLabel)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.6),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        city.name,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: _labelColor,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  if (showLabel) const SizedBox(height: 2),
-                  // Offset dy -22 se consigue con orden Column label arriba
+                  // Punto rojo centrado exactamente en LatLng — la polyline pasa por aquí
                   Container(
                     width: 12,
                     height: 12,
@@ -250,11 +230,76 @@ class _WorldMapWidgetState extends ConsumerState<WorldMapWidget>
                       border: Border.all(color: Colors.white, width: 2),
                     ),
                   ),
+                  // Label 22px por encima del punto (dy -22) + halo blanco 0.6
+                  if (showLabel)
+                    Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      child: Center(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.6),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            city.name,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: _labelColor,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             );
           }).toList(),
         ),
+        // Marcador distintivo de Phoebe Fogg (sobre la ciudad actual) — aclara el centrado
+        if (effectiveFoggPos != null)
+          MarkerLayer(
+            markers: [
+              Marker(
+                point: effectiveFoggPos,
+                width: 28,
+                height: 28,
+                alignment: Alignment.center,
+                child: Container(
+                  width: 18,
+                  height: 18,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: _foggRed, width: 3),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.2),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: _foggRed,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         RichAttributionWidget(
           alignment: AttributionAlignment.bottomLeft,
           attributions: [

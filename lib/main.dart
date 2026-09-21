@@ -34,12 +34,9 @@ class FoggHomePage extends StatelessWidget {
         title: const Text('Phoebe Fogg — Mapamundi'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
-      body: const Padding(
-        padding: EdgeInsets.all(16),
-        child: WorldMapWidget(
-          route: mockFoggRoute,
-          height: 500,
-        ),
+      // Mapa ocupa todo el espacio disponible (sin padding blanco)
+      body: const WorldMapWidget(
+        route: mockFoggRoute,
       ),
     );
   }

@@ -8,7 +8,7 @@ Instrucciones repo-específicas para OpenCode. Complementa a `~/.config/opencode
 - `TODO.md` es la fuente de verdad del avance (secciones `Features` / `Fix` / `Tareas finalizadas`).
 
 ## Stack y convenciones fijas
-- **Flutter Web 3.22+ / Dart 3.4+** + PWA. Prefijo obligatorio: `eu.elarreglador.pf2026` (dominio inverso).
+- **Flutter Web 3.22+ / Dart 3.4+** + PWA. Prefijo obligatorio: `eu.elarreglador.pf` (dominio inverso).
 - **Package by Layer**: `presentation/` | `domain/` (entities + repository interfaces) | `data/` (models, datasources, Hive) | `services/` (TimeEngine, BudgetService, EventEngine, PositionStream) | `utils/`.
 - **Idioma**: código y variables en inglés; documentación/comentarios en castellano.
 - **Secretos**: nunca versionar. Todo en `SENSIBLE/` (ignorado). Variables vía `.env` copiado desde `SENSIBLE/.env` — ver `README.md:Configuración`.

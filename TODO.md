@@ -7,7 +7,6 @@ Checklist vivo. Marque con `[x]` al completar.
 ## Features
 
 ### MVP — versión super simplificada (compatible con final)
-- [ ] Scaffold `frontend` Flutter Web `eu.elarreglador.pf2026` (Package by Layer: `presentation/domain/data/services/utils`)
 - [ ] `shared_models` (Position, Leg, TransportMode, DiaryEntry, WeatherSnapshot)
 - [ ] PWA mínima (`web/manifest.json`, `service_worker`, iconos 192/512, prompt instalación móvil)
 - [ ] `flutter_map` + OSM + marcador Fogg (`foggPosition`, Phoebe) + overlay día/noche simplificado
@@ -59,9 +58,10 @@ Checklist vivo. Marque con `[x]` al completar.
 
 ## Tareas finalizadas
 
+- [x] Scaffold `frontend` Flutter Web `eu.elarreglador.pf`
 - [x] Definición del proyecto y decisiones Q1–Q9 (stack, mapa, backend, meteo, fecha, ruta, presupuesto, idioma, estética)
 - [x] Ciclo Fogg (descanso local, sleeper, carta antes de dormir) — en 2026 protagonizado por Phoebe Fogg
 - [x] Regla asíncrona (auto-reserva más caro) y regla del Este por omisión
 - [x] Estructura base (.worktrees, SENSIBLE, .gitignore)
-- [x] README.md fundacional (castellano, código en inglés, `eu.elarreglador.pf2026`)
+- [x] README.md fundacional (castellano, código en inglés, `eu.elarreglador.pf`)
 - [x] TODO.md inicial

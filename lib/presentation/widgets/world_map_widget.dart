@@ -211,13 +211,15 @@ class _WorldMapWidgetState extends ConsumerState<WorldMapWidget>
           // tileBuilder puede mostrar placeholder por tile, no necesario para spec
         ),
         PolylineLayer(
-          polylines: [
-            Polyline(
-              points: widget.route.polyline,
-              color: _foggRed.withValues(alpha: 0.95),
-              strokeWidth: 4.0,
-            ),
-          ],
+          polylines: widget.route.polylineSegments
+              .map(
+                (segment) => Polyline(
+                  points: segment,
+                  color: _foggRed.withValues(alpha: 0.95),
+                  strokeWidth: 4.0,
+                ),
+              )
+              .toList(),
         ),
         MarkerLayer(
           markers: widget.route.cities.map((city) {

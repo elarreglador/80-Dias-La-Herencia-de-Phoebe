@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:latlong2/latlong.dart';
 
 import 'fogg_city.dart';
@@ -17,22 +19,51 @@ class FoggRoute {
 
   final List<FoggCity> cities;
 
-  /// Polyline derivado: LatLng por cada ciudad en orden.
+  // ---------------------------------------------------------------------------
+  // Helpers Mercator (EPSG:3857) — Opción B
+  // ---------------------------------------------------------------------------
+
+  static const double _maxMercatorLat = 85.05112878;
+
+  static double _clampLat(double lat) =>
+      lat.clamp(-_maxMercatorLat, _maxMercatorLat);
+
+  /// Convierte latitud a Y Mercator (Web Mercator).
+  /// y = ln(tan(π/4 + lat_rad/2))
+  static double _latToMercatorY(double lat) {
+    final clamped = _clampLat(lat);
+    final rad = clamped * math.pi / 180.0;
+    return math.log(math.tan(math.pi / 4 + rad / 2));
+  }
+
+  /// Convierte Y Mercator de vuelta a latitud en grados.
+  static double _mercatorYToLat(double y) {
+    final latRad = 2 * math.atan(math.exp(y)) - math.pi / 2;
+    return latRad * 180.0 / math.pi;
+  }
+
+  /// Polyline derivado — compatibilidad legacy (aplanado).
   /// Para cualquier tramo donde lng decrece (cruce antimeridiano hacia el este),
-  /// inserta quiebre en 180/-180 con lat interpolada para que ambas
-  /// semirrectas tengan idéntica pendiente y parezcan una sola línea.
-  List<LatLng> get polyline {
+  /// inserta quiebre en 180/-180 con lat interpolada en Y Mercator para que
+  /// ambas semirrectas tengan idéntica pendiente en pantalla (Opción B).
+  /// Preferir [polylineSegments] para dibujar sin segmento parásito 180→-180.
+  List<LatLng> get polyline => polylineSegments.expand((s) => s).toList();
+
+  /// Segmentos de polyline sin salto parásito.
+  /// Cada sub-lista es un Polyline continuo; cruces antimeridiano generan nuevo segmento.
+  /// Usa interpolación en Y Mercator para pendiente visual idéntica (Opción B).
+  List<List<LatLng>> get polylineSegments {
     if (cities.isEmpty) return [];
-    final points = <LatLng>[];
-    // Acumulador de offset para desenrollar longitudes hacia el este
+    final segments = <List<LatLng>>[];
+    var current = <LatLng>[LatLng(cities.first.lat, cities.first.lng)];
+    segments.add(current);
+
     double offset = 0;
     double prevUnwrappedLng = cities.first.lng;
-    points.add(LatLng(cities.first.lat, cities.first.lng));
 
     for (var i = 1; i < cities.length; i++) {
       final currRealLng = cities[i].lng;
       var currUnwrapped = currRealLng + offset;
-      // Si el siguiente punto está al oeste en coordenadas reales, desenrolla
       if (currUnwrapped <= prevUnwrappedLng) {
         currUnwrapped += 360;
         offset += 360;
@@ -41,24 +72,32 @@ class FoggRoute {
       final currCity = cities[i];
       final prevLat = prevCity.lat;
       final currLat = currCity.lat;
-      // ¿Cruza el antimeridiano? (unwrapped cruza 180 + k*360)
-      // Detecta si el segmento cruza el antimeridiano usando +180 offset
+
       final prevWrap = ((prevUnwrappedLng + 180) / 360).floor();
       final currWrap = ((currUnwrapped + 180) / 360).floor();
+
       if (prevWrap != currWrap) {
-        // Hay cruce: calcula intersección con 180 + prevWrap*360
-        final antimeridianLng = 180 + prevWrap * 360;
-        final t = (antimeridianLng - prevUnwrappedLng) / (currUnwrapped - prevUnwrappedLng);
-        final latAt180 = prevLat + t * (currLat - prevLat);
-        // Normaliza 180 a 180 y -180 para el quiebre finito sin lng>360
-        points.add(LatLng(latAt180, 180));
-        points.add(LatLng(latAt180, -180));
+        // Puede cruzar múltiples antimeridianos si Δlng >360 (futuro loop 80 días).
+        // Iterar cada meridiano 180 + k*360 entre prev y curr.
+        final prevY = _latToMercatorY(prevLat);
+        final currY = _latToMercatorY(currLat);
+        for (var k = prevWrap; k < currWrap; k++) {
+          final antimeridianLng = 180 + k * 360;
+          final t = (antimeridianLng - prevUnwrappedLng) /
+              (currUnwrapped - prevUnwrappedLng);
+          final yAt = prevY + t * (currY - prevY);
+          final latAt180 = _mercatorYToLat(yAt);
+          // Cierra segmento actual en 180
+          current.add(LatLng(latAt180, 180));
+          // Nuevo segmento empieza en -180
+          current = <LatLng>[LatLng(latAt180, -180)];
+          segments.add(current);
+        }
       }
-      // Añade el punto destino con lng real (no unwrapped) para que el marcador coincida
-      points.add(LatLng(currCity.lat, currCity.lng));
+      current.add(LatLng(currCity.lat, currCity.lng));
       prevUnwrappedLng = currUnwrapped;
     }
-    return points;
+    return segments;
   }
 
   /// Valida Regla del Este permitiendo salto antimeridiano en cualquier tramo

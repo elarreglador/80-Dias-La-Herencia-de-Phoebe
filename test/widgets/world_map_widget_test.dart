@@ -31,7 +31,7 @@ void main() {
       expect(find.textContaining('OpenStreetMap'), findsOneWidget);
     });
 
-    testWidgets('renderiza 1 polyline con 8 puntos (quiebre antimeridiano) y 6 markers', (tester) async {
+    testWidgets('renderiza 2 polylines (quiebre antimeridiano sin salto parásito) y 6 markers', (tester) async {
       await tester.pumpWidget(
         const ProviderScope(
           child: MaterialApp(
@@ -47,17 +47,31 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Verifica PolylineLayer existe y tiene 8 puntos (6 ciudades + quiebre 180/-180)
+      // Verifica PolylineLayer existe y tiene 2 segmentos (6 ciudades + quiebre 180/-180 dividido)
       final polyLayer = tester.widgetList<PolylineLayer>(find.byType(PolylineLayer));
       expect(polyLayer.length, 1);
       final polylines = polyLayer.first.polylines;
-      expect(polylines.length, 1);
-      expect(polylines.first.points.length, 8);
-      expect(polylines.first.points[5].longitude, 180);
-      expect(polylines.first.points[6].longitude, -180);
+      expect(polylines.length, 2, reason: 'Debe haber 2 polylines: Londres..180 y -180..Savile');
+      // Segmento 1: Londres, París, Estambul, Bombay, Tokio, 180 (6 puntos)
+      expect(polylines[0].points.length, 6);
+      expect(polylines[0].points.last.longitude, 180);
+      // Segmento 2: -180, Savile (2 puntos)
+      expect(polylines[1].points.length, 2);
+      expect(polylines[1].points.first.longitude, -180);
+      // Total aplanado 8 puntos, sin segmento 180→-180 dentro de un mismo polyline
+      final flat = polylines.expand((p) => p.points).toList();
+      expect(flat.length, 8);
+      expect(flat[5].longitude, 180);
+      expect(flat[6].longitude, -180);
       // Verifica color #C0392B opacity 0.95 y stroke según spec
       expect(polylines.first.color, const Color(0xFFC0392B).withValues(alpha: 0.95));
       expect(polylines.first.strokeWidth, 4.0);
+      // Verifica que ningún polyline individual contiene 180 y -180 (evita línea parásita)
+      for (final pl in polylines) {
+        final hasBoth = pl.points.any((p) => p.longitude == 180) &&
+            pl.points.any((p) => p.longitude == -180);
+        expect(hasBoth, isFalse);
+      }
 
       // Verifica MarkerLayer: 6 ciudades + 1 Phoebe = 2 capas, 6 en primera
       final markerLayers = tester.widgetList<MarkerLayer>(find.byType(MarkerLayer)).toList();

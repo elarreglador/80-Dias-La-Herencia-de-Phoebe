@@ -132,3 +132,18 @@ const mockFoggRoute = FoggRoute(cities: [
   FoggCity(name: 'Tokio', lat: 35.6762, lng: 139.6503, order: 4),
   FoggCity(name: 'Savile Row', lat: 51.5107, lng: -0.1410, order: 5),
 ]);
+
+/// Ruta extendida — mock original + salto Japón→costa oeste EEUU→Nueva York→gabinete Phileas.
+/// Mantiene las 6 ciudades originales y reemplaza el último salto directo por:
+/// Tokio (139.65) → San Francisco (-122.41, lng_u 237.58) → Nueva York (-74.00, lng_u 285.99) → Savile Row (-0.14, lng_u 359.85).
+/// Un único cruce antimeridiano en Tokio→SF (el resto ya en hemisferio oeste desenrollado).
+const extendedFoggRoute = FoggRoute(cities: [
+  FoggCity(name: 'Londres', lat: 51.5072, lng: -0.1276, order: 0),
+  FoggCity(name: 'París', lat: 48.8566, lng: 2.3522, order: 1),
+  FoggCity(name: 'Estambul', lat: 41.0082, lng: 28.9784, order: 2),
+  FoggCity(name: 'Bombay', lat: 19.0760, lng: 72.8777, order: 3),
+  FoggCity(name: 'Tokio', lat: 35.6762, lng: 139.6503, order: 4),
+  FoggCity(name: 'San Francisco', lat: 37.7749, lng: -122.4194, order: 5),
+  FoggCity(name: 'Nueva York', lat: 40.7128, lng: -74.0060, order: 6),
+  FoggCity(name: 'Savile Row', lat: 51.5107, lng: -0.1410, order: 7),
+]);

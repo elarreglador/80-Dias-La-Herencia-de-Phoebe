@@ -301,5 +301,44 @@ void main() {
       // Verifica que es contain (no containCenter ni unconstrained)
       expect(constraint.toString(), contains('ContainCamera'));
     });
+
+    testWidgets('renderiza ruta extendida 8 ciudades vía SF y NY (10 puntos, 2 polylines)', (tester) async {
+      await tester.pumpWidget(
+        const ProviderScope(
+          child: MaterialApp(
+            home: Scaffold(
+              body: SizedBox(
+                width: 800,
+                height: 600,
+                child: WorldMapWidget(route: extendedFoggRoute),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final polyLayer = tester.widgetList<PolylineLayer>(find.byType(PolylineLayer));
+      expect(polyLayer.length, 1);
+      final polylines = polyLayer.first.polylines;
+      // 8 ciudades + 1 cruce = 10 puntos aplanados en 2 segmentos
+      expect(polylines.length, 2);
+      expect(polylines[0].points.length, 6); // Londres..Tokio + 180
+      expect(polylines[1].points.length, 4); // -180 + SF + NY + Savile
+      final flat = polylines.expand((p) => p.points).toList();
+      expect(flat.length, 10);
+      expect(flat[5].longitude, 180);
+      expect(flat[6].longitude, -180);
+      // Markers: 8 ciudades + Phoebe
+      final markerLayers = tester.widgetList<MarkerLayer>(find.byType(MarkerLayer)).toList();
+      expect(markerLayers.first.markers.length, 8);
+      final allMarkers = markerLayers.expand((l) => l.markers).toList();
+      expect(allMarkers.length, 9); // 8 + Phoebe
+      for (final pl in polylines) {
+        final hasBoth = pl.points.any((p) => p.longitude == 180) &&
+            pl.points.any((p) => p.longitude == -180);
+        expect(hasBoth, isFalse);
+      }
+    });
   });
 }

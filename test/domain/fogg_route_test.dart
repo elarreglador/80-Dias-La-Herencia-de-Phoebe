@@ -212,4 +212,86 @@ void main() {
       expect(single.polylineSegments[0].length, 1);
     });
   });
+
+  group('Ruta extendida vía América (mock + SF + NY → Savile)', () {
+    test('extendedFoggRoute conserva mock y añade 2 ciudades vía oeste', () {
+      expect(mockFoggRoute.cities.length, 6);
+      expect(extendedFoggRoute.cities.length, 8);
+      expect(extendedFoggRoute.cities.map((c) => c.name).toList(), [
+        'Londres',
+        'París',
+        'Estambul',
+        'Bombay',
+        'Tokio',
+        'San Francisco',
+        'Nueva York',
+        'Savile Row'
+      ]);
+      // Orders consecutivos
+      for (var i = 1; i < extendedFoggRoute.cities.length; i++) {
+        expect(extendedFoggRoute.cities[i].order,
+            extendedFoggRoute.cities[i - 1].order + 1);
+      }
+    });
+
+    test('Regla del Este desenrollada para extended', () {
+      expect(() => FoggRoute.validated(cities: extendedFoggRoute.cities), returnsNormally);
+      double offset = 0;
+      double prevU = extendedFoggRoute.cities.first.lng;
+      for (var i = 1; i < extendedFoggRoute.cities.length; i++) {
+        var currU = extendedFoggRoute.cities[i].lng + offset;
+        if (currU <= prevU) {
+          currU += 360;
+          offset += 360;
+        }
+        expect(currU, greaterThan(prevU),
+            reason: '${extendedFoggRoute.cities[i].name} debe ser > este desenrollado');
+        prevU = currU;
+      }
+    });
+
+    test('extended polyline: 10 puntos aplanados, 2 segmentos, único cruce Tokio→SF', () {
+      final flat = extendedFoggRoute.polyline;
+      final segs = extendedFoggRoute.polylineSegments;
+      // 8 ciudades + 2 quiebre = 10 aplanados, 2 segmentos (6+4)
+      expect(flat.length, 10);
+      expect(segs.length, 2);
+      expect(segs[0].length, 6); // Londres..Tokio + 180
+      expect(segs[1].length, 4); // -180 + SF + NY + Savile
+      expect(flat[5].longitude, 180);
+      expect(flat[6].longitude, -180);
+      expect(segs[0].last.longitude, 180);
+      expect(segs[1].first.longitude, -180);
+      // Solo un cruce
+      final crossings = flat.where((p) => p.longitude == 180 || p.longitude == -180).length;
+      expect(crossings, 2);
+      // Sin segmento parásito
+      for (final s in segs) {
+        final hasBoth = s.any((p) => p.longitude == 180) && s.any((p) => p.longitude == -180);
+        expect(hasBoth, isFalse);
+      }
+    });
+
+    test('latAt180 Tokio→SF en extended con pendiente Mercator idéntica', () {
+      final flat = extendedFoggRoute.polyline;
+      // flat[4]=Tokio, flat[5]=180, flat[6]=-180, flat[7]=SF
+      expect(flat[4].latitude, extendedFoggRoute.cities[4].lat); // Tokio
+      expect(flat[7].latitude, extendedFoggRoute.cities[5].lat); // SF
+      expect(flat[5].latitude, closeTo(36.54786, 0.02));
+      expect(flat[5].latitude, closeTo(flat[6].latitude, 1e-9));
+      final yTokio = _latToY(extendedFoggRoute.cities[4].lat);
+      final yAt = _latToY(flat[5].latitude);
+      final ySF = _latToY(extendedFoggRoute.cities[5].lat);
+      final lngTokioU = extendedFoggRoute.cities[4].lng; // 139.65
+      final lngSFU = extendedFoggRoute.cities[5].lng + 360; // 237.58
+      final slope1 = (yAt - yTokio) / (180 - lngTokioU);
+      final slope2 = (ySF - yAt) / (lngSFU - 180);
+      expect(slope1, closeTo(slope2, 1e-9));
+      // Tramos SF→NY y NY→Savile no cruzan
+      expect(extendedFoggRoute.polylineSegments[1].length, 4);
+      expect(extendedFoggRoute.polylineSegments[1][1].longitude, extendedFoggRoute.cities[5].lng); // SF
+      expect(extendedFoggRoute.polylineSegments[1][2].longitude, extendedFoggRoute.cities[6].lng); // NY
+      expect(extendedFoggRoute.polylineSegments[1][3].longitude, extendedFoggRoute.cities[7].lng); // Savile
+    });
+  });
 }

@@ -18,7 +18,19 @@ class FoggRoute {
   final List<FoggCity> cities;
 
   /// Polyline derivado: LatLng por cada ciudad en orden.
-  List<LatLng> get polyline => cities.map((c) => LatLng(c.lat, c.lng)).toList();
+  /// Si el último tramo es wrap (lng decrece), inserta quiebre en 180/-180
+  /// para dibujar el corte antimeridiano en mundo finito.
+  List<LatLng> get polyline {
+    final needsWrap = cities.length >= 2 && cities.last.lng <= cities[cities.length - 2].lng;
+    if (!needsWrap) {
+      return cities.map((c) => LatLng(c.lat, c.lng)).toList();
+    }
+    // Corta en antimeridiano: Tokio → 180, -180 → Savile Row
+    final base = cities.sublist(0, cities.length - 1).map((c) => LatLng(c.lat, c.lng)).toList();
+    final lastLat = cities.last.lat;
+    final lastLng = cities.last.lng;
+    return [...base, LatLng(lastLat, 180), LatLng(lastLat, -180), LatLng(lastLat, lastLng)];
+  }
 
   /// Valida Regla del Este permitiendo salto de meridiano en el último tramo
   /// (cierre del loop en Savile Row). Para i < n-1 exige lng creciente;

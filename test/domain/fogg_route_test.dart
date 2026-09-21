@@ -3,9 +3,14 @@ import 'package:pf/domain/entities/fogg_route.dart';
 
 void main() {
   group('FoggRoute — Regla del Este', () {
-    test('polyline contiene 6 puntos en orden (cierra en Savile Row)', () {
-      expect(mockFoggRoute.polyline.length, 6);
+    test('polyline contiene 8 puntos con quiebre antimeridiano (cierra en Savile Row)', () {
+      // 6 ciudades + 2 puntos de quiebre 180/-180 en último tramo
+      expect(mockFoggRoute.polyline.length, 8);
       expect(mockFoggRoute.cities.length, 6);
+      // Verifica quiebre
+      expect(mockFoggRoute.polyline[5].longitude, 180);
+      expect(mockFoggRoute.polyline[6].longitude, -180);
+      expect(mockFoggRoute.polyline.last.longitude, mockFoggRoute.cities.last.lng);
     });
 
     test('lng crece hacia el este en orden 0..4 y permite salto final a Savile Row', () {
@@ -38,12 +43,19 @@ void main() {
       expect(() => FoggRoute.validated(cities: mockFoggRoute.cities), returnsNormally);
     });
 
-    test('polyline coords coinciden con ciudades', () {
+    test('polyline coords coinciden con ciudades (con quiebre)', () {
       final poly = mockFoggRoute.polyline;
-      for (var i = 0; i < poly.length; i++) {
+      // Primeros 5 puntos (0..4) coinciden con ciudades 0..4
+      for (var i = 0; i < 5; i++) {
         expect(poly[i].latitude, mockFoggRoute.cities[i].lat);
         expect(poly[i].longitude, mockFoggRoute.cities[i].lng);
       }
+      // Quiebre 180/-180 en lat de Savile Row
+      expect(poly[5].latitude, mockFoggRoute.cities.last.lat);
+      expect(poly[6].latitude, mockFoggRoute.cities.last.lat);
+      // Último punto coincide con Savile Row
+      expect(poly.last.latitude, mockFoggRoute.cities.last.lat);
+      expect(poly.last.longitude, mockFoggRoute.cities.last.lng);
     });
   });
 }

@@ -31,7 +31,7 @@ void main() {
       expect(find.textContaining('OpenStreetMap'), findsOneWidget);
     });
 
-    testWidgets('renderiza 1 polyline con 6 puntos y 6 markers', (tester) async {
+    testWidgets('renderiza 1 polyline con 8 puntos (quiebre antimeridiano) y 6 markers', (tester) async {
       await tester.pumpWidget(
         const ProviderScope(
           child: MaterialApp(
@@ -47,12 +47,14 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Verifica PolylineLayer existe y tiene 6 puntos (cierra en Savile Row)
+      // Verifica PolylineLayer existe y tiene 8 puntos (6 ciudades + quiebre 180/-180)
       final polyLayer = tester.widgetList<PolylineLayer>(find.byType(PolylineLayer));
       expect(polyLayer.length, 1);
       final polylines = polyLayer.first.polylines;
       expect(polylines.length, 1);
-      expect(polylines.first.points.length, 6);
+      expect(polylines.first.points.length, 8);
+      expect(polylines.first.points[5].longitude, 180);
+      expect(polylines.first.points[6].longitude, -180);
       // Verifica color #C0392B opacity 0.95 y stroke según spec
       expect(polylines.first.color, const Color(0xFFC0392B).withValues(alpha: 0.95));
       expect(polylines.first.strokeWidth, 4.0);

@@ -43,16 +43,23 @@ void main() {
       expect(() => FoggRoute.validated(cities: mockFoggRoute.cities), returnsNormally);
     });
 
-    test('polyline coords coinciden con ciudades (con quiebre)', () {
+    test('polyline coords coinciden con ciudades (con quiebre interpolado)', () {
       final poly = mockFoggRoute.polyline;
       // Primeros 5 puntos (0..4) coinciden con ciudades 0..4
       for (var i = 0; i < 5; i++) {
         expect(poly[i].latitude, mockFoggRoute.cities[i].lat);
         expect(poly[i].longitude, mockFoggRoute.cities[i].lng);
       }
-      // Quiebre 180/-180 en lat de Savile Row
-      expect(poly[5].latitude, mockFoggRoute.cities.last.lat);
-      expect(poly[6].latitude, mockFoggRoute.cities.last.lat);
+      // Quiebre 180/-180 interpolado entre Tokio y Savile Row (misma pendiente)
+      expect(poly[5].longitude, 180);
+      expect(poly[6].longitude, -180);
+      // Lat en antimeridiano ≈38.58 (interpolado para que ambas semirrectas tengan idéntica pendiente)
+      expect(poly[5].latitude, closeTo(38.5776, 0.01));
+      expect(poly[6].latitude, closeTo(38.5776, 0.01));
+      // Pendiente idéntica a ambos lados del corte
+      final slope1 = (poly[5].latitude - poly[4].latitude) / (poly[5].longitude - poly[4].longitude);
+      final slope2 = (poly.last.latitude - poly[6].latitude) / (poly.last.longitude - poly[6].longitude);
+      expect(slope1, closeTo(slope2, 0.001));
       // Último punto coincide con Savile Row
       expect(poly.last.latitude, mockFoggRoute.cities.last.lat);
       expect(poly.last.longitude, mockFoggRoute.cities.last.lng);

@@ -18,32 +18,66 @@ class FoggRoute {
   final List<FoggCity> cities;
 
   /// Polyline derivado: LatLng por cada ciudad en orden.
-  /// Si el último tramo es wrap (lng decrece), inserta quiebre en 180/-180
-  /// para dibujar el corte antimeridiano en mundo finito.
+  /// Para cualquier tramo donde lng decrece (cruce antimeridiano hacia el este),
+  /// inserta quiebre en 180/-180 con lat interpolada para que ambas
+  /// semirrectas tengan idéntica pendiente y parezcan una sola línea.
   List<LatLng> get polyline {
-    final needsWrap = cities.length >= 2 && cities.last.lng <= cities[cities.length - 2].lng;
-    if (!needsWrap) {
-      return cities.map((c) => LatLng(c.lat, c.lng)).toList();
+    if (cities.isEmpty) return [];
+    final points = <LatLng>[];
+    // Acumulador de offset para desenrollar longitudes hacia el este
+    double offset = 0;
+    double prevUnwrappedLng = cities.first.lng;
+    points.add(LatLng(cities.first.lat, cities.first.lng));
+
+    for (var i = 1; i < cities.length; i++) {
+      final currRealLng = cities[i].lng;
+      var currUnwrapped = currRealLng + offset;
+      // Si el siguiente punto está al oeste en coordenadas reales, desenrolla
+      if (currUnwrapped <= prevUnwrappedLng) {
+        currUnwrapped += 360;
+        offset += 360;
+      }
+      final prevCity = cities[i - 1];
+      final currCity = cities[i];
+      final prevLat = prevCity.lat;
+      final currLat = currCity.lat;
+      // ¿Cruza el antimeridiano? (unwrapped cruza 180 + k*360)
+      // Detecta si el segmento cruza el antimeridiano usando +180 offset
+      final prevWrap = ((prevUnwrappedLng + 180) / 360).floor();
+      final currWrap = ((currUnwrapped + 180) / 360).floor();
+      if (prevWrap != currWrap) {
+        // Hay cruce: calcula intersección con 180 + prevWrap*360
+        final antimeridianLng = 180 + prevWrap * 360;
+        final t = (antimeridianLng - prevUnwrappedLng) / (currUnwrapped - prevUnwrappedLng);
+        final latAt180 = prevLat + t * (currLat - prevLat);
+        // Normaliza 180 a 180 y -180 para el quiebre finito sin lng>360
+        points.add(LatLng(latAt180, 180));
+        points.add(LatLng(latAt180, -180));
+      }
+      // Añade el punto destino con lng real (no unwrapped) para que el marcador coincida
+      points.add(LatLng(currCity.lat, currCity.lng));
+      prevUnwrappedLng = currUnwrapped;
     }
-    // Corta en antimeridiano: Tokio → 180, -180 → Savile Row
-    final base = cities.sublist(0, cities.length - 1).map((c) => LatLng(c.lat, c.lng)).toList();
-    final lastLat = cities.last.lat;
-    final lastLng = cities.last.lng;
-    return [...base, LatLng(lastLat, 180), LatLng(lastLat, -180), LatLng(lastLat, lastLng)];
+    return points;
   }
 
-  /// Valida Regla del Este permitiendo salto de meridiano en el último tramo
-  /// (cierre del loop en Savile Row). Para i < n-1 exige lng creciente;
-  /// para el último permite wrap añadiendo 360.
+  /// Valida Regla del Este permitiendo salto antimeridiano en cualquier tramo
+  /// (p.ej. Tokio→Hawái, Hawái→México, Tokio→Savile Row). Usa longitudes
+  /// desenrolladas para que lng pueda crecer más allá de 180.
   static bool _isEastward(List<FoggCity> cities) {
     if (cities.length <= 1) return true;
+    double offset = 0;
+    double prevUnwrapped = cities.first.lng;
     for (var i = 1; i < cities.length; i++) {
-      final currLng = cities[i].lng;
-      final prevLng = cities[i - 1].lng;
-      final isLastWrap = i == cities.length - 1 && currLng <= prevLng;
-      final effectiveLng = isLastWrap ? currLng + 360 : currLng;
-      if (effectiveLng <= prevLng) return false;
+      final currReal = cities[i].lng;
+      var currUnwrapped = currReal + offset;
+      if (currUnwrapped <= prevUnwrapped) {
+        currUnwrapped += 360;
+        offset += 360;
+        if (currUnwrapped <= prevUnwrapped) return false; // aún no supera ni con wrap
+      }
       if (cities[i].order != cities[i - 1].order + 1) return false;
+      prevUnwrapped = currUnwrapped;
     }
     return true;
   }

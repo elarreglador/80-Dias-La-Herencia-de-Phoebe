@@ -235,5 +235,32 @@ void main() {
       await tester.pump();
       expect(tester.takeException(), isNull);
     });
+
+    testWidgets('norte siempre arriba: rotación bloqueada', (tester) async {
+      await tester.pumpWidget(
+        const ProviderScope(
+          child: MaterialApp(
+            home: Scaffold(
+              body: SizedBox(
+                width: 800,
+                height: 600,
+                child: WorldMapWidget(route: mockFoggRoute),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final flutterMap = tester.widget<FlutterMap>(find.byType(FlutterMap));
+      expect(flutterMap.options.initialRotation, 0.0);
+      expect(
+        flutterMap.options.interactionOptions.flags & InteractiveFlag.rotate,
+        0,
+        reason: 'InteractiveFlag.rotate debe estar deshabilitado para que el norte permanezca arriba',
+      );
+      // Verifica que drag y pinchZoom siguen habilitados
+      expect(flutterMap.options.interactionOptions.flags & InteractiveFlag.drag, isNot(0));
+      expect(flutterMap.options.interactionOptions.flags & InteractiveFlag.pinchZoom, isNot(0));
+    });
   });
 }

@@ -169,6 +169,10 @@ class _WorldMapWidgetState extends ConsumerState<WorldMapWidget>
       options: MapOptions(
         initialCenter: center,
         initialZoom: widget.initialZoom,
+        initialRotation: 0.0,
+        interactionOptions: const InteractionOptions(
+          flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+        ),
         minZoom: 2.0,
         maxZoom: 18.0,
         backgroundColor: _offlineBg,

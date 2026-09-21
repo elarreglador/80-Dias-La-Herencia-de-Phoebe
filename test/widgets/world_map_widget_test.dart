@@ -31,7 +31,7 @@ void main() {
       expect(find.textContaining('OpenStreetMap'), findsOneWidget);
     });
 
-    testWidgets('renderiza 1 polyline con 5 puntos y 5 markers', (tester) async {
+    testWidgets('renderiza 1 polyline con 6 puntos y 6 markers', (tester) async {
       await tester.pumpWidget(
         const ProviderScope(
           child: MaterialApp(
@@ -47,22 +47,22 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Verifica PolylineLayer existe y tiene 5 puntos mock
+      // Verifica PolylineLayer existe y tiene 6 puntos (cierra en Savile Row)
       final polyLayer = tester.widgetList<PolylineLayer>(find.byType(PolylineLayer));
       expect(polyLayer.length, 1);
       final polylines = polyLayer.first.polylines;
       expect(polylines.length, 1);
-      expect(polylines.first.points.length, 5);
+      expect(polylines.first.points.length, 6);
       // Verifica color #C0392B opacity 0.95 y stroke según spec
       expect(polylines.first.color, const Color(0xFFC0392B).withValues(alpha: 0.95));
       expect(polylines.first.strokeWidth, 4.0);
 
-      // Verifica MarkerLayer: 5 ciudades + 1 Phoebe = 2 capas, 5 en primera
+      // Verifica MarkerLayer: 6 ciudades + 1 Phoebe = 2 capas, 6 en primera
       final markerLayers = tester.widgetList<MarkerLayer>(find.byType(MarkerLayer)).toList();
       expect(markerLayers.length, 2); // ciudades + Phoebe distintivo
-      expect(markerLayers.first.markers.length, 5); // 5 ciudades
+      expect(markerLayers.first.markers.length, 6); // 6 ciudades (incluye Savile Row)
       final allMarkers = markerLayers.expand((l) => l.markers).toList();
-      expect(allMarkers.length, 6); // 5 ciudades + 1 Phoebe
+      expect(allMarkers.length, 7); // 6 ciudades + 1 Phoebe
       // Verifica que la polyline pasa exactamente por los puntos (nuevo alignment center)
 
       // Verifica que al menos un label visible (a zoom 3, colisión puede ocultar 1)
@@ -93,8 +93,8 @@ void main() {
       // Verifica colisión inspeccionando MarkerLayer fuente (evita culling offscreen)
       int countLabelsFromMarkers() {
         final layers = tester.widgetList<MarkerLayer>(find.byType(MarkerLayer)).toList();
-        // Primera capa = ciudades (5), segunda = Phoebe (1) si existe
-        final cityLayer = layers.firstWhere((l) => l.markers.length == 5, orElse: () => layers.first);
+        // Primera capa = ciudades (6), segunda = Phoebe (1) si existe
+        final cityLayer = layers.firstWhere((l) => l.markers.length == 6, orElse: () => layers.first);
         int count = 0;
         for (final m in cityLayer.markers) {
           final child = m.child;
@@ -109,16 +109,16 @@ void main() {
       }
 
       final labelsZoom3 = countLabelsFromMarkers();
-      // A zoom 3 debe ocultar 1 (París) por cercanía Londres-París → 4 visibles
+      // A zoom 3 debe ocultar 2 (París por Londres y Savile Row por Londres) → 4 visibles
       expect(labelsZoom3, 4);
 
-      // Cambia a zoom 7 → todos visibles (zoom >=6 desactiva colisión)
+      // Cambia a zoom 7 → todos visibles (zoom >=6 desactiva colisión) → 6
       container.read(mapZoomProvider.notifier).state = 7.0;
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
       await tester.pumpAndSettle();
       final labelsZoom7 = countLabelsFromMarkers();
-      expect(labelsZoom7, 5);
+      expect(labelsZoom7, 6);
     });
 
     testWidgets('controles zoom clamp 2..18', (tester) async {

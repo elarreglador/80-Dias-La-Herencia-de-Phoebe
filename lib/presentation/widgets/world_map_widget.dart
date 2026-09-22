@@ -20,6 +20,50 @@ const _mapTileUrl = String.fromEnvironment(
   defaultValue: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
 );
 
+/// Límites mundiales — usados para contener la cámara sin salto antimeridiano.
+final _worldBounds = LatLngBounds(
+  const LatLng(-90, -180),
+  const LatLng(90, 180),
+);
+
+/// Contención híbrida: intenta `contain` (bordes dentro del mundo) y si
+/// el zoom es tan bajo que el mundo cabe entero en el viewport (`contain`
+/// devuelve null), cae a `containCenter` que siempre sujeta el centro.
+/// Así, por mucho que se arrastre horizontalmente, el mapa se detiene en
+/// el borde en lugar de saltar al otro extremo del antimeridiano.
+class _ContainWithFallback extends CameraConstraint {
+  const _ContainWithFallback(this.bounds);
+  final LatLngBounds bounds;
+
+  @override
+  MapCamera? constrain(MapCamera camera) {
+    final contain = CameraConstraint.contain(bounds: bounds).constrain(camera);
+    if (contain != null) return contain;
+    return CameraConstraint.containCenter(bounds: bounds).constrain(camera);
+  }
+
+  @override
+  bool operator ==(Object other) => other is _ContainWithFallback && other.bounds == bounds;
+
+  @override
+  int get hashCode => bounds.hashCode;
+
+  @override
+  String toString() => 'ContainWithFallback(bounds: $bounds) — wraps ContainCamera';
+}
+
+/// CRS Mercator sin repetición horizontal — mundo finito.
+/// `Epsg3857` por defecto tiene `replicatesWorldLongitude==true` y envuelve
+/// el mapa infinitamente (arrastrar más allá de 180 reaparece en -180).
+/// Sobrescribiendo a `false`, el mapa se detiene en el antimeridiano y
+/// muestra el `backgroundColor` más allá, sin salto.
+@immutable
+class Epsg3857NoRepeat extends Epsg3857 {
+  const Epsg3857NoRepeat();
+  @override
+  bool get replicatesWorldLongitude => false;
+}
+
 /// Widget reutilizable de mapamundi Fogg — Mercator EPSG:3857 con OSM.
 /// Acepta [route], [foggPosition] y constraints parametrizables.
 class WorldMapWidget extends ConsumerStatefulWidget {
@@ -167,18 +211,14 @@ class _WorldMapWidgetState extends ConsumerState<WorldMapWidget>
     final mapContent = FlutterMap(
       mapController: _mapController,
       options: MapOptions(
+        crs: const Epsg3857NoRepeat(),
         initialCenter: center,
         initialZoom: widget.initialZoom,
         initialRotation: 0.0,
         interactionOptions: const InteractionOptions(
           flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
         ),
-        cameraConstraint: CameraConstraint.contain(
-          bounds: LatLngBounds(
-            const LatLng(-90, -180),
-            const LatLng(90, 180),
-          ),
-        ),
+        cameraConstraint: _ContainWithFallback(_worldBounds),
         minZoom: 2.0,
         maxZoom: 18.0,
         backgroundColor: _offlineBg,
@@ -220,6 +260,7 @@ class _WorldMapWidgetState extends ConsumerState<WorldMapWidget>
                 ),
               )
               .toList(),
+          drawInSingleWorld: true,
         ),
         MarkerLayer(
           markers: widget.route.cities.map((city) {

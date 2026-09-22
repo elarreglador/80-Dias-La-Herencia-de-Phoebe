@@ -298,8 +298,14 @@ void main() {
       final constraint = flutterMap.options.cameraConstraint;
       // Debe ser contain con bounds mundiales, no unconstrained
       expect(constraint, isNot(const CameraConstraint.unconstrained()));
-      // Verifica que es contain (no containCenter ni unconstrained)
+      // Verifica que es contain (no containCenter ni unconstrained) — ahora con fallback
       expect(constraint.toString(), contains('ContainCamera'));
+      // CRS sin repetición horizontal: evita salto al otro extremo del antimeridiano en cualquier zoom
+      expect(flutterMap.options.crs.replicatesWorldLongitude, isFalse,
+          reason: 'CRS debe ser Epsg3857NoRepeat para que el mapa se detenga en el borde');
+      // Polyline debe dibujar en mundo único (sin offsets de copia)
+      final polyLayer = tester.widget<PolylineLayer>(find.byType(PolylineLayer));
+      expect(polyLayer.drawInSingleWorld, isTrue);
     });
 
     testWidgets('renderiza ruta extendida 8 ciudades vía SF y NY (10 puntos, 2 polylines)', (tester) async {

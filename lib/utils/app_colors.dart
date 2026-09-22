@@ -18,4 +18,8 @@ class AppColors {
   static const labelColor = Color(0xFF1A1A1A);
   static const offlineBg = Color(0xFFF5F0E8);
   static const offlineTextColor = Color(0xFF6B6B6B);
+
+  /// Tokens M3 — usados por FoggAppBar y FoggBottomNav.
+  static const surface = Color(0xFFFEF7FF);
+  static const surfaceVariant = Color(0xFFF3EDF7);
 }

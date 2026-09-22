@@ -9,7 +9,7 @@ Checklist vivo. Marque con `[x]` al completar.
 ### MVP — versión super simplificada (compatible con final)
 - [ ] `shared_models` (Position, Leg, TransportMode, DiaryEntry, WeatherSnapshot)
 - [ ] PWA mínima (`web/manifest.json`, `service_worker`, iconos 192/512, prompt instalación móvil)
-- [ ] `flutter_map` + OSM + marcador Fogg (`foggPosition`, Phoebe) + overlay día/noche simplificado
+- [x] `flutter_map` + OSM + marcador Fogg (`foggPosition`, Phoebe) + overlay día/noche simplificado → **curvo preciso** `SunTerminatorService` 2° `PolygonLayer` `#000511` 45% recálculo 5 min (spec 001 `docs/specs/001-terminador-solar.md`)
 - [ ] `TimeEngine` (START_DATE configurable, TIME_SCALE dev-only con guardarraíl prod, ciclo descanso 5–8 h, flag `sleeper`)
 - [ ] Ruta 5 ciudades este (Londres → París → Estambul → Bombay → Tokio) + interpolación minuto a minuto (GeoJSON recto)
 - [ ] Catálogo mock 3 transportes (train/ship/foot) con `price | departureTime | sleeper | availabilityRule`
@@ -26,7 +26,7 @@ Checklist vivo. Marque con `[x]` al completar.
 ### v1
 - [ ] Ampliar a 15 ciudades + 7 transportes
 - [ ] Trazado GeoJSON real (OpenRailwayMap + rutas marítimas)
-- [ ] Overlay día/noche curvo preciso (terminador solar)
+- [x] Overlay día/noche curvo preciso (terminador solar) — entregado en MVP vía spec 001 (ver item MVP overlay)
 - [ ] Open-Meteo vivo por cada posición + caché
 - [ ] EventEngine completo (huelga, frontera, avería, viento, nieve)
 - [ ] Ledger con historial y gráfica

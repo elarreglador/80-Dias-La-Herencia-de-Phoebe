@@ -5,7 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../domain/entities/fogg_route.dart';
+import '../../utils/app_colors.dart';
 import '../providers/fogg_position_provider.dart';
+import '../providers/sun_terminator_provider.dart';
 import 'map_controls.dart';
 
 /// Colores según spec.
@@ -200,6 +202,7 @@ class _WorldMapWidgetState extends ConsumerState<WorldMapWidget>
     final providerPos = ref.watch(foggPositionProvider);
     final effectiveFoggPos = widget.foggPosition ?? providerPos;
     final currentZoom = ref.watch(mapZoomProvider);
+    final nightPolygons = ref.watch(sunTerminatorProvider);
     final center = effectiveFoggPos ??
         (widget.route.cities.isNotEmpty
             ? LatLng(widget.route.cities.first.lat, widget.route.cities.first.lng)
@@ -250,6 +253,21 @@ class _WorldMapWidgetState extends ConsumerState<WorldMapWidget>
           },
           // tileBuilder puede mostrar placeholder por tile, no necesario para spec
         ),
+        // Capa día/noche — terminador solar curvo (spec 001) fix completo:
+        // 1 polígono sinusoidal + clamp 85.05° o 2 rectángulos equinoccio split antimeridiano
+        if (nightPolygons.isNotEmpty)
+          PolygonLayer(
+            polygons: nightPolygons
+                .map(
+                  (pts) => Polygon(
+                    points: pts,
+                    color: AppColors.nightOverlay,
+                    borderColor: Colors.transparent,
+                    borderStrokeWidth: 0,
+                  ),
+                )
+                .toList(),
+          ),
         PolylineLayer(
           polylines: widget.route.polylineSegments
               .map(

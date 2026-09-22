@@ -36,6 +36,7 @@ dependencies:
   flutter_riverpod: ^2.5.0
   riverpod: ^2.5.0
   url_launcher: ^6.2.0
+  apsl_sun_calc: ^0.0.4
 
 dev_dependencies:
   flutter_test:

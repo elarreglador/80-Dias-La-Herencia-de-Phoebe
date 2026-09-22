@@ -2,10 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'domain/entities/fogg_route.dart';
+import 'presentation/providers/sun_terminator_provider.dart';
 import 'presentation/widgets/world_map_widget.dart';
 
+/// Solsticio forzado para verificación visual (zoom 2, mapa a pantalla completa).
+/// Cambiar a `null` para volver a tiempo real.
+DateTime? _forcedSolsticeUtc = DateTime.utc(2026, 6, 21, 12, 0, 0);
+
 void main() {
-  runApp(const ProviderScope(child: MyApp()));
+  final overrides = <Override>[];
+  if (_forcedSolsticeUtc != null) {
+    overrides.add(
+      currentUtcProvider.overrideWith((ref) => Stream.value(_forcedSolsticeUtc!)),
+    );
+  }
+  runApp(ProviderScope(overrides: overrides, child: const MyApp()));
 }
 
 class MyApp extends StatelessWidget {
@@ -29,14 +40,11 @@ class FoggHomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Phoebe Fogg — Mapamundi'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      ),
-      // Mapa ocupa todo el espacio disponible (sin padding blanco)
-      body: const WorldMapWidget(
+    return const Scaffold(
+      // Sin AppBar — mapa a pantalla completa, máximo terreno visible
+      body: WorldMapWidget(
         route: mockFoggRoute,
+        initialZoom: 2.0,
       ),
     );
   }

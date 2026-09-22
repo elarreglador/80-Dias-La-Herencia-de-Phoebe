@@ -5,9 +5,9 @@ import 'domain/entities/fogg_route.dart';
 import 'presentation/providers/sun_terminator_provider.dart';
 import 'presentation/widgets/world_map_widget.dart';
 
-/// Solsticio forzado para verificación visual (zoom 2, mapa a pantalla completa).
-/// Cambiar a `null` para volver a tiempo real.
-DateTime? _forcedSolsticeUtc = DateTime.utc(2026, 6, 21, 12, 0, 0);
+/// Tiempo real — terminador sigue la fecha/hora actual del dispositivo.
+/// Cambiar a `DateTime.utc(2026, 6, 21, 12, 0, 0)` para QA de solsticio.
+DateTime? _forcedSolsticeUtc;
 
 void main() {
   final overrides = <Override>[];

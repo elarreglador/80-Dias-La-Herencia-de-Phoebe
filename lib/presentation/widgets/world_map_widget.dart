@@ -353,19 +353,26 @@ class _WorldMapWidgetState extends ConsumerState<WorldMapWidget>
               ),
             ],
           ),
-        RichAttributionWidget(
-          alignment: AttributionAlignment.bottomLeft,
-          attributions: [
-            TextSourceAttribution(
-              '© OpenStreetMap contributors',
-              onTap: () {},
-            ),
-          ],
+        // Atribución con resguardo inferior para no quedar bajo ◻○△
+        SafeArea(
+          top: false,
+          left: false,
+          right: false,
+          bottom: true,
+          child: RichAttributionWidget(
+            alignment: AttributionAlignment.bottomLeft,
+            attributions: [
+              TextSourceAttribution(
+                '© OpenStreetMap contributors',
+                onTap: () {},
+              ),
+            ],
+          ),
         ),
       ],
     );
 
-    // Stack con controles y overlay offline
+    // Stack con controles y overlay offline — agrupación vertical con SafeArea right+bottom
     final stack = Stack(
       children: [
         Positioned.fill(child: mapContent),
@@ -383,17 +390,23 @@ class _WorldMapWidgetState extends ConsumerState<WorldMapWidget>
               ),
             ),
           ),
-        // Controles — posicionamiento según spec
-        ZoomControls(
-          mapController: _mapController,
-          onZoomChanged: _onZoomChanged,
+        // Controles agrupados verticalmente — 12 dp, sin solape, con resguardo ◻○△
+        Positioned(
+          right: 16,
+          bottom: 16,
+          child: SafeArea(
+            top: false,
+            left: false,
+            right: true,
+            bottom: true,
+            child: MapControlsOverlay(
+              mapController: _mapController,
+              foggPosition: effectiveFoggPos,
+              onAnimate: _animateTo,
+              onZoomChanged: _onZoomChanged,
+            ),
+          ),
         ),
-        CenterFoggButton(
-          mapController: _mapController,
-          foggPosition: effectiveFoggPos,
-          onAnimate: _animateTo,
-        ),
-        OpenInOsmButton(mapController: _mapController),
       ],
     );
 

@@ -31,7 +31,7 @@ void main() {
   });
 
   group('MainScaffold', () {
-    testWidgets('muestra AppBar, Mapa inicial y NavigationBar con 4 destinos', (tester) async {
+    testWidgets('muestra AppBar, Mapa inicial y NavigationBar con 5 destinos', (tester) async {
       await tester.pumpWidget(
         const ProviderScope(child: MaterialApp(home: MainScaffold())),
       );
@@ -40,9 +40,10 @@ void main() {
       expect(find.byType(FoggAppBar), findsOneWidget);
       expect(find.byType(WorldMapWidget), findsOneWidget);
       expect(find.byType(NavigationBar), findsOneWidget);
-      expect(find.byType(NavigationDestination), findsNWidgets(4));
+      expect(find.byType(NavigationDestination), findsNWidgets(5));
       expect(find.text('Mapa'), findsOneWidget);
       expect(find.text('Diario'), findsOneWidget);
+      expect(find.text('Fogg'), findsOneWidget);
       expect(find.text('Presupuesto'), findsOneWidget);
       expect(find.text('Ruta'), findsOneWidget);
     });
@@ -97,12 +98,12 @@ void main() {
 
       await tester.tap(find.text('Presupuesto'));
       await tester.pumpAndSettle();
-      expect(container.read(bottomNavIndexProvider), 2);
+      expect(container.read(bottomNavIndexProvider), 3);
       expect(find.byKey(const ValueKey('placeholder-budget')), findsOneWidget);
 
       await tester.tap(find.text('Ruta'));
       await tester.pumpAndSettle();
-      expect(container.read(bottomNavIndexProvider), 3);
+      expect(container.read(bottomNavIndexProvider), 4);
       expect(find.byKey(const ValueKey('placeholder-route')), findsOneWidget);
     });
 

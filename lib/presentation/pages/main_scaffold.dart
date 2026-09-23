@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/bottom_nav_provider.dart';
 import '../widgets/fogg_app_bar.dart';
 import '../widgets/fogg_bottom_nav.dart';
+import 'fogg_status_page.dart';
 import 'map_tab.dart';
 import 'placeholder_pages.dart';
 
@@ -28,6 +29,7 @@ class MainScaffold extends ConsumerWidget {
         children: const [
           MapTab(),
           DiaryPlaceholder(),
+          FoggStatusPage(),
           BudgetPlaceholder(),
           RoutePlaceholder(),
         ],

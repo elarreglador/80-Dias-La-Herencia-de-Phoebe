@@ -5,7 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 final bottomNavIndexProvider = StateProvider<int>((ref) => 0);
 
 /// Destinos constantes — orden fijo, usado por FoggBottomNav y MainScaffold.
-/// No se expone fuera de presentation.
+/// 5 pestañas: Mapa | Diario | Fogg (central dinámico) | Presupuesto | Ruta
+/// El central (índice 2) cambia icono según FoggStatus (viajando vs en destino).
 const bottomNavDestinations = [
   (
     label: 'Mapa',
@@ -16,6 +17,11 @@ const bottomNavDestinations = [
     label: 'Diario',
     iconOutlined: Icons.menu_book_outlined,
     iconFilled: Icons.menu_book,
+  ),
+  (
+    label: 'Fogg',
+    iconOutlined: Icons.location_on_outlined,
+    iconFilled: Icons.location_on,
   ),
   (
     label: 'Presupuesto',

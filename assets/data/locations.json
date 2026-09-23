@@ -1,0 +1,69 @@
+{
+  "meta": {
+    "project": "eu.elarreglador.pf",
+    "name": "Fogg Cities Catalog — La Herencia de Phoebe",
+    "version": "1.0.0",
+    "update": "2026-09-23",
+    "source": "GeoNames cities15000 (CC-BY 4.0) + manual Savile Row",
+    "attribution": "GeoNames CC-BY 4.0 — https://www.geonames.org"
+  },
+  "cities": [
+    {
+      "name": "Londres",
+      "asciiname": "London",
+      "lat": 51.50853,
+      "lng": -0.12574,
+      "timezone": "Europe/London"
+    },
+    {
+      "name": "París",
+      "asciiname": "Paris",
+      "lat": 48.85341,
+      "lng": 2.3488,
+      "timezone": "Europe/Paris"
+    },
+    {
+      "name": "Estambul",
+      "asciiname": "Istanbul",
+      "lat": 41.01384,
+      "lng": 28.94966,
+      "timezone": "Europe/Istanbul"
+    },
+    {
+      "name": "Bombay",
+      "asciiname": "Mumbai",
+      "lat": 19.07283,
+      "lng": 72.88261,
+      "timezone": "Asia/Kolkata",
+      "note": "Nombre narrativo 'Bombay' (exónimo histórico) — GeoNames registra 'Mumbai'"
+    },
+    {
+      "name": "Tokio",
+      "asciiname": "Tokyo",
+      "lat": 35.6895,
+      "lng": 139.69171,
+      "timezone": "Asia/Tokyo"
+    },
+    {
+      "name": "San Francisco",
+      "asciiname": "San Francisco",
+      "lat": 37.77493,
+      "lng": -122.41942,
+      "timezone": "America/Los_Angeles"
+    },
+    {
+      "name": "Nueva York",
+      "asciiname": "New York City",
+      "lat": 40.71427,
+      "lng": -74.00597,
+      "timezone": "America/New_York"
+    },
+    {
+      "name": "Savile Row",
+      "asciiname": "Savile Row",
+      "lat": 51.5107,
+      "lng": -0.141,
+      "timezone": "Europe/London"
+    }
+  ]
+}

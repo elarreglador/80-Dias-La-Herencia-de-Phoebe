@@ -17,21 +17,22 @@ void main() {
       expect(container.read(bottomNavIndexProvider), 2);
     });
 
-    test('todos los índices 0..3 son válidos', () {
+    test('todos los índices 0..4 son válidos', () {
       final container = ProviderContainer();
       addTearDown(container.dispose);
-      for (var i = 0; i < 4; i++) {
+      for (var i = 0; i < 5; i++) {
         container.read(bottomNavIndexProvider.notifier).state = i;
         expect(container.read(bottomNavIndexProvider), i);
       }
     });
 
-    test('bottomNavDestinations tiene 4 destinos con labels en castellano', () {
-      expect(bottomNavDestinations.length, 4);
+    test('bottomNavDestinations tiene 5 destinos con labels en castellano', () {
+      expect(bottomNavDestinations.length, 5);
       expect(bottomNavDestinations[0].label, 'Mapa');
       expect(bottomNavDestinations[1].label, 'Diario');
-      expect(bottomNavDestinations[2].label, 'Presupuesto');
-      expect(bottomNavDestinations[3].label, 'Ruta');
+      expect(bottomNavDestinations[2].label, 'Fogg');
+      expect(bottomNavDestinations[3].label, 'Presupuesto');
+      expect(bottomNavDestinations[4].label, 'Ruta');
     });
 
     test('índice fuera de rango no rompe build — clamp en MainScaffold', () {
@@ -39,10 +40,10 @@ void main() {
       addTearDown(container.dispose);
       // Setter permite cualquier int (StateProvider), MainScaffold hace clamp
       container.read(bottomNavIndexProvider.notifier).state = 99;
-      final clamped = container.read(bottomNavIndexProvider).clamp(0, 3);
-      expect(clamped, 3);
+      final clamped = container.read(bottomNavIndexProvider).clamp(0, 4);
+      expect(clamped, 4);
       container.read(bottomNavIndexProvider.notifier).state = -5;
-      expect(container.read(bottomNavIndexProvider).clamp(0, 3), 0);
+      expect(container.read(bottomNavIndexProvider).clamp(0, 4), 0);
     });
   });
 }

@@ -41,3 +41,10 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Orígenes — derivados reproducibles (se generan con cities_to_json.py / strip_alternates.py)
+docs/origenes/cities15000.json
+docs/origenes/cities15000.no-alts.json
+docs/origenes/__pycache__/
+__pycache__/
+*.pyc

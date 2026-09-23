@@ -7,6 +7,7 @@ import 'package:latlong2/latlong.dart';
 import '../../domain/entities/fogg_route.dart';
 import '../../utils/app_colors.dart';
 import '../providers/fogg_position_provider.dart';
+import '../providers/map_focus_provider.dart';
 import '../providers/sun_terminator_provider.dart';
 import 'map_controls.dart';
 
@@ -102,6 +103,8 @@ class _WorldMapWidgetState extends ConsumerState<WorldMapWidget>
     with TickerProviderStateMixin {
   late final MapController _mapController;
   bool _tileError = false;
+  bool _mapReady = false;
+  MapFocusRequest? _pendingFocus;
 
   @override
   void initState() {
@@ -166,6 +169,15 @@ class _WorldMapWidgetState extends ConsumerState<WorldMapWidget>
     setState(() {});
   }
 
+  void _handleMapFocus(MapFocusRequest req) {
+    final target = LatLng(req.city.lat, req.city.lng);
+    if (!_mapReady) {
+      _pendingFocus = req;
+      return;
+    }
+    _animateTo(target, req.zoom);
+  }
+
   /// Animación 600ms easeOut hacia [target].
   void _animateTo(LatLng target, double zoom) {
     final latTween = Tween<double>(
@@ -193,12 +205,20 @@ class _WorldMapWidgetState extends ConsumerState<WorldMapWidget>
     });
     controller.forward().whenComplete(() {
       controller.dispose();
+      // Sincroniza zoom provider también en animaciones programáticas
+      if (mounted) ref.read(mapZoomProvider.notifier).state = zoom;
       HapticFeedback.lightImpact();
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    // Escucha peticiones de foco desde la pantalla de Fogg (chincheta → mapa).
+    // Se registra en cada build; Riverpod gestiona la suscripción.
+    ref.listen<MapFocusRequest?>(mapFocusProvider, (prev, next) {
+      if (next != null) _handleMapFocus(next);
+    });
+
     final providerPos = ref.watch(foggPositionProvider);
     final effectiveFoggPos = widget.foggPosition ?? providerPos;
     final currentZoom = ref.watch(mapZoomProvider);
@@ -226,10 +246,20 @@ class _WorldMapWidgetState extends ConsumerState<WorldMapWidget>
         maxZoom: 18.0,
         backgroundColor: _offlineBg,
         onMapReady: () {
+          _mapReady = true;
           // sincroniza zoom provider al iniciar
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) {
               ref.read(mapZoomProvider.notifier).state = _mapController.camera.zoom;
+              // Procesa foco pendiente (chincheta pulsada antes de que el mapa estuviera listo)
+              if (_pendingFocus != null) {
+                final req = _pendingFocus!;
+                _pendingFocus = null;
+                // PostFrame para asegurar que controller esté estable
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) _animateTo(LatLng(req.city.lat, req.city.lng), req.zoom);
+                });
+              }
             }
           });
         },

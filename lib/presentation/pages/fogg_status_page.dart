@@ -5,8 +5,10 @@ import '../../domain/entities/destination_option.dart';
 import '../../domain/entities/fogg_leg.dart';
 import '../../domain/entities/fogg_status.dart';
 import '../../utils/app_colors.dart';
+import '../providers/bottom_nav_provider.dart';
 import '../providers/countdown_provider.dart';
 import '../providers/fogg_status_provider.dart';
+import '../providers/map_focus_provider.dart';
 import '../widgets/countdown_widget.dart';
 import '../widgets/destination_card.dart';
 import '../widgets/transport_icon.dart';
@@ -190,7 +192,7 @@ class _ArrivedView extends ConsumerWidget {
               style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.labelColor.withValues(alpha: 0.7), letterSpacing: 0.5)),
           const SizedBox(height: 10),
 
-          // 3 ciudades
+          // 3 ciudades — chincheta solo navega al mapa, selección es vía vehículo
           ...options.map((opt) {
             final isSelected = selectedCity?.city == opt.city;
             return Padding(
@@ -205,6 +207,11 @@ class _ArrivedView extends ConsumerWidget {
                   if (currentVehicle != null && !opt.vehicles.contains(currentVehicle)) {
                     ref.read(selectedVehicleProvider.notifier).state = null;
                   }
+                },
+                onPinTap: () {
+                  // Solo navega al mapa con zoom medio; no selecciona destino/vehículo
+                  ref.read(mapFocusProvider.notifier).request(opt.city);
+                  ref.read(bottomNavIndexProvider.notifier).state = 0;
                 },
               ),
             );

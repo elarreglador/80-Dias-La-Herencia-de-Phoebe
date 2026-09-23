@@ -6,17 +6,23 @@ import '../../utils/app_colors.dart';
 import 'transport_icon.dart';
 
 /// Tarjeta de ciudad candidata — muestra nombre + 1-3 vehículos.
+///
+/// `onPinTap` es el icono de chincheta que navega al mapa con zoom medio
+/// sobre [option.city]; no selecciona destino (eso lo hace la elección de
+/// vehículo en `FoggStatusPage`). Si es `null`, no se muestra el botón.
 class DestinationCard extends StatelessWidget {
   const DestinationCard({
     super.key,
     required this.option,
     required this.selected,
     required this.onTap,
+    this.onPinTap,
   });
 
   final DestinationOption option;
   final bool selected;
   final VoidCallback onTap;
+  final VoidCallback? onPinTap;
 
   @override
   Widget build(BuildContext context) {
@@ -44,19 +50,51 @@ class DestinationCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: selected ? AppColors.foggRed : AppColors.surfaceVariant,
-                      shape: BoxShape.circle,
+                  // Círculo gris — ahora es el botón que navega al mapa (zoom medio).
+                  // No selecciona destino; la selección sigue siendo vía tarjeta/vehículo.
+                  if (onPinTap != null)
+                    Tooltip(
+                      message: 'Ver ${option.city.name} en el mapa',
+                      child: Material(
+                        color: Colors.transparent,
+                        shape: const CircleBorder(),
+                        child: InkWell(
+                          onTap: () {
+                            HapticFeedback.lightImpact();
+                            onPinTap!.call();
+                          },
+                          customBorder: const CircleBorder(),
+                          child: Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: selected ? AppColors.foggRed : AppColors.surfaceVariant,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.location_on,
+                              size: 22,
+                              color: selected ? Colors.white : AppColors.foggRed.withValues(alpha: 0.8),
+                              semanticLabel: 'Ver ${option.city.name} en el mapa',
+                            ),
+                          ),
+                        ),
+                      ),
+                    )
+                  else
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: selected ? AppColors.foggRed : AppColors.surfaceVariant,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.location_on,
+                        size: 22,
+                        color: selected ? Colors.white : AppColors.foggRed.withValues(alpha: 0.8),
+                      ),
                     ),
-                    child: Icon(
-                      Icons.location_on,
-                      size: 22,
-                      color: selected ? Colors.white : AppColors.foggRed.withValues(alpha: 0.8),
-                    ),
-                  ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(

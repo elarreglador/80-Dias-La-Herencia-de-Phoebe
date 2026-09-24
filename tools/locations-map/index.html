@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fogg Cities — Visor locations.json</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div id="map" aria-label="Mapa OpenStreetMap con ciudades Fogg"></div>
+
+  <div id="side-panel" role="complementary" aria-label="Panel de ciudades">
+    <header class="panel-header">
+      <h1>Fogg Cities</h1>
+      <p class="subtitle">La Herencia de Phoebe — <span id="meta-version">v1.0.1</span></p>
+    </header>
+
+    <div class="panel-controls">
+      <input type="search" id="filter" placeholder="Filtrar por nombre o timezone..." autocomplete="off" />
+      <div id="counter" class="counter">—</div>
+      <div id="banner" class="banner hidden" role="alert"></div>
+    </div>
+
+    <ul id="city-list" class="city-list" aria-label="Lista de ciudades"></ul>
+
+    <footer class="panel-footer">
+      <label class="file-label">
+        Cargar JSON local
+        <input type="file" id="file" accept=".json" />
+      </label>
+      <p class="hint">Arrastra un <code>locations.json</code> sobre el mapa para comparar regeneraciones. No escribe disco.</p>
+      <p class="attribution">Datos: GeoNames CC-BY 4.0 — <a href="https://www.geonames.org" target="_blank" rel="noopener">geonames.org</a></p>
+    </footer>
+  </div>
+
+  <div id="drop-zone" class="drop-zone hidden" aria-hidden="true">
+    <div class="drop-inner">Suelta locations.json aquí</div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="./app.js"></script>
+</body>
+</html>

@@ -1,0 +1,230 @@
+/* Fogg visor — tokens desacoplados: foggRed #C0392B, offlineBg #F5F0E8 */
+:root {
+  --fogg-red: #C0392B;
+  --offline-bg: #F5F0E8;
+  --panel-bg: #FFFFFF;
+  --text: #1A1A1A;
+  --muted: #6B6B6B;
+  --border: #E8E0D6;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  color: var(--text);
+  background: var(--offline-bg);
+}
+
+body {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+#map {
+  flex: 1;
+  height: 100vh;
+  background: #E5E0D5;
+  z-index: 1;
+}
+
+/* Panel lateral 320px derecha */
+#side-panel {
+  width: 320px;
+  min-width: 320px;
+  max-width: 320px;
+  height: 100vh;
+  background: var(--panel-bg);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 2;
+}
+
+.panel-header {
+  padding: 14px 14px 10px;
+  border-bottom: 1px solid var(--border);
+  background: var(--offline-bg);
+}
+
+.panel-header h1 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.panel-controls {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#filter {
+  width: 100%;
+  padding: 7px 9px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 13px;
+  outline: none;
+  background: #fff;
+}
+
+#filter:focus {
+  border-color: var(--fogg-red);
+  box-shadow: 0 0 0 2px rgba(192,57,43,0.12);
+}
+
+.counter {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.banner {
+  font-size: 12px;
+  padding: 8px 9px;
+  border-radius: 6px;
+  background: #FDEDEC;
+  border: 1px solid #E6A19A;
+  color: #7B241C;
+}
+
+.banner.hidden { display: none; }
+
+.city-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  max-height: 60vh;
+  flex: 1;
+}
+
+.city-list li {
+  padding: 8px 12px;
+  border-bottom: 1px solid #F0EDE8;
+  cursor: pointer;
+  font-size: 12.5px;
+  line-height: 1.35;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.city-list li:hover { background: #FDF6F5; }
+.city-list li.active { background: rgba(192,57,43,0.08); border-left: 3px solid var(--fogg-red); padding-left: 9px; }
+
+.city-list .name { font-weight: 600; font-size: 13px; }
+.city-list .meta { font-size: 11px; color: var(--muted); }
+.city-list .empty { padding: 16px 12px; color: var(--muted); text-align: center; }
+
+.panel-footer {
+  padding: 10px 12px;
+  border-top: 1px solid var(--border);
+  background: #FFFEFC;
+}
+
+.file-label {
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.file-label input[type=file] {
+  font-size: 11px;
+}
+
+.hint {
+  margin: 8px 0 0;
+  font-size: 10.5px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.attribution {
+  margin: 8px 0 0;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.attribution a { color: var(--muted); }
+
+/* Leaflet custom marker circle 8px borde blanco 2px */
+.fogg-marker {
+  width: 8px;
+  height: 8px;
+  background: var(--fogg-red);
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.35);
+}
+
+.leaflet-div-icon { background: transparent; border: none; }
+
+/* Drop zone */
+.drop-zone {
+  position: fixed;
+  inset: 0;
+  background: rgba(192,57,43,0.08);
+  border: 2px dashed var(--fogg-red);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  pointer-events: none;
+}
+
+.drop-zone.hidden { display: none; }
+
+.drop-inner {
+  background: #fff;
+  padding: 18px 22px;
+  border-radius: 10px;
+  font-weight: 600;
+  color: var(--fogg-red);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+}
+
+/* Attribution positioning: ensure visible abajo-izquierda, no bajo controles */
+.leaflet-control-attribution {
+  font-size: 10px !important;
+}
+
+/* Responsive: 412x915 sin scroll horizontal */
+@media (max-width: 768px) {
+  body {
+    flex-direction: column;
+  }
+  #map {
+    height: 58vh;
+    flex: none;
+  }
+  #side-panel {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    height: 42vh;
+    border-left: none;
+    border-top: 1px solid var(--border);
+  }
+  .city-list { max-height: none; }
+}
+
+@media (max-width: 412px) {
+  #side-panel { width: 100vw; }
+  body { overflow-x: hidden; }
+}

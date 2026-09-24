@@ -3,12 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'presentation/pages/main_scaffold.dart';
 import 'presentation/providers/sun_terminator_provider.dart';
+import 'services/timezone_service.dart';
 
 /// Tiempo real — terminador sigue la fecha/hora actual del dispositivo.
 /// Cambiar a `DateTime.utc(2026, 6, 21, 12, 0, 0)` para QA de solsticio.
 DateTime? _forcedSolsticeUtc;
 
 void main() {
+  // Inicializa base tzdata para hora civil DST-correcta (IANA → offset -7/+2).
+  TimezoneService.init();
+
   final overrides = <Override>[];
   if (_forcedSolsticeUtc != null) {
     overrides.add(

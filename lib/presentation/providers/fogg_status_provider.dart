@@ -6,12 +6,12 @@ import '../../domain/entities/fogg_leg.dart';
 import '../../domain/entities/fogg_status.dart';
 import '../../domain/entities/transport_mode.dart';
 
-/// Ciudades mock reutilizadas — coherentes con FoggRoute.
-const _bombay = FoggCity(name: 'Bombay', lat: 19.0760, lng: 72.8777, order: 3);
-const _tokio = FoggCity(name: 'Tokio', lat: 35.6762, lng: 139.6503, order: 4);
-const _sanFrancisco = FoggCity(name: 'San Francisco', lat: 37.7749, lng: -122.4194, order: 5);
-const _nuevaYork = FoggCity(name: 'Nueva York', lat: 40.7128, lng: -74.0060, order: 6);
-const _savileRow = FoggCity(name: 'Savile Row', lat: 51.5107, lng: -0.1410, order: 7);
+/// Ciudades mock reutilizadas — coherentes con FoggRoute + IANA civil DST.
+const _bombay = FoggCity(name: 'Bombay', lat: 19.0760, lng: 72.8777, order: 3, timezone: 'Asia/Kolkata');
+const _tokio = FoggCity(name: 'Tokio', lat: 35.6762, lng: 139.6503, order: 4, timezone: 'Asia/Tokyo');
+const _sanFrancisco = FoggCity(name: 'San Francisco', lat: 37.7749, lng: -122.4194, order: 5, timezone: 'America/Los_Angeles');
+const _nuevaYork = FoggCity(name: 'Nueva York', lat: 40.7128, lng: -74.0060, order: 6, timezone: 'America/New_York');
+const _savileRow = FoggCity(name: 'Savile Row', lat: 51.5107, lng: -0.1410, order: 7, timezone: 'Europe/London');
 
 /// Factoría — crea un FoggTraveling ficticio con llegada en [durationFromNow].
 FoggTraveling _mockTraveling({

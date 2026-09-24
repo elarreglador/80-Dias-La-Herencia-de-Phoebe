@@ -102,9 +102,9 @@
     return L.divIcon({
       className: 'leaflet-div-icon',
       html: '<div class="fogg-marker"></div>',
-      iconSize: [12, 12],
-      iconAnchor: [6, 6],
-      popupAnchor: [0, -6],
+      iconSize: [24, 24],
+      iconAnchor: [12, 12],
+      popupAnchor: [0, -12],
     });
   }
 

@@ -163,10 +163,10 @@ body {
 
 .attribution a { color: var(--muted); }
 
-/* Leaflet custom marker circle 8px borde blanco 2px */
+/* Leaflet custom marker circle 16px borde blanco 2px — doble tamaño */
 .fogg-marker {
-  width: 8px;
-  height: 8px;
+  width: 16px;
+  height: 16px;
   background: var(--fogg-red);
   border: 2px solid #fff;
   border-radius: 50%;

@@ -1,6 +1,6 @@
 # SPEC 003 — Visor de ciudades locations.json sobre OSM para desarrollo
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 
 > **Depende de:** SPEC 001 (WorldMapWidget, Epsg3857NoRepeat, SunTerminator), SPEC 002 (MainScaffold, AppColors, Package by Layer)
 

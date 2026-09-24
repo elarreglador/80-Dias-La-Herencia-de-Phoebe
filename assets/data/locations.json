@@ -2,8 +2,8 @@
   "meta": {
     "project": "eu.elarreglador.pf",
     "name": "Fogg Cities Catalog — La Herencia de Phoebe",
-    "version": "1.0.0",
-    "update": "2026-09-23",
+    "version": "1.0.1",
+    "update": "2026-09-24",
     "source": "GeoNames cities15000 (CC-BY 4.0) + manual Savile Row",
     "attribution": "GeoNames CC-BY 4.0 — https://www.geonames.org"
   },
@@ -23,11 +23,256 @@
       "timezone": "Europe/Paris"
     },
     {
+      "name": "Amsterdam",
+      "asciiname": "Amsterdam",
+      "lat": 52.37403,
+      "lng": 4.88969,
+      "timezone": "Europe/Amsterdam"
+    },
+    {
+      "name": "Malabo",
+      "asciiname": "Malabo",
+      "lat": 3.75578,
+      "lng": 8.78166,
+      "timezone": "Africa/Malabo"
+    },
+    {
+      "name": "Libreville",
+      "asciiname": "Libreville",
+      "lat": 0.39241,
+      "lng": 9.45356,
+      "timezone": "Africa/Libreville"
+    },
+    {
+      "name": "Oslo",
+      "asciiname": "Oslo",
+      "lat": 59.91273,
+      "lng": 10.74609,
+      "timezone": "Europe/Oslo"
+    },
+    {
+      "name": "Luanda",
+      "asciiname": "Luanda",
+      "lat": -8.83682,
+      "lng": 13.23432,
+      "timezone": "Africa/Luanda"
+    },
+    {
+      "name": "Lubango",
+      "asciiname": "Lubango",
+      "lat": -14.91717,
+      "lng": 13.4925,
+      "timezone": "Africa/Luanda"
+    },
+    {
+      "name": "Swakopmund",
+      "asciiname": "Swakopmund",
+      "lat": -22.67842,
+      "lng": 14.52663,
+      "timezone": "Africa/Windhoek"
+    },
+    {
+      "name": "Longyearbyen",
+      "asciiname": "Longyearbyen",
+      "lat": 78.22334,
+      "lng": 15.64689,
+      "timezone": "Arctic/Longyearbyen"
+    },
+    {
+      "name": "Alima",
+      "asciiname": "Alima",
+      "lat": -1.076472,
+      "lng": 15.8433622,
+      "timezone": "Africa/Brazzaville"
+    },
+    {
+      "name": "Estocolmo",
+      "asciiname": "Stockholm",
+      "lat": 59.32938,
+      "lng": 18.06871,
+      "timezone": "Europe/Stockholm"
+    },
+    {
+      "name": "Ciudad del Cabo",
+      "asciiname": "Cape Town",
+      "lat": -33.92584,
+      "lng": 18.42322,
+      "timezone": "Africa/Johannesburg"
+    },
+    {
+      "name": "Riga",
+      "asciiname": "Riga",
+      "lat": 56.946,
+      "lng": 24.10589,
+      "timezone": "Europe/Riga"
+    },
+    {
+      "name": "Tallin",
+      "asciiname": "Tallinn",
+      "lat": 59.43696,
+      "lng": 24.75353,
+      "timezone": "Europe/Tallinn"
+    },
+    {
+      "name": "Warrenton",
+      "asciiname": "Warrenton",
+      "lat": -28.11396,
+      "lng": 24.84753,
+      "timezone": "Africa/Johannesburg"
+    },
+    {
+      "name": "Helsinki",
+      "asciiname": "Helsinki",
+      "lat": 60.16952,
+      "lng": 24.93545,
+      "timezone": "Europe/Helsinki"
+    },
+    {
+      "name": "Kisangani",
+      "asciiname": "Kisangani",
+      "lat": 0.51528,
+      "lng": 25.19099,
+      "timezone": "Africa/Lubumbashi"
+    },
+    {
+      "name": "Gaborone",
+      "asciiname": "Gaborone",
+      "lat": -24.65451,
+      "lng": 25.90859,
+      "timezone": "Africa/Gaborone"
+    },
+    {
+      "name": "Lusaka",
+      "asciiname": "Lusaka",
+      "lat": -15.40669,
+      "lng": 28.28713,
+      "timezone": "Africa/Lusaka"
+    },
+    {
       "name": "Estambul",
       "asciiname": "Istanbul",
       "lat": 41.01384,
       "lng": 28.94966,
       "timezone": "Europe/Istanbul"
+    },
+    {
+      "name": "San Petersburgo",
+      "asciiname": "Saint Petersburg",
+      "lat": 59.93863,
+      "lng": 30.31413,
+      "timezone": "Europe/Moscow"
+    },
+    {
+      "name": "Harare",
+      "asciiname": "Harare",
+      "lat": -17.82772,
+      "lng": 31.05337,
+      "timezone": "Africa/Harare"
+    },
+    {
+      "name": "Puerto Said",
+      "asciiname": "Port Said",
+      "lat": 31.26531,
+      "lng": 32.3019,
+      "timezone": "Africa/Cairo"
+    },
+    {
+      "name": "Suez",
+      "asciiname": "Suez",
+      "lat": 29.97371,
+      "lng": 32.52627,
+      "timezone": "Africa/Cairo"
+    },
+    {
+      "name": "Kampala",
+      "asciiname": "Kampala",
+      "lat": 0.31628,
+      "lng": 32.58219,
+      "timezone": "Africa/Kampala"
+    },
+    {
+      "name": "Belomorsk",
+      "asciiname": "Belomorsk",
+      "lat": 64.5216684,
+      "lng": 34.7625835,
+      "timezone": "Europe/Moscow"
+    },
+    {
+      "name": "Arusha",
+      "asciiname": "Arusha",
+      "lat": -3.36667,
+      "lng": 36.68333,
+      "timezone": "Africa/Dar_es_Salaam"
+    },
+    {
+      "name": "Nairobi",
+      "asciiname": "Nairobi",
+      "lat": -1.28333,
+      "lng": 36.81667,
+      "timezone": "Africa/Nairobi"
+    },
+    {
+      "name": "Moscu",
+      "asciiname": "Moscow",
+      "lat": 55.75204,
+      "lng": 37.61781,
+      "timezone": "Europe/Moscow"
+    },
+    {
+      "name": "Dar Es-Salam",
+      "asciiname": "Dar es Salaam",
+      "lat": -6.82349,
+      "lng": 39.26951,
+      "timezone": "Africa/Dar_es_Salaam"
+    },
+    {
+      "name": "Toliara",
+      "asciiname": "Toliara",
+      "lat": -23.35,
+      "lng": 43.66667,
+      "timezone": "Indian/Antananarivo"
+    },
+    {
+      "name": "Indiga",
+      "asciiname": "Indiga",
+      "lat": 67.655884,
+      "lng": 49.029373,
+      "timezone": "Europe/Moscow"
+    },
+    {
+      "name": "Kazan",
+      "asciiname": "Kazan",
+      "lat": 55.78874,
+      "lng": 49.12214,
+      "timezone": "Europe/Moscow"
+    },
+    {
+      "name": "Cheliabinsk",
+      "asciiname": "Chelyabinsk",
+      "lat": 55.1611,
+      "lng": 61.42877,
+      "timezone": "Asia/Yekaterinburg"
+    },
+    {
+      "name": "Petropavi",
+      "asciiname": "Petropavl",
+      "lat": 54.87343,
+      "lng": 69.15065,
+      "timezone": "Asia/Almaty"
+    },
+    {
+      "name": "Astana",
+      "asciiname": "Astana",
+      "lat": 51.1801,
+      "lng": 71.44598,
+      "timezone": "Asia/Almaty"
+    },
+    {
+      "name": "Sabetta",
+      "asciiname": "Port Sabetta",
+      "lat": 71.2802436,
+      "lng": 72.0651318,
+      "timezone": "Asia/Yekaterinburg"
     },
     {
       "name": "Bombay",
@@ -38,11 +283,676 @@
       "note": "Nombre narrativo 'Bombay' (exónimo histórico) — GeoNames registra 'Mumbai'"
     },
     {
+      "name": "Karaganda",
+      "asciiname": "Karagandy",
+      "lat": 49.80187,
+      "lng": 73.10211,
+      "timezone": "Asia/Almaty"
+    },
+    {
+      "name": "Omsk",
+      "asciiname": "Omsk",
+      "lat": 54.99244,
+      "lng": 73.36859,
+      "timezone": "Asia/Omsk"
+    },
+    {
+      "name": "Hithadhoo",
+      "asciiname": "Hithadhoo",
+      "lat": 1.7964498,
+      "lng": 73.3883387,
+      "timezone": "Indian/Maldives"
+    },
+    {
+      "name": "Semey",
+      "asciiname": "Semey",
+      "lat": 50.42064,
+      "lng": 80.25025,
+      "timezone": "Asia/Almaty"
+    },
+    {
+      "name": "Sever Bay",
+      "asciiname": "Sever Bay",
+      "lat": 73.1660506,
+      "lng": 80.3846652,
+      "timezone": "Asia/Krasnoyarsk"
+    },
+    {
+      "name": "Novosibirsk",
+      "asciiname": "Novosibirsk",
+      "lat": 55.02259,
+      "lng": 82.93175,
+      "timezone": "Asia/Novosibirsk"
+    },
+    {
+      "name": "Urumchi",
+      "asciiname": "UEruemqi",
+      "lat": 43.80096,
+      "lng": 87.60046,
+      "timezone": "Asia/Urumqi"
+    },
+    {
+      "name": "Krasnoyarsk",
+      "asciiname": "Krasnoyarsk",
+      "lat": 56.03742,
+      "lng": 92.93136,
+      "timezone": "Asia/Krasnoyarsk"
+    },
+    {
+      "name": "Kumul",
+      "asciiname": "Hami",
+      "lat": 42.83393,
+      "lng": 93.50601,
+      "timezone": "Asia/Urumqi"
+    },
+    {
+      "name": "Banda Aceh",
+      "asciiname": "Banda Aceh",
+      "lat": 5.54167,
+      "lng": 95.33333,
+      "timezone": "Asia/Jakarta"
+    },
+    {
+      "name": "Kuala Lumpur",
+      "asciiname": "Kuala Lumpur",
+      "lat": 3.1412,
+      "lng": 101.68653,
+      "timezone": "Asia/Kuala_Lumpur"
+    },
+    {
+      "name": "Xining",
+      "asciiname": "Xining",
+      "lat": 36.62554,
+      "lng": 101.75739,
+      "timezone": "Asia/Shanghai"
+    },
+    {
+      "name": "Kunming",
+      "asciiname": "Kunming",
+      "lat": 25.03889,
+      "lng": 102.71833,
+      "timezone": "Asia/Shanghai"
+    },
+    {
+      "name": "Lanzhou",
+      "asciiname": "Lanzhou",
+      "lat": 36.05701,
+      "lng": 103.83987,
+      "timezone": "Asia/Shanghai"
+    },
+    {
+      "name": "Chengdu",
+      "asciiname": "Chengdu",
+      "lat": 30.66667,
+      "lng": 104.06667,
+      "timezone": "Asia/Shanghai"
+    },
+    {
+      "name": "Hanoi",
+      "asciiname": "Hanoi",
+      "lat": 21.0245,
+      "lng": 105.84117,
+      "timezone": "Asia/Bangkok"
+    },
+    {
+      "name": "Yinchuan",
+      "asciiname": "Yinchuan",
+      "lat": 38.46806,
+      "lng": 106.27306,
+      "timezone": "Asia/Shanghai"
+    },
+    {
+      "name": "Chongqing",
+      "asciiname": "Chongqing",
+      "lat": 29.56026,
+      "lng": 106.55771,
+      "timezone": "Asia/Shanghai"
+    },
+    {
+      "name": "Jakarta",
+      "asciiname": "Jakarta",
+      "lat": -6.21462,
+      "lng": 106.84513,
+      "timezone": "Asia/Jakarta"
+    },
+    {
+      "name": "Da Nang",
+      "asciiname": "Da Nang",
+      "lat": 16.06778,
+      "lng": 108.22083,
+      "timezone": "Asia/Ho_Chi_Minh"
+    },
+    {
+      "name": "Xi'an",
+      "asciiname": "Xi'an",
+      "lat": 34.25833,
+      "lng": 108.92861,
+      "timezone": "Asia/Shanghai"
+    },
+    {
+      "name": "Shanxi",
+      "asciiname": "Taiyuan",
+      "lat": 37.86944,
+      "lng": 112.56028,
+      "timezone": "Asia/Shanghai"
+    },
+    {
+      "name": "Macau",
+      "asciiname": "Macau",
+      "lat": 22.20056,
+      "lng": 113.54611,
+      "timezone": "Asia/Macau"
+    },
+    {
+      "name": "Shenzhen",
+      "asciiname": "Shenzhen",
+      "lat": 22.54554,
+      "lng": 114.0683,
+      "timezone": "Asia/Shanghai"
+    },
+    {
+      "name": "Wuhan",
+      "asciiname": "Wuhan",
+      "lat": 30.58333,
+      "lng": 114.26667,
+      "timezone": "Asia/Shanghai"
+    },
+    {
+      "name": "Perth",
+      "asciiname": "Perth",
+      "lat": -31.95224,
+      "lng": 115.8614,
+      "timezone": "Australia/Perth"
+    },
+    {
+      "name": "Pekin",
+      "asciiname": "Beijing",
+      "lat": 39.9075,
+      "lng": 116.39723,
+      "timezone": "Asia/Shanghai"
+    },
+    {
+      "name": "Jinan",
+      "asciiname": "Jinan",
+      "lat": 36.66833,
+      "lng": 116.99722,
+      "timezone": "Asia/Shanghai"
+    },
+    {
+      "name": "Tianjin",
+      "asciiname": "Tianjin",
+      "lat": 39.14222,
+      "lng": 117.17667,
+      "timezone": "Asia/Shanghai"
+    },
+    {
+      "name": "Sandakan",
+      "asciiname": "Sandakan",
+      "lat": 5.8402,
+      "lng": 118.1179,
+      "timezone": "Asia/Kuching"
+    },
+    {
+      "name": "Port Hedland",
+      "asciiname": "Port Hedland",
+      "lat": -20.31215,
+      "lng": 118.61059,
+      "timezone": "Australia/Perth"
+    },
+    {
+      "name": "Puerto Princesa",
+      "asciiname": "Puerto Princesa",
+      "lat": 9.73917,
+      "lng": 118.73528,
+      "timezone": "Asia/Manila"
+    },
+    {
+      "name": "Nakin",
+      "asciiname": "Nanjing",
+      "lat": 32.06167,
+      "lng": 118.77778,
+      "timezone": "Asia/Shanghai"
+    },
+    {
+      "name": "Hangzhou",
+      "asciiname": "Hangzhou",
+      "lat": 30.29365,
+      "lng": 120.16142,
+      "timezone": "Asia/Shanghai"
+    },
+    {
+      "name": "Qingdao",
+      "asciiname": "Qingdao",
+      "lat": 36.06488,
+      "lng": 120.38042,
+      "timezone": "Asia/Shanghai"
+    },
+    {
+      "name": "Taiwan",
+      "asciiname": "Taiwan",
+      "lat": 23.9739374,
+      "lng": 120.9820179,
+      "timezone": "Asia/Taipei"
+    },
+    {
+      "name": "Shangai",
+      "asciiname": "Shanghai",
+      "lat": 31.22222,
+      "lng": 121.45806,
+      "timezone": "Asia/Shanghai"
+    },
+    {
+      "name": "Taipei",
+      "asciiname": "Taipei",
+      "lat": 25.05306,
+      "lng": 121.52639,
+      "timezone": "Asia/Taipei"
+    },
+    {
+      "name": "Dalian",
+      "asciiname": "Dalian",
+      "lat": 38.91222,
+      "lng": 121.60222,
+      "timezone": "Asia/Shanghai"
+    },
+    {
+      "name": "Norseman",
+      "asciiname": "Norseman",
+      "lat": -32.1984985,
+      "lng": 121.7791456,
+      "timezone": "Australia/Perth"
+    },
+    {
+      "name": "Nampo",
+      "asciiname": "Nampo",
+      "lat": 38.7375,
+      "lng": 125.40778,
+      "timezone": "Asia/Pyongyang"
+    },
+    {
+      "name": "Pionyang",
+      "asciiname": "Pyongyang",
+      "lat": 39.03385,
+      "lng": 125.75432,
+      "timezone": "Asia/Pyongyang"
+    },
+    {
+      "name": "Kaesŏng",
+      "asciiname": "Kaesong",
+      "lat": 37.97083,
+      "lng": 126.55444,
+      "timezone": "Asia/Pyongyang"
+    },
+    {
+      "name": "Wŏnsan",
+      "asciiname": "Wonsan",
+      "lat": 39.15278,
+      "lng": 127.44361,
+      "timezone": "Asia/Pyongyang"
+    },
+    {
+      "name": "Tiksi",
+      "asciiname": "Tiksi",
+      "lat": 71.6235296,
+      "lng": 128.8233398,
+      "timezone": "Asia/Yakutsk"
+    },
+    {
+      "name": "Fukuoka",
+      "asciiname": "Fukuoka",
+      "lat": 33.6,
+      "lng": 130.41667,
+      "timezone": "Asia/Tokyo"
+    },
+    {
+      "name": "Katherine",
+      "asciiname": "Katherine",
+      "lat": -14.4646157,
+      "lng": 132.2635993,
+      "timezone": "Australia/Darwin"
+    },
+    {
+      "name": "Manokwari",
+      "asciiname": "Manokwari",
+      "lat": -0.86291,
+      "lng": 134.06402,
+      "timezone": "Asia/Jayapura"
+    },
+    {
+      "name": "Osaka",
+      "asciiname": "Osaka",
+      "lat": 34.69379,
+      "lng": 135.50107,
+      "timezone": "Asia/Tokyo"
+    },
+    {
+      "name": "Nizhneyansk",
+      "asciiname": "Nizhneyansk",
+      "lat": 71.440445,
+      "lng": 136.130646,
+      "timezone": "Asia/Vladivostok"
+    },
+    {
+      "name": "Port Augusta",
+      "asciiname": "Port Augusta",
+      "lat": -32.4908819,
+      "lng": 137.7639874,
+      "timezone": "Australia/Adelaide"
+    },
+    {
+      "name": "Adelaida",
+      "asciiname": "Adelaide",
+      "lat": -34.92866,
+      "lng": 138.59863,
+      "timezone": "Australia/Adelaide"
+    },
+    {
+      "name": "Mount Isa",
+      "asciiname": "Mount Isa",
+      "lat": -20.72523,
+      "lng": 139.49727,
+      "timezone": "Australia/Brisbane"
+    },
+    {
       "name": "Tokio",
       "asciiname": "Tokyo",
       "lat": 35.6895,
       "lng": 139.69171,
       "timezone": "Asia/Tokyo"
+    },
+    {
+      "name": "Hakodate",
+      "asciiname": "Hakodate",
+      "lat": 41.77583,
+      "lng": 140.73667,
+      "timezone": "Asia/Tokyo"
+    },
+    {
+      "name": "Sapporo",
+      "asciiname": "Sapporo",
+      "lat": 43.06667,
+      "lng": 141.35,
+      "timezone": "Asia/Tokyo"
+    },
+    {
+      "name": "Melbourne",
+      "asciiname": "Melbourne",
+      "lat": -37.814,
+      "lng": 144.96332,
+      "timezone": "Australia/Melbourne"
+    },
+    {
+      "name": "Charters Towers",
+      "asciiname": "Charters Towers",
+      "lat": -20.0714089,
+      "lng": 146.2709824,
+      "timezone": "Australia/Brisbane"
+    },
+    {
+      "name": "Townsville",
+      "asciiname": "Townsville",
+      "lat": -19.26639,
+      "lng": 146.80569,
+      "timezone": "Australia/Brisbane"
+    },
+    {
+      "name": "Port Moresby",
+      "asciiname": "Port Moresby",
+      "lat": -9.47723,
+      "lng": 147.15089,
+      "timezone": "Pacific/Port_Moresby"
+    },
+    {
+      "name": "Hobart",
+      "asciiname": "Hobart",
+      "lat": -42.87936,
+      "lng": 147.32941,
+      "timezone": "Australia/Hobart"
+    },
+    {
+      "name": "Emerald",
+      "asciiname": "Emerald",
+      "lat": -23.5263118,
+      "lng": 148.1618622,
+      "timezone": "Australia/Brisbane"
+    },
+    {
+      "name": "Dubbo",
+      "asciiname": "Dubbo",
+      "lat": -32.24295,
+      "lng": 148.60484,
+      "timezone": "Australia/Sydney"
+    },
+    {
+      "name": "Magadan",
+      "asciiname": "Magadan",
+      "lat": 59.56274,
+      "lng": 150.80211,
+      "timezone": "Asia/Magadan"
+    },
+    {
+      "name": "Sidney",
+      "asciiname": "Sydney",
+      "lat": -33.86785,
+      "lng": 151.20732,
+      "timezone": "Australia/Sydney"
+    },
+    {
+      "name": "Severo-kunisk",
+      "asciiname": "Severo-Kurilsk",
+      "lat": 50.6683048,
+      "lng": 156.1154399,
+      "timezone": "Asia/Srednekolymsk"
+    },
+    {
+      "name": "Petropavlovsk-Kamchatsky",
+      "asciiname": "Petropavlovsk-Kamchatsky",
+      "lat": 53.06393,
+      "lng": 158.62751,
+      "timezone": "Asia/Kamchatka"
+    },
+    {
+      "name": "Evensk",
+      "asciiname": "Evensk",
+      "lat": 61.919209,
+      "lng": 159.235931,
+      "timezone": "Asia/Magadan"
+    },
+    {
+      "name": "Kamchatka",
+      "asciiname": "Kamchatka Krai",
+      "lat": 57.1914882,
+      "lng": 160.0383819,
+      "timezone": "Asia/Kamchatka"
+    },
+    {
+      "name": "Numea",
+      "asciiname": "Noumea",
+      "lat": -22.27407,
+      "lng": 166.44884,
+      "timezone": "Pacific/Noumea"
+    },
+    {
+      "name": "Pevek",
+      "asciiname": "Pevek",
+      "lat": 69.7028171,
+      "lng": 170.2746851,
+      "timezone": "Asia/Anadyr"
+    },
+    {
+      "name": "Kiribati",
+      "asciiname": "Kiribati",
+      "lat": 0.3448612,
+      "lng": 173.6641773,
+      "timezone": "Pacific/Tarawa"
+    },
+    {
+      "name": "Auckland",
+      "asciiname": "Auckland",
+      "lat": -36.84853,
+      "lng": 174.76349,
+      "timezone": "Pacific/Auckland"
+    },
+    {
+      "name": "Leningradsky",
+      "asciiname": "Leningradsky",
+      "lat": 69.359221,
+      "lng": 178.3998407,
+      "timezone": "Asia/Anadyr"
+    },
+    {
+      "name": "Suva",
+      "asciiname": "Suva",
+      "lat": -18.13683,
+      "lng": 178.42531,
+      "timezone": "Pacific/Fiji"
+    },
+    {
+      "name": "Beringovsky",
+      "asciiname": "Beringovsky",
+      "lat": 63.0625643,
+      "lng": 179.2558111,
+      "timezone": "Asia/Anadyr"
+    },
+    {
+      "name": "Egvekinot",
+      "asciiname": "Эгвекинот",
+      "lat": 66.3227382,
+      "lng": -179.120131,
+      "timezone": "Asia/Anadyr"
+    },
+    {
+      "name": "Adak",
+      "asciiname": "Adak",
+      "lat": 51.8736127,
+      "lng": -176.639032,
+      "timezone": "America/Adak"
+    },
+    {
+      "name": "Atka",
+      "asciiname": "Atka",
+      "lat": 52.1984514,
+      "lng": -174.1983056,
+      "timezone": "America/Adak"
+    },
+    {
+      "name": "Provideniya",
+      "asciiname": "Provideniya",
+      "lat": 64.4237364,
+      "lng": -173.2273726,
+      "timezone": "Asia/Anadyr"
+    },
+    {
+      "name": "Samoa",
+      "asciiname": "Samoa",
+      "lat": -13.7693895,
+      "lng": -172.12005,
+      "timezone": "Pacific/Apia"
+    },
+    {
+      "name": "Tokelau",
+      "asciiname": "Tokelau",
+      "lat": -9.1676396,
+      "lng": -171.819687,
+      "timezone": "Pacific/Fakaofo"
+    },
+    {
+      "name": "Niue",
+      "asciiname": "Niue",
+      "lat": -19.0536414,
+      "lng": -169.861341,
+      "timezone": "Pacific/Niue"
+    },
+    {
+      "name": "Islas Cook",
+      "asciiname": "Cook Islands",
+      "lat": -19.9969715,
+      "lng": -157.7858714,
+      "timezone": "Pacific/Rarotonga"
+    },
+    {
+      "name": "Hawai",
+      "asciiname": "Hawaii",
+      "lat": 19.5938015,
+      "lng": -155.4283701,
+      "timezone": "Pacific/Honolulu"
+    },
+    {
+      "name": "Kodiak",
+      "asciiname": "Kodiak",
+      "lat": 57.7901661,
+      "lng": -152.4067073,
+      "timezone": "America/Anchorage"
+    },
+    {
+      "name": "Bora-Bora",
+      "asciiname": "Bora-Bora",
+      "lat": -16.5043467,
+      "lng": -151.7366886,
+      "timezone": "Pacific/Tahiti"
+    },
+    {
+      "name": "Alaska",
+      "asciiname": "Alaska",
+      "lat": 64.4459613,
+      "lng": -149.680909,
+      "timezone": "America/Anchorage"
+    },
+    {
+      "name": "Chenega",
+      "asciiname": "Chenega",
+      "lat": 60.072752,
+      "lng": -148.0193568,
+      "timezone": "America/Anchorage"
+    },
+    {
+      "name": "Taiohae",
+      "asciiname": "Taiohae",
+      "lat": -8.899131,
+      "lng": -140.1559204,
+      "timezone": "Pacific/Marquesas"
+    },
+    {
+      "name": "Yakutat",
+      "asciiname": "Yakutat",
+      "lat": 59.5727345,
+      "lng": -139.5783124,
+      "timezone": "America/Yakutat"
+    },
+    {
+      "name": "Tahuata",
+      "asciiname": "Tahuata",
+      "lat": -9.9575033,
+      "lng": -139.0996742,
+      "timezone": "Pacific/Marquesas"
+    },
+    {
+      "name": "Tuktoyaktuk",
+      "asciiname": "Tuktoyaktuk",
+      "lat": 69.4440189,
+      "lng": -133.031904,
+      "timezone": "America/Inuvik"
+    },
+    {
+      "name": "Pitcairn",
+      "asciiname": "Pitcairn Islands",
+      "lat": -25.0657719,
+      "lng": -130.101782,
+      "timezone": "Pacific/Pitcairn"
+    },
+    {
+      "name": "Shearwater",
+      "asciiname": "Shearwater",
+      "lat": 52.1478128,
+      "lng": -128.090592,
+      "timezone": "America/Vancouver"
+    },
+    {
+      "name": "Vancouver",
+      "asciiname": "Vancouver",
+      "lat": 49.24966,
+      "lng": -123.11934,
+      "timezone": "America/Vancouver"
     },
     {
       "name": "San Francisco",
@@ -52,11 +962,655 @@
       "timezone": "America/Los_Angeles"
     },
     {
+      "name": "San Jose",
+      "asciiname": "San Jose",
+      "lat": 37.33939,
+      "lng": -121.89496,
+      "timezone": "America/Los_Angeles"
+    },
+    {
+      "name": "Ontario",
+      "asciiname": "Ontario",
+      "lat": 34.06334,
+      "lng": -117.65089,
+      "timezone": "America/Los_Angeles"
+    },
+    {
+      "name": "San Diego",
+      "asciiname": "San Diego",
+      "lat": 32.71571,
+      "lng": -117.16472,
+      "timezone": "America/Los_Angeles"
+    },
+    {
+      "name": "Las Vegas",
+      "asciiname": "Las Vegas",
+      "lat": 36.17497,
+      "lng": -115.13722,
+      "timezone": "America/Los_Angeles"
+    },
+    {
+      "name": "Kugluktuk",
+      "asciiname": "Kugluktuk",
+      "lat": 67.8260952,
+      "lng": -115.1073221,
+      "timezone": "America/Cambridge_Bay"
+    },
+    {
+      "name": "Calgary",
+      "asciiname": "Calgary",
+      "lat": 51.05011,
+      "lng": -114.08529,
+      "timezone": "America/Edmonton"
+    },
+    {
+      "name": "Phoenix",
+      "asciiname": "Phoenix",
+      "lat": 33.44838,
+      "lng": -112.07404,
+      "timezone": "America/Phoenix"
+    },
+    {
+      "name": "Tucson",
+      "asciiname": "Tucson",
+      "lat": 32.22174,
+      "lng": -110.92648,
+      "timezone": "America/Phoenix"
+    },
+    {
+      "name": "Hanga Roa",
+      "asciiname": "Hanga Roa",
+      "lat": -27.1481172,
+      "lng": -109.427344,
+      "timezone": "Pacific/Easter"
+    },
+    {
+      "name": "Juarez",
+      "asciiname": "Ciudad Juarez",
+      "lat": 31.72024,
+      "lng": -106.46084,
+      "timezone": "America/Ciudad_Juarez"
+    },
+    {
+      "name": "Chihuahua",
+      "asciiname": "Chihuahua",
+      "lat": 28.63528,
+      "lng": -106.08889,
+      "timezone": "America/Chihuahua"
+    },
+    {
+      "name": "Puerto Vallarta",
+      "asciiname": "Puerto Vallarta",
+      "lat": 20.617,
+      "lng": -105.23018,
+      "timezone": "America/Mexico_City"
+    },
+    {
+      "name": "San Blas",
+      "asciiname": "San Blas",
+      "lat": 21.5381431,
+      "lng": -105.1838784,
+      "timezone": "America/Mazatlan"
+    },
+    {
+      "name": "Cambridge Bay",
+      "asciiname": "Cambridge Bay",
+      "lat": 69.1178442,
+      "lng": -105.0603881,
+      "timezone": "America/Cambridge_Bay"
+    },
+    {
+      "name": "Dener",
+      "asciiname": "Denver",
+      "lat": 39.73915,
+      "lng": -104.9847,
+      "timezone": "America/Denver"
+    },
+    {
+      "name": "Regina",
+      "asciiname": "Regina",
+      "lat": 50.45008,
+      "lng": -104.6178,
+      "timezone": "America/Regina"
+    },
+    {
+      "name": "San Luis Potosí",
+      "asciiname": "San Luis Potosi",
+      "lat": 22.15234,
+      "lng": -100.97135,
+      "timezone": "America/Monterrey"
+    },
+    {
+      "name": "Monterey",
+      "asciiname": "Monterrey",
+      "lat": 25.68435,
+      "lng": -100.31721,
+      "timezone": "America/Monterrey"
+    },
+    {
+      "name": "Ciudad de Mexico",
+      "asciiname": "Mexico City",
+      "lat": 19.42847,
+      "lng": -99.12766,
+      "timezone": "America/Mexico_City"
+    },
+    {
+      "name": "San Antonio",
+      "asciiname": "San Antonio",
+      "lat": 29.42412,
+      "lng": -98.49363,
+      "timezone": "America/Chicago"
+    },
+    {
+      "name": "Tampico",
+      "asciiname": "Tampico",
+      "lat": 22.28519,
+      "lng": -97.87777,
+      "timezone": "America/Monterrey"
+    },
+    {
+      "name": "Tehuacán",
+      "asciiname": "Tehuacan",
+      "lat": 18.46422,
+      "lng": -97.39735,
+      "timezone": "America/Mexico_City"
+    },
+    {
+      "name": "Winnipeg",
+      "asciiname": "Winnipeg",
+      "lat": 49.8844,
+      "lng": -97.14704,
+      "timezone": "America/Winnipeg"
+    },
+    {
+      "name": "Dallas",
+      "asciiname": "Dallas",
+      "lat": 32.78306,
+      "lng": -96.80667,
+      "timezone": "America/Chicago"
+    },
+    {
+      "name": "Lincoln",
+      "asciiname": "Lincoln",
+      "lat": 40.8,
+      "lng": -96.66696,
+      "timezone": "America/Chicago"
+    },
+    {
+      "name": "Baker Lake",
+      "asciiname": "Baker Lake",
+      "lat": 64.3188583,
+      "lng": -96.0214238,
+      "timezone": "America/Rankin_Inlet"
+    },
+    {
+      "name": "Houston",
+      "asciiname": "Houston",
+      "lat": 29.76328,
+      "lng": -95.36327,
+      "timezone": "America/Chicago"
+    },
+    {
+      "name": "Westport",
+      "asciiname": "Kansas City",
+      "lat": 39.09973,
+      "lng": -94.57857,
+      "timezone": "America/Chicago"
+    },
+    {
+      "name": "Arviat",
+      "asciiname": "Arviat",
+      "lat": 61.1073458,
+      "lng": -94.0564315,
+      "timezone": "America/Rankin_Inlet"
+    },
+    {
+      "name": "Taloyoak",
+      "asciiname": "Taloyoak",
+      "lat": 69.5350501,
+      "lng": -93.5355054,
+      "timezone": "America/Cambridge_Bay"
+    },
+    {
+      "name": "Tuxtla Gutierrez",
+      "asciiname": "Tuxtla",
+      "lat": 16.75357,
+      "lng": -93.11578,
+      "timezone": "America/Merida"
+    },
+    {
+      "name": "Chesterfield Inlet",
+      "asciiname": "Chesterfield Inlet",
+      "lat": 63.3399322,
+      "lng": -90.7101455,
+      "timezone": "America/Rankin_Inlet"
+    },
+    {
+      "name": "Puerto Ayora",
+      "asciiname": "Puerto Ayora",
+      "lat": -0.7471674,
+      "lng": -90.3134198,
+      "timezone": "Pacific/Galapagos"
+    },
+    {
+      "name": "Memphis",
+      "asciiname": "Memphis",
+      "lat": 35.14953,
+      "lng": -90.04898,
+      "timezone": "America/Chicago"
+    },
+    {
+      "name": "Devil Fish",
+      "asciiname": "Devil's Island Wildlife Management Area",
+      "lat": 37.3714999,
+      "lng": -89.4139111,
+      "timezone": "America/Chicago"
+    },
+    {
+      "name": "San Salvador",
+      "asciiname": "San Salvador",
+      "lat": 13.68935,
+      "lng": -89.18718,
+      "timezone": "America/El_Salvador"
+    },
+    {
+      "name": "Puerto Barrios",
+      "asciiname": "Puerto Barrios",
+      "lat": 15.72724,
+      "lng": -88.59787,
+      "timezone": "America/Guatemala"
+    },
+    {
+      "name": "Tegucigalpa",
+      "asciiname": "Tegucigalpa",
+      "lat": 14.0818,
+      "lng": -87.20681,
+      "timezone": "America/Tegucigalpa"
+    },
+    {
+      "name": "Cancún",
+      "asciiname": "Cancun",
+      "lat": 21.17429,
+      "lng": -86.84656,
+      "timezone": "America/Cancun"
+    },
+    {
+      "name": "La Celba",
+      "asciiname": "La Ceiba",
+      "lat": 15.75971,
+      "lng": -86.78221,
+      "timezone": "America/Tegucigalpa"
+    },
+    {
+      "name": "Managua",
+      "asciiname": "Managua",
+      "lat": 12.13282,
+      "lng": -86.2504,
+      "timezone": "America/Managua"
+    },
+    {
+      "name": "Bilwi",
+      "asciiname": "Puerto Cabezas",
+      "lat": 14.03507,
+      "lng": -83.38882,
+      "timezone": "America/Managua"
+    },
+    {
+      "name": "Detroit",
+      "asciiname": "Detroit",
+      "lat": 42.33143,
+      "lng": -83.04575,
+      "timezone": "America/Detroit"
+    },
+    {
+      "name": "Puerto Armuelles",
+      "asciiname": "Puerto Armuelles",
+      "lat": 8.2725603,
+      "lng": -82.8604458,
+      "timezone": "America/Panama"
+    },
+    {
+      "name": "Tampa",
+      "asciiname": "Tampa",
+      "lat": 27.94752,
+      "lng": -82.45843,
+      "timezone": "America/New_York"
+    },
+    {
+      "name": "Igloolik",
+      "asciiname": "Igloolik",
+      "lat": 69.3788839,
+      "lng": -81.7947989,
+      "timezone": "America/Iqaluit"
+    },
+    {
+      "name": "Craig",
+      "asciiname": "Craig County",
+      "lat": 37.4760225,
+      "lng": -80.1990826,
+      "timezone": "America/New_York"
+    },
+    {
+      "name": "Miami",
+      "asciiname": "Miami",
+      "lat": 25.77427,
+      "lng": -80.19366,
+      "timezone": "America/New_York"
+    },
+    {
+      "name": "Colón",
+      "asciiname": "Colon",
+      "lat": 9.36025,
+      "lng": -79.90019,
+      "timezone": "America/Panama"
+    },
+    {
+      "name": "Panama",
+      "asciiname": "Panama City",
+      "lat": 8.9936,
+      "lng": -79.51973,
+      "timezone": "America/Panama"
+    },
+    {
+      "name": "Quito",
+      "asciiname": "Quito",
+      "lat": -0.22985,
+      "lng": -78.52495,
+      "timezone": "America/Guayaquil"
+    },
+    {
+      "name": "Lima",
+      "asciiname": "Lima",
+      "lat": -12.04318,
+      "lng": -77.02824,
+      "timezone": "America/Lima"
+    },
+    {
+      "name": "Kingston",
+      "asciiname": "Kingston",
+      "lat": 17.99702,
+      "lng": -76.79358,
+      "timezone": "America/Jamaica"
+    },
+    {
+      "name": "Kinngait",
+      "asciiname": "Kinngait",
+      "lat": 64.2322773,
+      "lng": -76.5432179,
+      "timezone": "America/Iqaluit"
+    },
+    {
+      "name": "Santiago de Cuba",
+      "asciiname": "Santiago de Cuba",
+      "lat": 20.02287,
+      "lng": -75.82171,
+      "timezone": "America/Havana"
+    },
+    {
+      "name": "Ottawa",
+      "asciiname": "Ottawa",
+      "lat": 45.41117,
+      "lng": -75.69812,
+      "timezone": "America/Toronto"
+    },
+    {
+      "name": "Medellín",
+      "asciiname": "Medellin",
+      "lat": 6.245,
+      "lng": -75.57151,
+      "timezone": "America/Bogota"
+    },
+    {
+      "name": "Great Falls",
+      "asciiname": "Paterson",
+      "lat": 40.91677,
+      "lng": -74.17181,
+      "timezone": "America/New_York"
+    },
+    {
+      "name": "Bogotá",
+      "asciiname": "Bogota",
+      "lat": 4.60971,
+      "lng": -74.08175,
+      "timezone": "America/Bogota"
+    },
+    {
       "name": "Nueva York",
       "asciiname": "New York City",
       "lat": 40.71427,
       "lng": -74.00597,
       "timezone": "America/New_York"
+    },
+    {
+      "name": "Pirates Well",
+      "asciiname": "Pirates Well Settlement",
+      "lat": 22.4313036,
+      "lng": -73.0978422,
+      "timezone": "America/Nassau"
+    },
+    {
+      "name": "Cuzco",
+      "asciiname": "Cusco",
+      "lat": -13.53188,
+      "lng": -71.96701,
+      "timezone": "America/Lima"
+    },
+    {
+      "name": "Punta Cana",
+      "asciiname": "Punta Cana",
+      "lat": 18.58182,
+      "lng": -68.40431,
+      "timezone": "America/Santo_Domingo"
+    },
+    {
+      "name": "San Juan",
+      "asciiname": "San Juan",
+      "lat": 18.46633,
+      "lng": -66.10572,
+      "timezone": "America/Puerto_Rico"
+    },
+    {
+      "name": "Potosí",
+      "asciiname": "Potosi",
+      "lat": -19.58361,
+      "lng": -65.75306,
+      "timezone": "America/La_Paz"
+    },
+    {
+      "name": "Trinidad",
+      "asciiname": "Trinidad",
+      "lat": -14.8349438,
+      "lng": -64.9044936,
+      "timezone": "America/La_Paz"
+    },
+    {
+      "name": "Roseau",
+      "asciiname": "Roseau",
+      "lat": 15.30174,
+      "lng": -61.38808,
+      "timezone": "America/Dominica"
+    },
+    {
+      "name": "Santa Fe",
+      "asciiname": "Santa Fe",
+      "lat": -31.64881,
+      "lng": -60.70868,
+      "timezone": "America/Argentina/Cordoba"
+    },
+    {
+      "name": "Barbados",
+      "asciiname": "Barbados",
+      "lat": 13.1500331,
+      "lng": -59.5250305,
+      "timezone": "America/Barbados"
+    },
+    {
+      "name": "Georgetown",
+      "asciiname": "Georgetown",
+      "lat": 6.80448,
+      "lng": -58.15527,
+      "timezone": "America/Guyana"
+    },
+    {
+      "name": "Cartwright",
+      "asciiname": "Cartwright",
+      "lat": 53.7062458,
+      "lng": -57.0198174,
+      "timezone": "America/Goose_Bay"
+    },
+    {
+      "name": "Harbour Grace",
+      "asciiname": "Harbour Grace",
+      "lat": 47.6935761,
+      "lng": -53.2128267,
+      "timezone": "America/St_Johns"
+    },
+    {
+      "name": "Parauapebas",
+      "asciiname": "Parauapebas",
+      "lat": -6.0675,
+      "lng": -49.90222,
+      "timezone": "America/Belem"
+    },
+    {
+      "name": "Montes Claros",
+      "asciiname": "Montes Claros",
+      "lat": -16.735,
+      "lng": -43.86167,
+      "timezone": "America/Sao_Paulo"
+    },
+    {
+      "name": "Teresina",
+      "asciiname": "Teresina",
+      "lat": -5.08917,
+      "lng": -42.80194,
+      "timezone": "America/Fortaleza"
+    },
+    {
+      "name": "Salvador",
+      "asciiname": "Salvador",
+      "lat": -12.97563,
+      "lng": -38.49096,
+      "timezone": "America/Bahia"
+    },
+    {
+      "name": "Horta",
+      "asciiname": "Horta",
+      "lat": 38.5795831,
+      "lng": -28.7096295,
+      "timezone": "Atlantic/Azores"
+    },
+    {
+      "name": "Porta Delgada",
+      "asciiname": "Ponta Delgada",
+      "lat": 37.73952,
+      "lng": -25.66874,
+      "timezone": "Atlantic/Azores"
+    },
+    {
+      "name": "Mindelo",
+      "asciiname": "Mindelo",
+      "lat": 16.89014,
+      "lng": -24.98042,
+      "timezone": "Atlantic/Cape_Verde"
+    },
+    {
+      "name": "Vestmannaeyjar",
+      "asciiname": "Westman Islands",
+      "lat": 63.4266646,
+      "lng": -20.2698816,
+      "timezone": "Atlantic/Reykjavik"
+    },
+    {
+      "name": "Dakar",
+      "asciiname": "Dakar",
+      "lat": 14.6937,
+      "lng": -17.44406,
+      "timezone": "Africa/Dakar"
+    },
+    {
+      "name": "Funchal",
+      "asciiname": "Funchal",
+      "lat": 32.66568,
+      "lng": -16.92547,
+      "timezone": "Atlantic/Madeira"
+    },
+    {
+      "name": "Santa Cruz de Tenerife",
+      "asciiname": "Santa Cruz de Tenerife",
+      "lat": 28.46824,
+      "lng": -16.25462,
+      "timezone": "Atlantic/Canary"
+    },
+    {
+      "name": "Nuakchot",
+      "asciiname": "Nouakchott",
+      "lat": 18.08581,
+      "lng": -15.9785,
+      "timezone": "Africa/Nouakchott"
+    },
+    {
+      "name": "Two Boats",
+      "asciiname": "Two Boats Village",
+      "lat": -7.9350927,
+      "lng": -14.3654066,
+      "timezone": "Atlantic/St_Helena"
+    },
+    {
+      "name": "Edinburgh of the Seven Seas",
+      "asciiname": "Edinburgh of the Seven Seas",
+      "lat": -37.0675708,
+      "lng": -12.3110702,
+      "timezone": "Atlantic/St_Helena"
+    },
+    {
+      "name": "Monrovia",
+      "asciiname": "Monrovia",
+      "lat": 6.30054,
+      "lng": -10.7969,
+      "timezone": "Africa/Monrovia"
+    },
+    {
+      "name": "Lisboa",
+      "asciiname": "Lisbon",
+      "lat": 38.72509,
+      "lng": -9.1498,
+      "timezone": "Europe/Lisbon"
+    },
+    {
+      "name": "Tórshavn",
+      "asciiname": "Torshavn",
+      "lat": 62.00973,
+      "lng": -6.77164,
+      "timezone": "Atlantic/Faroe"
+    },
+    {
+      "name": "Jamestown",
+      "asciiname": "Jamestown",
+      "lat": -15.9277296,
+      "lng": -5.7160872,
+      "timezone": "Atlantic/St_Helena"
+    },
+    {
+      "name": "Inverness",
+      "asciiname": "Inverness",
+      "lat": 57.47908,
+      "lng": -4.22398,
+      "timezone": "Europe/London"
+    },
+    {
+      "name": "Abiyan",
+      "asciiname": "Abidjan",
+      "lat": 5.35444,
+      "lng": -4.00167,
+      "timezone": "Africa/Abidjan"
+    },
+    {
+      "name": "Portsmouth",
+      "asciiname": "Portsmouth",
+      "lat": 50.79899,
+      "lng": -1.09125,
+      "timezone": "Europe/London"
     },
     {
       "name": "Savile Row",

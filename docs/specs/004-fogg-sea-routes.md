@@ -1,6 +1,6 @@
 # SPEC 004 — Skill local de rutas marítimas con searoute (5 rutas Este más cortas)
 
-> **Estado:** Borrador
+> **Estado:** Aprobado
 > **Depende de:** `assets/data/locations.json` (ordenado Este, 304 ciudades, GeoNames CC-BY 4.0), `fogg-city-enricher` (Regla del Este desenrollada), `TODO.md:28` (trazado GeoJSON real)
 > **Fecha:** 2026-09-25
 > **Objetivo:** Proveer una skill local Python que, dada una ciudad origen, recorra `locations.json` hacia el Este, descarte ciudades sin puerto (<10 km vía `searoute`), calcule las 5 rutas marítimas más cortas y las guarde en `assets/data/sea_routes.json` en km.

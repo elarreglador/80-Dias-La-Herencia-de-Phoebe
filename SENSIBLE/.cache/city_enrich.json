@@ -208,5 +208,425 @@
     "lat": 44.85278,
     "lng": 65.50917,
     "timezone": "Asia/Qyzylorda"
+  },
+  "teheran": {
+    "name": "Teheran",
+    "asciiname": "Tehran",
+    "lat": 35.69439,
+    "lng": 51.42151,
+    "timezone": "Asia/Tehran"
+  },
+  "el cairo": {
+    "name": "el cairo",
+    "asciiname": "Cairo",
+    "lat": 30.06263,
+    "lng": 31.24967,
+    "timezone": "Africa/Cairo"
+  },
+  "yidda": {
+    "name": "yidda",
+    "asciiname": "Jeddah",
+    "lat": 21.49012,
+    "lng": 39.18624,
+    "timezone": "Asia/Riyadh"
+  },
+  "jalpur": {
+    "name": "jalpur",
+    "asciiname": "Jalpur",
+    "lat": 28.9950477,
+    "lng": 78.8588303,
+    "timezone": "Asia/Kolkata"
+  },
+  "nueva delhi": {
+    "name": "nueva delhi",
+    "asciiname": "New Delhi",
+    "lat": 28.62137,
+    "lng": 77.2148,
+    "timezone": "Asia/Kolkata"
+  },
+  "hyderabad": {
+    "name": "Hyderabad",
+    "asciiname": "Hyderabad",
+    "lat": 17.38405,
+    "lng": 78.45636,
+    "timezone": "Asia/Kolkata"
+  },
+  "riad": {
+    "name": "Riad",
+    "asciiname": "Riyadh",
+    "lat": 24.68773,
+    "lng": 46.72185,
+    "timezone": "Asia/Riyadh"
+  },
+  "bagdad": {
+    "name": "bagdad",
+    "asciiname": "Baghdad",
+    "lat": 33.34058,
+    "lng": 44.40088,
+    "timezone": "Asia/Baghdad"
+  },
+  "kabul": {
+    "name": "Kabul",
+    "asciiname": "Kabul",
+    "lat": 34.52813,
+    "lng": 69.17233,
+    "timezone": "Asia/Kabul"
+  },
+  "lucknow": {
+    "name": "Lucknow",
+    "asciiname": "Lucknow",
+    "lat": 26.83928,
+    "lng": 80.92313,
+    "timezone": "Asia/Kolkata"
+  },
+  "lhasa": {
+    "name": "Lhasa",
+    "asciiname": "Lhasa",
+    "lat": 29.65,
+    "lng": 91.1,
+    "timezone": "Asia/Shanghai"
+  },
+  "nagqu": {
+    "name": "Nagqu",
+    "asciiname": "Nagqu",
+    "lat": 31.47678,
+    "lng": 92.05729,
+    "timezone": "Asia/Shanghai"
+  },
+  "chamdo": {
+    "name": "Chamdo",
+    "asciiname": "Qamdo",
+    "lat": 31.1304,
+    "lng": 97.17982,
+    "timezone": "Asia/Shanghai"
+  },
+  "yushu": {
+    "name": "Yushu",
+    "asciiname": "Yushu",
+    "lat": 33.00118,
+    "lng": 97.00893,
+    "timezone": "Asia/Shanghai"
+  },
+  "tripoli": {
+    "name": "Tripoli",
+    "asciiname": "Tripoli",
+    "lat": 32.88743,
+    "lng": 13.18733,
+    "timezone": "Africa/Tripoli"
+  },
+  "tombuctu": {
+    "name": "tombuctu",
+    "asciiname": "Timbuktu",
+    "lat": 16.77348,
+    "lng": -3.00742,
+    "timezone": "Africa/Bamako"
+  },
+  "djanet": {
+    "name": "djanet",
+    "asciiname": "Djanet",
+    "lat": 24.071521,
+    "lng": 9.6155847,
+    "timezone": "Africa/Algiers"
+  },
+  "tamanrasset": {
+    "name": "tamanrasset",
+    "asciiname": "Tamanghasset",
+    "lat": 22.785,
+    "lng": 5.52278,
+    "timezone": "Africa/Algiers"
+  },
+  "niamey": {
+    "name": "Niamey",
+    "asciiname": "Niamey",
+    "lat": 13.51366,
+    "lng": 2.1098,
+    "timezone": "Africa/Niamey"
+  },
+  "yamena": {
+    "name": "Yamena",
+    "asciiname": "N'Djamena",
+    "lat": 12.10672,
+    "lng": 15.0444,
+    "timezone": "Africa/Ndjamena"
+  },
+  "kano": {
+    "name": "Kano",
+    "asciiname": "Kano",
+    "lat": 12.00012,
+    "lng": 8.51672,
+    "timezone": "Africa/Lagos"
+  },
+  "bamako": {
+    "name": "Bamako",
+    "asciiname": "Bamako",
+    "lat": 12.60915,
+    "lng": -7.97522,
+    "timezone": "Africa/Bamako"
+  },
+  "jartum": {
+    "name": "Jartum",
+    "asciiname": "Khartoum",
+    "lat": 15.55177,
+    "lng": 32.53241,
+    "timezone": "Africa/Khartoum"
+  },
+  "luxor": {
+    "name": "Luxor",
+    "asciiname": "Luxor",
+    "lat": 25.69893,
+    "lng": 32.6421,
+    "timezone": "Africa/Cairo"
+  },
+  "puerto sudan": {
+    "name": "Puerto Sudan",
+    "asciiname": "Port Sudan",
+    "lat": 19.61745,
+    "lng": 37.21644,
+    "timezone": "Africa/Khartoum"
+  },
+  "sana": {
+    "name": "Sana",
+    "asciiname": "Sanaa",
+    "lat": 15.35452,
+    "lng": 44.20646,
+    "timezone": "Asia/Aden"
+  },
+  "basora": {
+    "name": "Basora",
+    "asciiname": "Basrah",
+    "lat": 30.50852,
+    "lng": 47.7804,
+    "timezone": "Asia/Baghdad"
+  },
+  "dubai": {
+    "name": "Dubai",
+    "asciiname": "Dubai",
+    "lat": 25.07725,
+    "lng": 55.30927,
+    "timezone": "Asia/Dubai"
+  },
+  "mascate": {
+    "name": "Mascate",
+    "asciiname": "Muscat",
+    "lat": 23.58413,
+    "lng": 58.40778,
+    "timezone": "Asia/Muscat"
+  },
+  "sakara": {
+    "name": "Sakara",
+    "asciiname": "Kestanelik",
+    "lat": 41.9102119,
+    "lng": 34.7704252,
+    "timezone": "Europe/Istanbul"
+  },
+  "jerusalen": {
+    "name": "jerusalen",
+    "asciiname": "Jerusalem",
+    "lat": 31.76904,
+    "lng": 35.21633,
+    "timezone": "Asia/Jerusalem"
+  },
+  "isfahan": {
+    "name": "Isfahan",
+    "asciiname": "Isfahan",
+    "lat": 32.65246,
+    "lng": 51.67462,
+    "timezone": "Asia/Tehran"
+  },
+  "baku": {
+    "name": "Baku",
+    "asciiname": "Baku",
+    "lat": 40.37767,
+    "lng": 49.89201,
+    "timezone": "Asia/Baku"
+  },
+  "urgench": {
+    "name": "Urgench",
+    "asciiname": "Urganch",
+    "lat": 41.55177,
+    "lng": 60.63143,
+    "timezone": "Asia/Samarkand"
+  },
+  "alice springs": {
+    "name": "Alice Springs",
+    "asciiname": "Alice Springs",
+    "lat": -23.69748,
+    "lng": 133.88362,
+    "timezone": "Australia/Darwin"
+  },
+  "edmonton": {
+    "name": "Edmonton",
+    "asciiname": "Edmonton",
+    "lat": 53.55014,
+    "lng": -113.46871,
+    "timezone": "America/Edmonton"
+  },
+  "saskatoon": {
+    "name": "Saskatoon",
+    "asciiname": "Saskatoon",
+    "lat": 52.13238,
+    "lng": -106.66892,
+    "timezone": "America/Regina"
+  },
+  "winnipeg": {
+    "name": "Winnipeg",
+    "asciiname": "Winnipeg",
+    "lat": 49.8844,
+    "lng": -97.14704,
+    "timezone": "America/Winnipeg"
+  },
+  "mumbai": {
+    "name": "Mumbai",
+    "asciiname": "Mumbai",
+    "lat": 19.07283,
+    "lng": 72.88261,
+    "timezone": "Asia/Kolkata"
+  },
+  "jaipur": {
+    "name": "Jaipur",
+    "asciiname": "Jaipur",
+    "lat": 26.91962,
+    "lng": 75.78781,
+    "timezone": "Asia/Kolkata"
+  },
+  "coober pedy": {
+    "name": "Coober Pedy",
+    "asciiname": "Coober Pedy",
+    "lat": -29.0133682,
+    "lng": 134.7536164,
+    "timezone": "Australia/Adelaide"
+  },
+  "saqqara": {
+    "name": "Saqqara",
+    "asciiname": "Saqqara",
+    "lat": 29.850335,
+    "lng": 31.228284,
+    "timezone": "Africa/Cairo"
+  },
+  "serhetabat": {
+    "name": "Serhetabat",
+    "asciiname": "Serhetabat",
+    "lat": 35.2740062,
+    "lng": 62.3253672,
+    "timezone": "Asia/Ashgabat"
+  },
+  "fairbanks": {
+    "name": "Fairbanks",
+    "asciiname": "Fairbanks",
+    "lat": 64.83778,
+    "lng": -147.71639,
+    "timezone": "America/Anchorage"
+  },
+  "yellowknife": {
+    "name": "Yellowknife",
+    "asciiname": "Yellowknife",
+    "lat": 62.45411,
+    "lng": -114.37248,
+    "timezone": "America/Edmonton"
+  },
+  "yakutsk": {
+    "name": "Yakutsk",
+    "asciiname": "Yakutsk",
+    "lat": 62.03114,
+    "lng": 129.72288,
+    "timezone": "Asia/Yakutsk"
+  },
+  "magadan": {
+    "name": "Magadan",
+    "asciiname": "Magadan",
+    "lat": 59.56274,
+    "lng": 150.80211,
+    "timezone": "Asia/Magadan"
+  },
+  "ugolnye kopi": {
+    "name": "Ugolnye Kopi",
+    "asciiname": "Ugolnye Kopi",
+    "lat": 64.7421025,
+    "lng": 177.6907249,
+    "timezone": "Asia/Anadyr"
+  },
+  "mirni": {
+    "name": "Mirni",
+    "asciiname": "Mirny",
+    "lat": 62.53528,
+    "lng": 113.96111,
+    "timezone": "Asia/Yakutsk"
+  },
+  "udskoye": {
+    "name": "Udskoye",
+    "asciiname": "Udskoye",
+    "lat": 54.508785,
+    "lng": 134.406265,
+    "timezone": "Asia/Vladivostok"
+  },
+  "ojotsk": {
+    "name": "Ojotsk",
+    "asciiname": "Okhotsk",
+    "lat": 59.3619947,
+    "lng": 143.2146511,
+    "timezone": "Asia/Vladivostok"
+  },
+  "chita": {
+    "name": "Chita",
+    "asciiname": "Chita",
+    "lat": 52.04311,
+    "lng": 113.49171,
+    "timezone": "Asia/Chita"
+  },
+  "arcangel": {
+    "name": "Arcángel",
+    "asciiname": "Arkhangel'sk",
+    "lat": 64.5461,
+    "lng": 40.55183,
+    "timezone": "Europe/Moscow"
+  },
+  "arkhangelsk": {
+    "name": "Arkhangelsk",
+    "asciiname": "Arkhangel'sk",
+    "lat": 64.5461,
+    "lng": 40.55183,
+    "timezone": "Europe/Moscow"
+  },
+  "khatanga": {
+    "name": "Khatanga",
+    "asciiname": "Khatanga",
+    "lat": 72.5720585,
+    "lng": 104.2904408,
+    "timezone": "Asia/Krasnoyarsk"
+  },
+  "norilsk": {
+    "name": "Norilsk",
+    "asciiname": "Norilsk",
+    "lat": 69.3535,
+    "lng": 88.2027,
+    "timezone": "Asia/Krasnoyarsk"
+  },
+  "saskylakh": {
+    "name": "Saskylakh",
+    "asciiname": "Saskylakh",
+    "lat": 71.9649533,
+    "lng": 114.0939433,
+    "timezone": "Asia/Yakutsk"
+  },
+  "tiksi": {
+    "name": "Tiksi",
+    "asciiname": "Tiksi",
+    "lat": 71.6235296,
+    "lng": 128.8233398,
+    "timezone": "Asia/Yakutsk"
+  },
+  "bratsk": {
+    "name": "Bratsk",
+    "asciiname": "Bratsk",
+    "lat": 56.1325,
+    "lng": 101.61417,
+    "timezone": "Asia/Irkutsk"
+  },
+  "verkhneimbatsk": {
+    "name": "Verkhneimbatsk",
+    "asciiname": "Verkhneimbatsk",
+    "lat": 63.1569728,
+    "lng": 87.9639337,
+    "timezone": "Asia/Krasnoyarsk"
   }
 }

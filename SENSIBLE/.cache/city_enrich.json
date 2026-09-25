@@ -1,0 +1,212 @@
+{
+  "lyon": {
+    "name": "Lyon",
+    "asciiname": "Lyon",
+    "lat": 45.74906,
+    "lng": 4.84789,
+    "timezone": "Europe/Paris"
+  },
+  "roma": {
+    "name": "Roma",
+    "asciiname": "Rome",
+    "lat": 41.89193,
+    "lng": 12.51133,
+    "timezone": "Europe/Rome"
+  },
+  "berlin": {
+    "name": "Berlin",
+    "asciiname": "Berlin",
+    "lat": 52.52437,
+    "lng": 13.41053,
+    "timezone": "Europe/Berlin"
+  },
+  "hamburgo": {
+    "name": "Hamburgo",
+    "asciiname": "Hamburg",
+    "lat": 53.55073,
+    "lng": 9.99302,
+    "timezone": "Europe/Berlin"
+  },
+  "zagreb": {
+    "name": "Zagreb",
+    "asciiname": "Zagreb",
+    "lat": 45.81444,
+    "lng": 15.97798,
+    "timezone": "Europe/Zagreb"
+  },
+  "bucarest": {
+    "name": "Bucarest",
+    "asciiname": "Bucharest",
+    "lat": 44.43225,
+    "lng": 26.10626,
+    "timezone": "Europe/Bucharest"
+  },
+  "genova": {
+    "name": "Genova",
+    "asciiname": "Genoa",
+    "lat": 44.40478,
+    "lng": 8.94439,
+    "timezone": "Europe/Rome"
+  },
+  "munich": {
+    "name": "Munich",
+    "asciiname": "Munich",
+    "lat": 48.13743,
+    "lng": 11.57549,
+    "timezone": "Europe/Berlin"
+  },
+  "praga": {
+    "name": "Praga",
+    "asciiname": "Prague",
+    "lat": 50.08804,
+    "lng": 14.42076,
+    "timezone": "Europe/Prague"
+  },
+  "varsovia": {
+    "name": "Varsovia",
+    "asciiname": "Warsaw",
+    "lat": 52.22977,
+    "lng": 21.01178,
+    "timezone": "Europe/Warsaw"
+  },
+  "bruselas": {
+    "name": "Bruselas",
+    "asciiname": "Brussels",
+    "lat": 50.85045,
+    "lng": 4.34878,
+    "timezone": "Europe/Brussels"
+  },
+  "leopolis": {
+    "name": "Leopolis",
+    "asciiname": "Lviv",
+    "lat": 49.83826,
+    "lng": 24.02324,
+    "timezone": "Europe/Kyiv"
+  },
+  "kiev": {
+    "name": "Kiev",
+    "asciiname": "Kyiv",
+    "lat": 50.45466,
+    "lng": 30.5238,
+    "timezone": "Europe/Kyiv"
+  },
+  "jarkiv": {
+    "name": "Jarkiv",
+    "asciiname": "Kharkiv",
+    "lat": 49.9923181,
+    "lng": 36.2310146,
+    "timezone": "Europe/Kyiv"
+  },
+  "saratov": {
+    "name": "Saratov",
+    "asciiname": "Saratov",
+    "lat": 51.54048,
+    "lng": 45.9901,
+    "timezone": "Europe/Saratov"
+  },
+  "voronezh": {
+    "name": "Voronezh",
+    "asciiname": "Voronezh",
+    "lat": 51.66833,
+    "lng": 39.19204,
+    "timezone": "Europe/Moscow"
+  },
+  "samara": {
+    "name": "Samara",
+    "asciiname": "Samara",
+    "lat": 53.20767,
+    "lng": 50.13553,
+    "timezone": "Europe/Samara"
+  },
+  "aktobe": {
+    "name": "Aktobe",
+    "asciiname": "Aktobe",
+    "lat": 50.27969,
+    "lng": 57.20718,
+    "timezone": "Asia/Aqtobe"
+  },
+  "magnitogorsk": {
+    "name": "Magnitogorsk",
+    "asciiname": "Magnitogorsk",
+    "lat": 53.39808,
+    "lng": 59.0066,
+    "timezone": "Asia/Yekaterinburg"
+  },
+  "almaty": {
+    "name": "Almaty",
+    "asciiname": "Almaty",
+    "lat": 43.25249,
+    "lng": 76.9115,
+    "timezone": "Asia/Almaty"
+  },
+  "ulan bator": {
+    "name": "Ulan Bator",
+    "asciiname": "Ulan Bator",
+    "lat": 47.90771,
+    "lng": 106.88324,
+    "timezone": "Asia/Ulaanbaatar"
+  },
+  "irkutsk": {
+    "name": "Irkutsk",
+    "asciiname": "Irkutsk",
+    "lat": 52.29566,
+    "lng": 104.29076,
+    "timezone": "Asia/Irkutsk"
+  },
+  "hulun buir": {
+    "name": "Hulun Buir",
+    "asciiname": "Hulunbuir",
+    "lat": 49.21141,
+    "lng": 119.75582,
+    "timezone": "Asia/Shanghai"
+  },
+  "bangalore": {
+    "name": "Bangalore",
+    "asciiname": "Bengaluru",
+    "lat": 12.97194,
+    "lng": 77.59369,
+    "timezone": "Asia/Kolkata"
+  },
+  "tripura": {
+    "name": "Tripura",
+    "asciiname": "Tripura",
+    "lat": 23.7750823,
+    "lng": 91.7025091,
+    "timezone": "Asia/Kolkata"
+  },
+  "kyzylorda": {
+    "name": "Kyzylorda",
+    "asciiname": "Kyzylorda",
+    "lat": 44.85278,
+    "lng": 65.50917,
+    "timezone": "Asia/Qyzylorda"
+  },
+  "hulunbuir": {
+    "name": "Hulunbuir",
+    "asciiname": "Hulunbuir",
+    "lat": 49.21141,
+    "lng": 119.75582,
+    "timezone": "Asia/Shanghai"
+  },
+  "kharkiv": {
+    "name": "Kharkiv",
+    "asciiname": "Kharkiv",
+    "lat": 49.98177,
+    "lng": 36.25475,
+    "timezone": "Europe/Kyiv"
+  },
+  "jarkov": {
+    "name": "Jarkov",
+    "asciiname": "Kharkiv",
+    "lat": 49.98177,
+    "lng": 36.25475,
+    "timezone": "Europe/Kyiv"
+  },
+  "kyzlorda": {
+    "name": "Kyzylorda",
+    "asciiname": "Kyzylorda",
+    "lat": 44.85278,
+    "lng": 65.50917,
+    "timezone": "Asia/Qyzylorda"
+  }
+}

@@ -35,6 +35,7 @@ from urllib.parse import quote
 PROJECT_ROOT = Path(__file__).resolve().parents[3]  # PF/
 TSV_PATH = PROJECT_ROOT / "docs" / "origenes" / "cities15000.txt"
 JSON_PATH = PROJECT_ROOT / "assets" / "data" / "locations.json"
+TOOLS_JSON_PATH = PROJECT_ROOT / "tools" / "locations-map" / "locations.json"
 CACHE_PATH = PROJECT_ROOT / "SENSIBLE" / ".cache" / "city_enrich.json"
 
 HEADER = [
@@ -508,6 +509,13 @@ def cmd_retro(dry_run: bool) -> int:
         data["meta"]["version"] = "1.0.1"
         JSON_PATH.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         print(f"[retro] Corregidos {mism}, escrito {JSON_PATH}")
+        # sync opcional para visor file:// — mantiene tools/locations-map fresco
+        if TOOLS_JSON_PATH.parent.exists():
+            try:
+                TOOLS_JSON_PATH.write_text(JSON_PATH.read_text(encoding="utf-8"), encoding="utf-8")
+                print(f"[retro] Sincronizado → {TOOLS_JSON_PATH}")
+            except Exception as e:
+                print(f"[retro] Aviso: no se pudo sincronizar {TOOLS_JSON_PATH}: {e}", file=sys.stderr)
     return 0 if mism == 0 else 1
 
 
@@ -565,6 +573,13 @@ def cmd_city(city: str, dry_run: bool) -> int:
     data["cities"] = cities
     JSON_PATH.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"[city] Insertado en idx {idx}, escrito {JSON_PATH}")
+    # sync opcional para visor file:// — mantiene tools/locations-map fresco
+    if TOOLS_JSON_PATH.parent.exists():
+        try:
+            TOOLS_JSON_PATH.write_text(JSON_PATH.read_text(encoding="utf-8"), encoding="utf-8")
+            print(f"[city] Sincronizado → {TOOLS_JSON_PATH}")
+        except Exception as e:
+            print(f"[city] Aviso: no se pudo sincronizar {TOOLS_JSON_PATH}: {e}", file=sys.stderr)
     return 0
 
 

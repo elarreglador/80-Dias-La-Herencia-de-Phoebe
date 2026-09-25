@@ -23,6 +23,20 @@
       "timezone": "Europe/Paris"
     },
     {
+      "name": "Bruselas",
+      "asciiname": "Brussels",
+      "lat": 50.85045,
+      "lng": 4.34878,
+      "timezone": "Europe/Brussels"
+    },
+    {
+      "name": "Lyon",
+      "asciiname": "Lyon",
+      "lat": 45.74906,
+      "lng": 4.84789,
+      "timezone": "Europe/Paris"
+    },
+    {
       "name": "Amsterdam",
       "asciiname": "Amsterdam",
       "lat": 52.37403,
@@ -37,11 +51,25 @@
       "timezone": "Africa/Malabo"
     },
     {
+      "name": "Genova",
+      "asciiname": "Genoa",
+      "lat": 44.40478,
+      "lng": 8.94439,
+      "timezone": "Europe/Rome"
+    },
+    {
       "name": "Libreville",
       "asciiname": "Libreville",
       "lat": 0.39241,
       "lng": 9.45356,
       "timezone": "Africa/Libreville"
+    },
+    {
+      "name": "Hamburgo",
+      "asciiname": "Hamburg",
+      "lat": 53.55073,
+      "lng": 9.99302,
+      "timezone": "Europe/Berlin"
     },
     {
       "name": "Oslo",
@@ -51,6 +79,20 @@
       "timezone": "Europe/Oslo"
     },
     {
+      "name": "Munich",
+      "asciiname": "Munich",
+      "lat": 48.13743,
+      "lng": 11.57549,
+      "timezone": "Europe/Berlin"
+    },
+    {
+      "name": "Roma",
+      "asciiname": "Rome",
+      "lat": 41.89193,
+      "lng": 12.51133,
+      "timezone": "Europe/Rome"
+    },
+    {
       "name": "Luanda",
       "asciiname": "Luanda",
       "lat": -8.83682,
@@ -58,11 +100,25 @@
       "timezone": "Africa/Luanda"
     },
     {
+      "name": "Berlin",
+      "asciiname": "Berlin",
+      "lat": 52.52437,
+      "lng": 13.41053,
+      "timezone": "Europe/Berlin"
+    },
+    {
       "name": "Lubango",
       "asciiname": "Lubango",
       "lat": -14.91717,
       "lng": 13.4925,
       "timezone": "Africa/Luanda"
+    },
+    {
+      "name": "Praga",
+      "asciiname": "Prague",
+      "lat": 50.08804,
+      "lng": 14.42076,
+      "timezone": "Europe/Prague"
     },
     {
       "name": "Swakopmund",
@@ -86,6 +142,13 @@
       "timezone": "Africa/Brazzaville"
     },
     {
+      "name": "Zagreb",
+      "asciiname": "Zagreb",
+      "lat": 45.81444,
+      "lng": 15.97798,
+      "timezone": "Europe/Zagreb"
+    },
+    {
       "name": "Estocolmo",
       "asciiname": "Stockholm",
       "lat": 59.32938,
@@ -98,6 +161,20 @@
       "lat": -33.92584,
       "lng": 18.42322,
       "timezone": "Africa/Johannesburg"
+    },
+    {
+      "name": "Varsovia",
+      "asciiname": "Warsaw",
+      "lat": 52.22977,
+      "lng": 21.01178,
+      "timezone": "Europe/Warsaw"
+    },
+    {
+      "name": "Leopolis",
+      "asciiname": "Lviv",
+      "lat": 49.83826,
+      "lng": 24.02324,
+      "timezone": "Europe/Kyiv"
     },
     {
       "name": "Riga",
@@ -142,6 +219,13 @@
       "timezone": "Africa/Gaborone"
     },
     {
+      "name": "Bucarest",
+      "asciiname": "Bucharest",
+      "lat": 44.43225,
+      "lng": 26.10626,
+      "timezone": "Europe/Bucharest"
+    },
+    {
       "name": "Lusaka",
       "asciiname": "Lusaka",
       "lat": -15.40669,
@@ -161,6 +245,13 @@
       "lat": 59.93863,
       "lng": 30.31413,
       "timezone": "Europe/Moscow"
+    },
+    {
+      "name": "Kiev",
+      "asciiname": "Kyiv",
+      "lat": 50.45466,
+      "lng": 30.5238,
+      "timezone": "Europe/Kyiv"
     },
     {
       "name": "Harare",
@@ -198,6 +289,13 @@
       "timezone": "Europe/Moscow"
     },
     {
+      "name": "Jarkiv",
+      "asciiname": "Kharkiv",
+      "lat": 49.9923181,
+      "lng": 36.2310146,
+      "timezone": "Europe/Kyiv"
+    },
+    {
       "name": "Arusha",
       "asciiname": "Arusha",
       "lat": -3.36667,
@@ -219,6 +317,13 @@
       "timezone": "Europe/Moscow"
     },
     {
+      "name": "Voronezh",
+      "asciiname": "Voronezh",
+      "lat": 51.66833,
+      "lng": 39.19204,
+      "timezone": "Europe/Moscow"
+    },
+    {
       "name": "Dar Es-Salam",
       "asciiname": "Dar es Salaam",
       "lat": -6.82349,
@@ -231,6 +336,13 @@
       "lat": -23.35,
       "lng": 43.66667,
       "timezone": "Indian/Antananarivo"
+    },
+    {
+      "name": "Saratov",
+      "asciiname": "Saratov",
+      "lat": 51.54048,
+      "lng": 45.9901,
+      "timezone": "Europe/Saratov"
     },
     {
       "name": "Indiga",
@@ -247,11 +359,39 @@
       "timezone": "Europe/Moscow"
     },
     {
+      "name": "Samara",
+      "asciiname": "Samara",
+      "lat": 53.20767,
+      "lng": 50.13553,
+      "timezone": "Europe/Samara"
+    },
+    {
+      "name": "Aktobe",
+      "asciiname": "Aktobe",
+      "lat": 50.27969,
+      "lng": 57.20718,
+      "timezone": "Asia/Aqtobe"
+    },
+    {
+      "name": "Magnitogorsk",
+      "asciiname": "Magnitogorsk",
+      "lat": 53.39808,
+      "lng": 59.0066,
+      "timezone": "Asia/Yekaterinburg"
+    },
+    {
       "name": "Cheliabinsk",
       "asciiname": "Chelyabinsk",
       "lat": 55.1611,
       "lng": 61.42877,
       "timezone": "Asia/Yekaterinburg"
+    },
+    {
+      "name": "Kyzylorda",
+      "asciiname": "Kyzylorda",
+      "lat": 44.85278,
+      "lng": 65.50917,
+      "timezone": "Asia/Qyzylorda"
     },
     {
       "name": "Petropavi",
@@ -304,6 +444,20 @@
       "timezone": "Indian/Maldives"
     },
     {
+      "name": "Almaty",
+      "asciiname": "Almaty",
+      "lat": 43.25249,
+      "lng": 76.9115,
+      "timezone": "Asia/Almaty"
+    },
+    {
+      "name": "Bangalore",
+      "asciiname": "Bengaluru",
+      "lat": 12.97194,
+      "lng": 77.59369,
+      "timezone": "Asia/Kolkata"
+    },
+    {
       "name": "Semey",
       "asciiname": "Semey",
       "lat": 50.42064,
@@ -330,6 +484,13 @@
       "lat": 43.80096,
       "lng": 87.60046,
       "timezone": "Asia/Urumqi"
+    },
+    {
+      "name": "Tripura",
+      "asciiname": "Tripura",
+      "lat": 23.7750823,
+      "lng": 91.7025091,
+      "timezone": "Asia/Kolkata"
     },
     {
       "name": "Krasnoyarsk",
@@ -388,6 +549,13 @@
       "timezone": "Asia/Shanghai"
     },
     {
+      "name": "Irkutsk",
+      "asciiname": "Irkutsk",
+      "lat": 52.29566,
+      "lng": 104.29076,
+      "timezone": "Asia/Irkutsk"
+    },
+    {
       "name": "Hanoi",
       "asciiname": "Hanoi",
       "lat": 21.0245,
@@ -414,6 +582,13 @@
       "lat": -6.21462,
       "lng": 106.84513,
       "timezone": "Asia/Jakarta"
+    },
+    {
+      "name": "Ulan Bator",
+      "asciiname": "Ulan Bator",
+      "lat": 47.90771,
+      "lng": 106.88324,
+      "timezone": "Asia/Ulaanbaatar"
     },
     {
       "name": "Da Nang",
@@ -511,6 +686,13 @@
       "asciiname": "Nanjing",
       "lat": 32.06167,
       "lng": 118.77778,
+      "timezone": "Asia/Shanghai"
+    },
+    {
+      "name": "Hulun Buir",
+      "asciiname": "Hulunbuir",
+      "lat": 49.21141,
+      "lng": 119.75582,
       "timezone": "Asia/Shanghai"
     },
     {

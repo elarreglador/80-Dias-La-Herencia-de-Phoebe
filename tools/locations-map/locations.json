@@ -668,13 +668,6 @@
       "timezone": "Asia/Almaty"
     },
     {
-      "name": "Sever Bay",
-      "asciiname": "Sever Bay",
-      "lat": 73.1660506,
-      "lng": 80.3846652,
-      "timezone": "Asia/Krasnoyarsk"
-    },
-    {
       "name": "Lucknow",
       "asciiname": "Lucknow",
       "lat": 26.83928,
@@ -997,13 +990,6 @@
       "timezone": "Asia/Shanghai"
     },
     {
-      "name": "Taiwan",
-      "asciiname": "Taiwan",
-      "lat": 23.9739374,
-      "lng": 120.9820179,
-      "timezone": "Asia/Taipei"
-    },
-    {
       "name": "Shangai",
       "asciiname": "Shanghai",
       "lat": 31.22222,
@@ -1263,13 +1249,6 @@
       "timezone": "Asia/Magadan"
     },
     {
-      "name": "Kamchatka",
-      "asciiname": "Kamchatka Krai",
-      "lat": 57.1914882,
-      "lng": 160.0383819,
-      "timezone": "Asia/Kamchatka"
-    },
-    {
       "name": "Numea",
       "asciiname": "Noumea",
       "lat": -22.27407,
@@ -1284,10 +1263,10 @@
       "timezone": "Asia/Anadyr"
     },
     {
-      "name": "Kiribati",
-      "asciiname": "Kiribati",
-      "lat": 0.3448612,
-      "lng": 173.6641773,
+      "name": "Tarawa",
+      "asciiname": "Tarawa",
+      "lat": 1.4845542,
+      "lng": 172.9689648,
       "timezone": "Pacific/Tarawa"
     },
     {
@@ -1354,38 +1333,38 @@
       "timezone": "Asia/Anadyr"
     },
     {
-      "name": "Samoa",
-      "asciiname": "Samoa",
-      "lat": -13.7693895,
-      "lng": -172.12005,
+      "name": "Apia",
+      "asciiname": "Apia",
+      "lat": -13.8345235,
+      "lng": -171.7630955,
       "timezone": "Pacific/Apia"
     },
     {
-      "name": "Tokelau",
-      "asciiname": "Tokelau",
-      "lat": -9.1676396,
-      "lng": -171.819687,
+      "name": "Fakaofo",
+      "asciiname": "Fakaofo",
+      "lat": -9.3735594,
+      "lng": -171.2414826,
       "timezone": "Pacific/Fakaofo"
     },
     {
-      "name": "Niue",
-      "asciiname": "Niue",
-      "lat": -19.0536414,
-      "lng": -169.861341,
+      "name": "Alofi",
+      "asciiname": "Alofi",
+      "lat": -19.0534159,
+      "lng": -169.919199,
       "timezone": "Pacific/Niue"
     },
     {
-      "name": "Islas Cook",
-      "asciiname": "Cook Islands",
-      "lat": -19.9969715,
-      "lng": -157.7858714,
+      "name": "Avarua",
+      "asciiname": "Avarua",
+      "lat": -21.2074736,
+      "lng": -159.7708145,
       "timezone": "Pacific/Rarotonga"
     },
     {
-      "name": "Hawai",
-      "asciiname": "Hawaii",
-      "lat": 19.5938015,
-      "lng": -155.4283701,
+      "name": "Honolulu",
+      "asciiname": "Honolulu",
+      "lat": 21.304547,
+      "lng": -157.855676,
       "timezone": "Pacific/Honolulu"
     },
     {
@@ -1401,6 +1380,13 @@
       "lat": -16.5043467,
       "lng": -151.7366886,
       "timezone": "Pacific/Tahiti"
+    },
+    {
+      "name": "Anchorage",
+      "asciiname": "Anchorage",
+      "lat": 61.2163129,
+      "lng": -149.894852,
+      "timezone": "America/Anchorage"
     },
     {
       "name": "Chenega",
@@ -1445,10 +1431,10 @@
       "timezone": "America/Inuvik"
     },
     {
-      "name": "Pitcairn",
-      "asciiname": "Pitcairn Islands",
-      "lat": -25.0657719,
-      "lng": -130.101782,
+      "name": "Adamstown",
+      "asciiname": "Adamstown",
+      "lat": -25.066667,
+      "lng": -130.100205,
       "timezone": "Pacific/Pitcairn"
     },
     {
@@ -1732,13 +1718,6 @@
       "timezone": "America/Chicago"
     },
     {
-      "name": "Devil Fish",
-      "asciiname": "Devil's Island Wildlife Management Area",
-      "lat": 37.3714999,
-      "lng": -89.4139111,
-      "timezone": "America/Chicago"
-    },
-    {
       "name": "San Salvador",
       "asciiname": "San Salvador",
       "lat": 13.68935,
@@ -1814,13 +1793,6 @@
       "lat": 69.3788839,
       "lng": -81.7947989,
       "timezone": "America/Iqaluit"
-    },
-    {
-      "name": "Craig",
-      "asciiname": "Craig County",
-      "lat": 37.4760225,
-      "lng": -80.1990826,
-      "timezone": "America/New_York"
     },
     {
       "name": "Miami",
@@ -1970,10 +1942,10 @@
       "timezone": "America/Argentina/Cordoba"
     },
     {
-      "name": "Barbados",
-      "asciiname": "Barbados",
-      "lat": 13.1500331,
-      "lng": -59.5250305,
+      "name": "Bridgetown",
+      "asciiname": "Bridgetown",
+      "lat": 13.0977832,
+      "lng": -59.6184184,
       "timezone": "America/Barbados"
     },
     {

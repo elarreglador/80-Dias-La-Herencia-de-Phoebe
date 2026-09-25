@@ -628,5 +628,68 @@
     "lat": 63.1569728,
     "lng": 87.9639337,
     "timezone": "Asia/Krasnoyarsk"
+  },
+  "bridgetown": {
+    "name": "Bridgetown",
+    "asciiname": "Bridgetown",
+    "lat": 13.0977832,
+    "lng": -59.6184184,
+    "timezone": "America/Barbados"
+  },
+  "honolulu": {
+    "name": "Honolulu",
+    "asciiname": "Honolulu",
+    "lat": 21.304547,
+    "lng": -157.855676,
+    "timezone": "Pacific/Honolulu"
+  },
+  "anchorage": {
+    "name": "Anchorage",
+    "asciiname": "Anchorage",
+    "lat": 61.2163129,
+    "lng": -149.894852,
+    "timezone": "America/Anchorage"
+  },
+  "apia": {
+    "name": "Apia",
+    "asciiname": "Apia",
+    "lat": -13.8345235,
+    "lng": -171.7630955,
+    "timezone": "Pacific/Apia"
+  },
+  "alofi": {
+    "name": "Alofi",
+    "asciiname": "Alofi",
+    "lat": -19.0534159,
+    "lng": -169.919199,
+    "timezone": "Pacific/Niue"
+  },
+  "avarua": {
+    "name": "Avarua",
+    "asciiname": "Avarua",
+    "lat": -21.2074736,
+    "lng": -159.7708145,
+    "timezone": "Pacific/Rarotonga"
+  },
+  "adamstown": {
+    "name": "Adamstown",
+    "asciiname": "Adamstown",
+    "lat": -25.066667,
+    "lng": -130.100205,
+    "timezone": "Pacific/Pitcairn"
+  },
+  "tarawa": {
+    "name": "Tarawa",
+    "asciiname": "Tarawa",
+    "lat": 1.4845542,
+    "lng": 172.9689648,
+    "timezone": "Pacific/Tarawa"
+  },
+  "fakaofo": {
+    "name": "Fakaofo",
+    "asciiname": "Fakaofo",
+    "lat": -9.3735594,
+    "lng": -171.2414826,
+    "timezone": "Pacific/Fakaofo"
   }
 }

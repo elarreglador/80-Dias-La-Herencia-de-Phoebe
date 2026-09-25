@@ -1,6 +1,6 @@
 # SPEC 005 — Visor de rutas marítimas animadas
 
-> **Estado:** Borrador
+> **Estado:** Implementado
 > **Depende de:** SPEC 003 (Visor locations.json) y SPEC 004 (Fogg Sea Routes)
 > **Fecha:** 2026-09-25
 > **Objetivo:** Ampliar el visor standalone de ciudades para cargar un `sea_routes.json` mediante un selector y mostrar sus rutas marítimas como polilíneas azules discontinuas animadas sin perder los markers rojos.
@@ -274,4 +274,4 @@ Cada uno, si aterriza, irá en su propia especificación.
 - Documentación en `README.md:Configuración`: sí
 - Rama de trabajo: la rama actual proporcionada por el usuario
 
-> Siguiente paso tras aprobar esta spec: ejecutar `/spec-impl 005-visor-rutas-maritimas-animadas` siguiendo el plan de la sección 4.
+> SPEC 005 implementada en la rama actual. La implementación permanece aislada en `tools/locations-map/` y la verificación del visor no modifica la aplicación Flutter.

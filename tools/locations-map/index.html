@@ -21,6 +21,12 @@
       <input type="search" id="filter" placeholder="Filtrar por nombre o timezone..." autocomplete="off" />
       <div id="counter" class="counter">—</div>
       <div id="banner" class="banner hidden" role="alert"></div>
+      <div class="route-loader">
+        <button type="button" id="load-sea-routes" class="route-button" aria-controls="sea-routes-file">Cargar rutas marítimas</button>
+        <input type="file" id="sea-routes-file" accept=".json,application/json" hidden />
+        <div id="route-status" class="route-status" aria-live="polite">0 rutas marítimas</div>
+        <p class="hint">Selecciona <code>sea_routes.json</code> para superponer las rutas. No escribe disco.</p>
+      </div>
     </div>
 
     <ul id="city-list" class="city-list" aria-label="Lista de ciudades"></ul>

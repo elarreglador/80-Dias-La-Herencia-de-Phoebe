@@ -14,6 +14,9 @@
   const counterEl = document.getElementById('counter');
   const bannerEl = document.getElementById('banner');
   const fileInput = document.getElementById('file');
+  const seaRoutesFileInput = document.getElementById('sea-routes-file');
+  const loadSeaRoutesButton = document.getElementById('load-sea-routes');
+  const routeStatus = document.getElementById('route-status');
   const dropZone = document.getElementById('drop-zone');
   const metaVersion = document.getElementById('meta-version');
 
@@ -38,7 +41,21 @@
   let filteredCities = [];
   let markers = [];
   let selectedCity = null;
+  const seaRoutesLayer = L.layerGroup().addTo(map);
   const markerLayer = L.layerGroup().addTo(map);
+  const seaRouteStyle = {
+    pane: 'overlayPane',
+    renderer: L.svg(),
+    className: 'sea-route-line',
+    color: '#1E88E5',
+    weight: 3,
+    opacity: 0.9,
+    dashArray: '8 12',
+    interactive: true,
+  };
+  let loadedSeaRoutes = [];
+  let loadedSeaRouteFileName = null;
+  let seaRouteLoadError = null;
 
   function clampLat(lat) {
     return Math.max(-MAX_MERCATOR_LAT, Math.min(MAX_MERCATOR_LAT, lat));
@@ -55,6 +72,205 @@
 
   function formatLatLng(lat, lng) {
     return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+  }
+
+  function isFiniteNumber(value) {
+    return typeof value === 'number' && Number.isFinite(value);
+  }
+
+  function isInRange(value, min, max) {
+    return isFiniteNumber(value) && value >= min && value <= max;
+  }
+
+  function validateSeaRoutes(data) {
+    if (!data || typeof data !== 'object' || Array.isArray(data)) {
+      throw new Error('el archivo debe contener un objeto');
+    }
+    if (data.meta !== undefined) {
+      if (!data.meta || typeof data.meta !== 'object' || Array.isArray(data.meta)) {
+        throw new Error('meta debe ser un objeto');
+      }
+      if (Object.prototype.hasOwnProperty.call(data.meta, 'units') && data.meta.units !== 'km') {
+        throw new Error('meta.units debe ser km');
+      }
+      if (Object.prototype.hasOwnProperty.call(data.meta, 'project') && data.meta.project !== 'eu.elarreglador.pf') {
+        throw new Error('meta.project no coincide con eu.elarreglador.pf');
+      }
+    }
+    if (!Array.isArray(data.routes) || data.routes.length === 0) {
+      throw new Error('routes debe contener al menos una ruta');
+    }
+    data.routes.forEach((route, index) => {
+      const routeLabel = `Ruta ${index + 1}`;
+      if (!route || typeof route !== 'object' || Array.isArray(route)) {
+        throw new Error(`${routeLabel} no es un objeto`);
+      }
+      if (typeof route.origin !== 'string' || route.origin.trim() === '') {
+        throw new Error(`${routeLabel}: origin es obligatorio`);
+      }
+      if (typeof route.destination !== 'string' || route.destination.trim() === '') {
+        throw new Error(`${routeLabel}: destination es obligatorio`);
+      }
+      if (!isFiniteNumber(route.distanceKm) || route.distanceKm <= 0) {
+        throw new Error(`${routeLabel}: distanceKm debe ser un número positivo`);
+      }
+      [
+        ['originLat', -MAX_MERCATOR_LAT, MAX_MERCATOR_LAT],
+        ['originLng', -180, 180],
+        ['destinationLat', -MAX_MERCATOR_LAT, MAX_MERCATOR_LAT],
+        ['destinationLng', -180, 180],
+      ].forEach(([field, min, max]) => {
+        if (!isInRange(route[field], min, max)) {
+          throw new Error(`${routeLabel}: ${field} está fuera de rango`);
+        }
+      });
+      if (!route.geometry || typeof route.geometry !== 'object' || route.geometry.type !== 'LineString') {
+        throw new Error(`${routeLabel}: geometry debe ser LineString`);
+      }
+      if (!Array.isArray(route.geometry.coordinates) || route.geometry.coordinates.length < 2) {
+        throw new Error(`${routeLabel}: geometry.coordinates necesita al menos dos puntos`);
+      }
+      route.geometry.coordinates.forEach((coordinate, coordinateIndex) => {
+        if (!Array.isArray(coordinate) || coordinate.length < 2) {
+          throw new Error(`${routeLabel}: coordinate ${coordinateIndex + 1} no es un par`);
+        }
+        if (!isInRange(coordinate[0], -180, 180)) {
+          throw new Error(`${routeLabel}: longitud ${coordinateIndex + 1} está fuera de rango`);
+        }
+        if (!isInRange(coordinate[1], -MAX_MERCATOR_LAT, MAX_MERCATOR_LAT)) {
+          throw new Error(`${routeLabel}: latitud ${coordinateIndex + 1} está fuera de rango`);
+        }
+      });
+    });
+    return data;
+  }
+
+  function mercatorY(lat) {
+    return Math.log(Math.tan(Math.PI / 4 + (lat * Math.PI) / 360));
+  }
+
+  function mercatorLatitude(y) {
+    return (2 * Math.atan(Math.exp(y)) - Math.PI / 2) * 180 / Math.PI;
+  }
+
+  function boundaryLatitude(start, end, boundaryLng, unwrappedEndLng) {
+    const startY = mercatorY(start[1]);
+    const endY = mercatorY(end[1]);
+    const ratio = (boundaryLng - start[0]) / (unwrappedEndLng - start[0]);
+    return clampLat(mercatorLatitude(startY + (endY - startY) * ratio));
+  }
+
+  function splitAntimeridian(coordinates) {
+    const segments = [];
+    let currentSegment = [];
+    coordinates.forEach((coordinate, index) => {
+      if (index === 0) {
+        currentSegment.push([coordinate[0], coordinate[1]]);
+        return;
+      }
+      const previous = coordinates[index - 1];
+      const longitudeDelta = coordinate[0] - previous[0];
+      if (Math.abs(longitudeDelta) > 180) {
+        const crossesEastward = longitudeDelta < 0;
+        const firstBoundary = crossesEastward ? 180 : -180;
+        const secondBoundary = crossesEastward ? -180 : 180;
+        const unwrappedEndLng = crossesEastward ? coordinate[0] + 360 : coordinate[0] - 360;
+        const latitude = boundaryLatitude(previous, coordinate, firstBoundary, unwrappedEndLng);
+        currentSegment.push([firstBoundary, latitude]);
+        segments.push(currentSegment);
+        currentSegment = [[secondBoundary, latitude], [coordinate[0], coordinate[1]]];
+      } else {
+        currentSegment.push([coordinate[0], coordinate[1]]);
+      }
+    });
+    segments.push(currentSegment);
+    return segments;
+  }
+
+  function normalizeSeaRoutes(data) {
+    return data.routes.map((route) => {
+      const longitudeSegments = splitAntimeridian(route.geometry.coordinates);
+      return {
+        origin: route.origin,
+        destination: route.destination,
+        distanceKm: route.distanceKm,
+        pointCount: route.geometry.coordinates.length,
+        leafletSegments: longitudeSegments.map((segment) => segment.map(([lng, lat]) => [lat, lng])),
+      };
+    });
+  }
+
+  function routePopup(route) {
+    return `
+      <div style="min-width:160px">
+        <strong>${escapeHtml(route.origin)} → ${escapeHtml(route.destination)}</strong><br/>
+        <span style="font-size:11px;color:#666">${route.distanceKm.toFixed(1)} km · ${route.pointCount} vértices</span>
+      </div>
+    `;
+  }
+
+  function updateRouteStatus() {
+    const count = loadedSeaRoutes.length;
+    routeStatus.textContent = loadedSeaRouteFileName
+      ? `${count} rutas marítimas · ${loadedSeaRouteFileName}`
+      : `${count} rutas marítimas`;
+    loadSeaRoutesButton.textContent = loadedSeaRouteFileName
+      ? 'Recargar rutas marítimas'
+      : 'Cargar rutas marítimas';
+  }
+
+  function fitSeaRoutes(routes) {
+    const bounds = L.latLngBounds([]);
+    routes.forEach((route) => {
+      route.leafletSegments.forEach((segment) => {
+        segment.forEach((point) => bounds.extend(point));
+      });
+    });
+    if (bounds.isValid()) {
+      map.fitBounds(bounds, {
+        paddingTopLeft: [32, 32],
+        paddingBottomRight: [48, 32],
+      });
+    }
+  }
+
+  function createSeaRouteLines(routes) {
+    return routes.map((route) => {
+      const line = L.polyline(route.leafletSegments, seaRouteStyle);
+      line.bindPopup(routePopup(route), { maxWidth: 260 });
+      line.on('mouseover', () => line.setStyle({ weight: 5 }));
+      line.on('mouseout', () => line.setStyle({ weight: seaRouteStyle.weight }));
+      return line;
+    });
+  }
+
+  function loadSeaRoutes(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const data = JSON.parse(event.target.result);
+        validateSeaRoutes(data);
+        const routes = normalizeSeaRoutes(data);
+        const lines = createSeaRouteLines(routes);
+        seaRoutesLayer.clearLayers();
+        lines.forEach((line) => line.addTo(seaRoutesLayer));
+        loadedSeaRoutes = routes;
+        loadedSeaRouteFileName = file.name;
+        seaRouteLoadError = null;
+        updateRouteStatus();
+        hideBanner();
+        fitSeaRoutes(routes);
+      } catch (error) {
+        seaRouteLoadError = error;
+        showBanner(`Rutas marítimas inválidas: ${error.message}`);
+      }
+    };
+    reader.onerror = () => {
+      seaRouteLoadError = new Error('no se pudo leer el archivo');
+      showBanner(`Rutas marítimas inválidas: ${seaRouteLoadError.message}`);
+    };
+    reader.readAsText(file);
   }
 
   async function loadCities() {
@@ -230,6 +446,16 @@
     if (f) handleFile(f);
   });
 
+  loadSeaRoutesButton.addEventListener('click', () => {
+    seaRoutesFileInput.click();
+  });
+
+  seaRoutesFileInput.addEventListener('change', (e) => {
+    const f = e.target.files && e.target.files[0];
+    if (f) loadSeaRoutes(f);
+    e.target.value = '';
+  });
+
   const mapContainer = document.getElementById('map');
   ['dragenter', 'dragover'].forEach((ev) => {
     mapContainer.addEventListener(ev, (e) => { e.preventDefault(); e.stopPropagation(); dropZone.classList.remove('hidden'); });
@@ -251,6 +477,8 @@
   });
   document.addEventListener('drop', (e) => { e.preventDefault(); dropZone.classList.add('hidden'); });
 
+  updateRouteStatus();
+
   loadCities().then(renderAll).catch((err) => {
     console.error('[visor] no se pudo cargar locations.json', err);
     showBanner('No se pudo cargar locations.json — arrastra un JSON');
@@ -258,5 +486,20 @@
     if (location.protocol === 'file:') showBanner('Abre con tools/serve_map.sh — file:// bloqueado por CORS — arrastra un JSON');
   });
 
-  window.__foggVisor = { map, get cities(){return allCities;}, get filtered(){return filteredCities;}, reload: loadCities, renderAll, handleFile };
+  window.__foggVisor = {
+    map,
+    get cities() { return allCities; },
+    get filtered() { return filteredCities; },
+    get seaRoutes() { return loadedSeaRoutes; },
+    get seaRouteFileName() { return loadedSeaRouteFileName; },
+    get seaRouteError() { return seaRouteLoadError; },
+    seaRoutesLayer,
+    reload: loadCities,
+    renderAll,
+    handleFile,
+    loadSeaRoutes,
+    validateSeaRoutes,
+    normalizeSeaRoutes,
+    splitAntimeridian,
+  };
 })();

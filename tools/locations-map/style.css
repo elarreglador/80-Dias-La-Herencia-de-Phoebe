@@ -137,6 +137,34 @@ body {
   background: #FFFEFC;
 }
 
+.route-loader {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.route-button {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #1E88E5;
+  border-radius: 6px;
+  background: #1E88E5;
+  color: #FFFFFF;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.route-button:hover { background: #1565C0; border-color: #1565C0; }
+.route-button:focus-visible { outline: 3px solid rgba(30,136,229,0.28); outline-offset: 2px; }
+
+.route-status {
+  color: var(--muted);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
 .file-label {
   font-size: 12px;
   display: flex;
@@ -174,6 +202,22 @@ body {
 }
 
 .leaflet-div-icon { background: transparent; border: none; }
+
+.sea-route-line {
+  animation: seaRouteFlow 1.2s linear infinite;
+}
+
+@keyframes seaRouteFlow {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: -20; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sea-route-line {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}
 
 /* Drop zone */
 .drop-zone {

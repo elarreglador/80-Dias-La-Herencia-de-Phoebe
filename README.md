@@ -25,6 +25,8 @@ python3 -m http.server 8090 --directory tools/locations-map  # equivalente manua
 - **MAP_TILE_URL** por defecto `https://tile.openstreetmap.org/{z}/{x}/{y}.png` (`L.tileLayer` `maxZoom:18`).
 - Panel 320px derecha: filtro `name|asciiname|timezone` (debounce 150ms), lista `lat,lng` 6 decimales, click → `map.setView([lat,lng],6)`.
 - Drag&drop de `locations.json` local sobre el mapa o `input[type=file]` — reemplaza markers en caliente sin escribir disco.
+- `Cargar rutas marítimas` abre un selector independiente para `assets/data/sea_routes.json`; cada ruta se dibuja como una polilínea azul discontinua animada, con popup de origen, destino, distancia y vértices. El archivo se lee localmente y no se escribe ni se persiste.
+- Las rutas se reemplazan atómicamente al cargar un archivo válido; un JSON inválido conserva la última carga. El visor también segmenta travesías que cruzan el antimeridiano.
 - `tools/locations-map/locations.json` es copia opcional para fallback `file://`.
 
 Capa día/noche: `SunTerminatorService` (NOAA + `apsl_sun_calc` 0.0.4) genera 1 polígono curvo 183 vértices paso 2° (solsticios) o 2 rectángulos 4 vértices split antimeridiano (equinoccio |subLat|<0.5°) cada 5 min vía `sunTerminatorProvider` (`Provider.autoDispose<List<List<LatLng>>>`). Clamp Mercator `85.051°` y `Epsg3857NoRepeat` evitan salto/replica. Fix completo 2026-09-22.

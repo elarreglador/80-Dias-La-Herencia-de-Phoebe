@@ -54,5 +54,6 @@ flutter analyze                                           # typecheck/lint
 
 ## Workflow
 - No commits/pushes sin petición explícita. Ramas `feat/...` desde `main`. Antes de editar, lea el archivo y respete convenciones.
+- **Specs:** toda especificación se crea en `docs/specs/NN-slug.md` (no en `specs/`). `docs/specs/.spec-config.yml` rige `AutoCreateBranch`. Mantenga `specs/` solo como legacy vacío.
 - Actualice `TODO.md` al completar tareas. Revise `diff` antes de finalizar: sin secretos, sin código muerto, sin cambios no solicitados.
 - `.worktrees/` y `SENSIBLE/` están en `.gitignore` — no los versione.

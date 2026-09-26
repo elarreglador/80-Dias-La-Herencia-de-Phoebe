@@ -11,7 +11,7 @@ Proyecto eu.elarreglador.pf
 - Ancla cada geometría a las coordenadas de la ciudad en ambos extremos:
   OSRM devuelve el punto enganchado a la calzada, no el centro urbano.
 - Selecciona como mucho `limit` rutas por origen y persiste
-  assets/data/car.json (reescritura completa, no merge).
+  assets/data/car_routes.json (reescritura completa, no merge).
 
 Uso:
   python3 .opencode/skills/fogg-land-routes/land_route.py --dry-run
@@ -43,7 +43,7 @@ from typing import Any
 # ---------------------------------------------------------------------------
 PROJECT_ROOT = Path(__file__).resolve().parents[3]  # PF/
 JSON_PATH = PROJECT_ROOT / "assets" / "data" / "locations.json"
-CAR_ROUTES_PATH = PROJECT_ROOT / "assets" / "data" / "car.json"
+CAR_ROUTES_PATH = PROJECT_ROOT / "assets" / "data" / "car_routes.json"
 CACHE_ROOT = PROJECT_ROOT / "SENSIBLE" / ".cache" / "fogg-land-routes"
 
 PROJECT = "eu.elarreglador.pf"

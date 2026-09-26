@@ -1,13 +1,13 @@
 ---
 name: fogg-land-routes
-description: Skill local Python que calcula hasta 5 rutas por carretera hacia el Este por ciudad de locations.json con el servidor demo de OSRM (1 petición/s, User-Agent identificable), descarta pares sin camino y persiste geometrías ancladas a la ciudad en car.json. Solo perfil car. Exclusiva proyecto eu.elarreglador.pf.
+description: Skill local Python que calcula hasta 5 rutas por carretera hacia el Este por ciudad de locations.json con el servidor demo de OSRM (1 petición/s, User-Agent identificable), descarta pares sin camino y persiste geometrías ancladas a la ciudad en car_routes.json. Solo perfil car. Exclusiva proyecto eu.elarreglador.pf.
 ---
 
 # Fogg Land Routes — 5 rutas por carretera hacia el Este por ciudad
 
-Recorre `assets/data/locations.json` (304 ciudades), toma por origen sus 5 vecinas más próximas por círculo grande que cumplan la Regla del Este, pregunta al servidor demo de OSRM cuáles tienen camino y persiste como mucho 5 rutas por origen en `assets/data/car.json`.
+Recorre `assets/data/locations.json` (304 ciudades), toma por origen sus 5 vecinas más próximas por círculo grande que cumplan la Regla del Este, pregunta al servidor demo de OSRM cuáles tienen camino y persiste como mucho 5 rutas por origen en `assets/data/car_routes.json`.
 
-**Estado actual:** `version 1.0.0`, esquema clonado de `sea_routes.json` v3 con `roadOrigin`/`roadDest` en lugar de `port*`, más `durationHours`. **Lote completo 2026-09-26:** 304 orígenes, 999 rutas de 235 orígenes (69 sin ruta), 521 descartes, 0 cruces de antimeridiano, `assets/data/car.json` de 3,3 MB. `meta.osrmDataVersion` es `"unknown"`: la API v5.24 del demo no expone `data_version` en `/route` ni `/table`.
+**Estado actual:** `version 1.0.0`, esquema clonado de `sea_routes.json` v3 con `roadOrigin`/`roadDest` en lugar de `port*`, más `durationHours`. **Lote completo 2026-09-26:** 304 orígenes, 999 rutas de 235 orígenes (69 sin ruta), 521 descartes, 0 cruces de antimeridiano, `assets/data/car_routes.json` de 3,3 MB. `meta.osrmDataVersion` es `"unknown"`: la API v5.24 del demo no expone `data_version` en `/route` ni `/table`.
 
 ## Cuándo usar
 
@@ -27,7 +27,7 @@ python3 .opencode/skills/fogg-land-routes/land_route.py --out /tmp/prueba.json
 
 - **Primario (solo lectura):** `assets/data/locations.json` — catálogo canónico `eu.elarreglador.pf`, 304 ciudades `{name, asciiname, lat, lng, timezone}`, orden Este desenrollado.
 - **Routing terrestre (con red, sin key):** servidor demo de OSRM `https://router.project-osrm.org` — servicios `/table/v1/car` (matriz, `null` si no hay camino) y `/route/v1/car` (`geometries=geojson&overview=simplified&steps=false`). `routes[0].distance` en metros, `routes[0].duration` en segundos, `waypoints[].name` la calle de enganche.
-- **Destino:** `assets/data/car.json` — `{meta, routes[]}` (esquema abajo).
+- **Destino:** `assets/data/car_routes.json` — `{meta, routes[]}` (esquema abajo).
 - **Caché:** `SENSIBLE/.cache/fogg-land-routes/{profile}/{sha1(url)}.json` — respuesta cruda de OSRM, nunca estructuras derivadas. `SENSIBLE/` está en `.gitignore` (SPEC 006, paso 1).
 
 ## Flujo
@@ -70,7 +70,7 @@ La caché hace que la segunda corrida idéntica no toque la red: dos llamadas al
 
 Por eso `overview=simplified` es fijo y sin flag (un lote en `full` pesaría ~160 MB), `distanceKm` es el dato de OSRM (nunca Haversine recalculado) y la validación tolera ±25 %: el `simplified` recorta hasta un 22,7 % en alta montaña (Nizhneyansk→Magadán, verificado contra `full` a ±0,3 %).
 
-## Esquema `car.json` v1.0.0
+## Esquema `car_routes.json` v1.0.0
 
 ```jsonc
 {
@@ -118,7 +118,7 @@ Por eso `overview=simplified` es fijo y sin flag (un lote en `full` pesaría ~16
 ## Archivos del proyecto
 
 - `assets/data/locations.json` → catálogo solo lectura.
-- `assets/data/car.json` → artefacto derivado, reescrito por esta skill.
+- `assets/data/car_routes.json` → artefacto derivado, reescrito por esta skill.
 - `.opencode/skills/fogg-land-routes/land_route.py` → CLI principal (stdlib puro).
 - `.opencode/skills/fogg-land-routes/requirements.txt` → vacío intencional.
 - `SENSIBLE/.cache/fogg-land-routes/` → caché cruda (gitignored).

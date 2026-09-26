@@ -66,4 +66,4 @@ Checklist vivo. Marque con `[x]` al completar.
 - [x] README.md fundacional (castellano, código en inglés, `eu.elarreglador.pf`)
 - [x] TODO.md inicial
 - [x] Rutas marítimas hacia el Este: `sea_routes.json` v3.0.0, 165 rutas de 33 orígenes (specs 004/005), geometría anclada a las coordenadas de la ciudad y segmentación de antimeridiano. Pendiente solo el consumo desde el mapa Flutter (ítem v1 de arriba)
-- [x] Rutas por carretera hacia el Este: `car.json` v1.0.0, 999 rutas de 235 orígenes con `durationHours` (69 orígenes isleños o sin camino quedan con 0 rutas; spec 006 `docs/specs/006-fog-car-routes.md`), geometría `simplified` anclada a la ciudad. Pendiente el consumo desde el mapa Flutter (ítem v1 de arriba)
+- [x] Rutas por carretera hacia el Este: `car_routes.json` v1.0.0, 999 rutas de 235 orígenes con `durationHours` (69 orígenes isleños o sin camino quedan con 0 rutas; spec 006 `docs/specs/006-fog-car-routes.md`), geometría `simplified` anclada a la ciudad. Pendiente el consumo desde el mapa Flutter (ítem v1 de arriba)

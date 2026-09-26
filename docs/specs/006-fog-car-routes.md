@@ -1,10 +1,10 @@
 # SPEC 006 — Skill local de rutas terrestres por carretera con OSRM (5 ciudades más cercanas al Este)
 
 > **Estado:** Implementado
-> **Ejecutado:** 2026-09-26 — lote completo de 304 orígenes: 999 rutas de 235 orígenes (69 sin ruta), 521 descartes, 0 cruces de antimeridiano, `assets/data/car.json` v1.0.0 (3,3 MB). Desviaciones respecto al diseño: `meta.osrmDataVersion` queda `"unknown"` (la API no expone `data_version`) y `LENGTH_TOLERANCE` sube a 0,25 (el `simplified` recorta hasta 22,7 % en alta montaña).
+> **Ejecutado:** 2026-09-26 — lote completo de 304 orígenes: 999 rutas de 235 orígenes (69 sin ruta), 521 descartes, 0 cruces de antimeridiano, `assets/data/car_routes.json` v1.0.0 (3,3 MB). Desviaciones respecto al diseño: `meta.osrmDataVersion` queda `"unknown"` (la API no expone `data_version`) y `LENGTH_TOLERANCE` sube a 0,25 (el `simplified` recorta hasta 22,7 % en alta montaña).
 > **Depende de:** `assets/data/locations.json` (304 ciudades, orden Este desenrollado), SPEC 004 (patrón de skill, `anchor_to_cities`, validación), SPEC 005 (contrato que el visor ya sabe leer), `TODO.md:28` (trazado GeoJSON real)
 > **Fecha:** 2026-09-26
-> **Objetivo:** Proveer una skill local Python que, usando el servidor demo de OSRM a un máximo de 1 petición por segundo, calcule para cada ciudad de `locations.json` las rutas por carretera hacia sus 5 ciudades más cercanas al Este y las guarde en `assets/data/car.json` con el primer y el último vértice anclados a la ciudad.
+> **Objetivo:** Proveer una skill local Python que, usando el servidor demo de OSRM a un máximo de 1 petición por segundo, calcule para cada ciudad de `locations.json` las rutas por carretera hacia sus 5 ciudades más cercanas al Este y las guarde en `assets/data/car_routes.json` con el primer y el último vértice anclados a la ciudad.
 
 ---
 
@@ -40,7 +40,7 @@ La investigación de campo (ver §10) fijó tres hechos que condicionan todo el 
   - **Paridad con `sea_routes.json` v3:** el visor y Dart ya esperan geometrías de ciudad a ciudad
   - **Nunca sustituye:** antepone y pospone el vértice, el camino intermedio queda intacto
 
-- **Escribe un artefacto por vehículo — `assets/data/car.json` — clona el esquema `sea_routes.json` v3** — `{meta, routes[]}` con `origin/destination/…/geometry`, y `roadOrigin`/`roadDest` en lugar de `portOrigin`/`portDest`
+- **Escribe un artefacto por vehículo — `assets/data/car_routes.json` — clona el esquema `sea_routes.json` v3** — `{meta, routes[]}` con `origin/destination/…/geometry`, y `roadOrigin`/`roadDest` en lugar de `portOrigin`/`portDest`
   - **Verificable:** el visor de `tools/locations-map` lo carga sin tocar `app.js`
 
 - **Añade el tiempo de conducción — `routes[].durationHours` — dato que OSRM da gratis** — horas con un decimal; el juego las necesita para `TimeEngine`
@@ -57,17 +57,17 @@ La investigación de campo (ver §10) fijó tres hechos que condicionan todo el 
 - Generar `foot.json`, `bike.json`, `horse.json` o `motorcycle.json`: el servidor demo solo sirve datos de coche, y su wiki avisa de que sus perfiles difieren de los de `osrm-backend`.
 - Servir OSRM propio (`.osm.pbf` + `osrm-routed`) para eximirse del rate limit.
 - `exclude=motorway`, `radiuses`, `bearings` u otras opciones de ajuste fino de OSRM.
-- Modificar el visor para distinguir líneas terrestres de marítimas, o meter `car.json` en `pubspec.yaml`.
+- Modificar el visor para distinguir líneas terrestres de marítimas, o meter `car_routes.json` en `pubspec.yaml`.
 - Consumo desde `WorldMapWidget`/`PolylineLayer`/`TransportMode.car`.
 - Precio del viaje, combustible, `BudgetService`, `Ledger`, `TimeEngine`, `EventEngine`.
-- Degradación offline o caché de `car.json` para el jugador.
+- Degradación offline o caché de `car_routes.json` para el jugador.
 - Ramas de git: la spec se implementa en la rama actual.
 
 ---
 
 ## 3. Modelo de datos
 
-### 3.1 `assets/data/car.json` (nuevo, artefacto derivado)
+### 3.1 `assets/data/car_routes.json` (nuevo, artefacto derivado)
 
 ```jsonc
 {
@@ -141,7 +141,7 @@ args      = {"profile": "car", "limit": 5, "pool": 5, "only": None, "resume": Fa
 
 7. **Validación, escritura y reanudación** — `validate_dataset()`: duplicados, `origin == destination`, rango de coordenadas, extremos anclados, Regla del Este, `|haversine_sum − distanceKm| / distanceKm ≤ 0.20` (la simplificación recorta curvas), como mucho `limit` rutas por origen, `distanceKm` ascendente por origen. `write_output()` revalida el JSON tras escribir. Cada 10 orígenes se vuelca a disco; `--resume` salta los orígenes ya presentes en el fichero. Prueba: dos corridas con `--resume` seguidas no duplican ni reprocesan.
 
-8. **Documenta y verifica** — completa `SKILL.md` con la tabla de rate limit y los perfiles medidos; ejecuta un lote acotado `--only 20`, `python3 -m json.tool assets/data/car.json`, `flutter analyze` y `flutter test`. Prueba: el lote escribe rutas, valida y deja el fichero legible; el diff no contiene secretos ni `SENSIBLE/`.
+8. **Documenta y verifica** — completa `SKILL.md` con la tabla de rate limit y los perfiles medidos; ejecuta un lote acotado `--only 20`, `python3 -m json.tool assets/data/car_routes.json`, `flutter analyze` y `flutter test`. Prueba: el lote escribe rutas, valida y deja el fichero legible; el diff no contiene secretos ni `SENSIBLE/`.
 
 ---
 
@@ -156,7 +156,7 @@ args      = {"profile": "car", "limit": 5, "pool": 5, "only": None, "resume": Fa
 - [x] Cada origen consulta como mucho 1 `/table` y 5 `/route`; el total del lote completo no supera 1.824 peticiones.
 - [x] El pool de candidatos de cada origen contiene como mucho 5 ciudades, ordenadas por `haversine`, y solo con `0 < deltaLng <= 180`.
 - [x] Ningún origen propone un destino a su Oeste, ni siquiera cruzando el antimeridiano.
-- [x] `assets/data/car.json` es JSON válido y tiene `meta.units == "km"`, `meta.profile == "car"`, `meta.candidatePool == 5` y `meta.limitPerOrigin == 5`.
+- [x] `assets/data/car_routes.json` es JSON válido y tiene `meta.units == "km"`, `meta.profile == "car"`, `meta.candidatePool == 5` y `meta.limitPerOrigin == 5`.
 - [x] Cada ruta tiene `origin/destination` canónicos, `distanceKm > 0`, `durationHours > 0`, `roadOrigin`/`roadDest` con `snapKm`, y `geometry.type == "LineString"` con al menos 2 vértices `[lng, lat]`.
 - [x] Para toda ruta, `geometry.coordinates[0]` coincide con `originLat/originLng` y `[-1]` con `destinationLat/destinationLng`, a 5 decimales.
 - [x] Ningún origen tiene más de 5 rutas, y sus `distanceKm` están en orden ascendente.
@@ -166,7 +166,7 @@ args      = {"profile": "car", "limit": 5, "pool": 5, "only": None, "resume": Fa
 - [x] `meta.attribution` cita a los colaboradores de OpenStreetMap (ODbL) y al servidor OSRM patrocinado por FOSSGIS.
 - [x] `python3 land_route.py --city "Lisboa" --dry-run` no escribe nada y lista candidatos, descartes y rutas previstas.
 - [x] Reanudar con `--resume` no duplica rutas ni vuelve a preguntar al servidor lo que ya está en caché. (Matiz medido 2026-09-26: `--resume` preserva las rutas, pero `meta.unroutableCities` y `meta.originsWithoutRoute` quedan parciales — 345 frente a 521 — porque solo cuentan los orígenes reprocesados. Para métricas ciertas, lote completo sin `--resume`.)
-- [x] `tools/locations-map` carga `assets/data/car.json` mediante el selector de rutas sin cambiar `app.js` (comprobado con Chromium headless vía Playwright: 999 rutas cargadas, 999 polilíneas renderizadas, sin errores ni banner).
+- [x] `tools/locations-map` carga `assets/data/car_routes.json` mediante el selector de rutas sin cambiar `app.js` (comprobado con Chromium headless vía Playwright: 999 rutas cargadas, 999 polilíneas renderizadas, sin errores ni banner).
 - [x] `flutter analyze` y `flutter test` terminan correctamente; no se toca `pubspec.yaml` ni `lib/`.
 - [x] El diff no contiene secretos, ni `SENSIBLE/`, ni datos generados fuera de alcance.
 
@@ -175,7 +175,7 @@ args      = {"profile": "car", "limit": 5, "pool": 5, "only": None, "resume": Fa
 ## 6. Decisiones
 
 - **Sí:** el pool de candidatos son las 5 ciudades más cercanas por círculo grande, y de ellas se conservan las que tienen camino. Por qué: fija un techo de peticiones demostrable (6 por origen) y coincide con el encargo del Señor. No: enrutar candidatos en orden de gc hasta reunir 5 válidas, que era mi lectura inicial — pide una cota variable de peticiones y puede gastar muchas en un origen rodeado de destinos sin camino. No: las 5 más cercanas de todo el catálogo sin filtrar por Este — produciría destinos al Oeste y rompería la Regla del Este.
-- **Sí:** `assets/data/car.json`, un fichero por vehículo. Por qué: el Señor lo decidió, separa el perfil del nombre del artefacto y evita colisiones cuando existan más perfiles. No: `land_routes.json` con `meta.profiles[]` — mezclaría perfiles en un mismo array y obligaría al consumidor a filtrar. No: un directorio `assets/data/routes/car.json` — más orden, pero `pubspec.yaml` declara los assets de uno en uno y esta spec no lo toca.
+- **Sí:** `assets/data/car_routes.json`, un fichero por vehículo. Por qué: el Señor lo decidió, separa el perfil del nombre del artefacto y evita colisiones cuando existan más perfiles. No: `land_routes.json` con `meta.profiles[]` — mezclaría perfiles en un mismo array y obligaría al consumidor a filtrar. No: un directorio `assets/data/routes/car_routes.json` — más orden, pero `pubspec.yaml` declara los assets de uno en uno y esta spec no lo toca.
 - **Sí:** solo perfil `car`, y `--profile` distinto de `car` aborta. Por qué: el servidor demo devuelve respuestas byte-idénticas para `driving`, `foot` y `bike`, con `weight_name=routability`; escribir `foot.json` sería un fichero mentiroso. No: aceptar `--profile` y avisar solo en el log — un aviso en un log es justo lo que nadie lee.
 - **Sí:** la Regla del Este se mide sobre la **ciudad**, no sobre el punto enganchado a la calzada. Por qué: a diferencia de la SPEC 004, donde el puerto podía estar a 10 km y cambiar el orden entre ciudades casi alineadas, aquí la corrección del enganche es de decenas de metros. No: medir sobre el enganche, por simetría con la SPEC 004.
 - **Sí:** `overview=simplified` fijo, sin flag. Por qué: 55 vértices frente a 4.895 en Lisboa→Madrid (1,3 KB frente a 116 KB), comparable a la media de 58 de las marítimas, y un lote completo en `full` pesaría del orden de 160 MB. No: `overview=full`, por fidelidad de trazado.
@@ -251,7 +251,7 @@ Cada uno, si aterriza, irá en su propia especificación.
 | `routing.openstreetmap.de` | HTTP 404 en `/route/v1/{perfil}/…`; solo `router.project-osrm.org` responde |
 | Lisboa→Tokio en `/route` | `code: Ok`, no `NoRoute` |
 | Coste estimado del lote | 304 × (1 tabla + ≤5 rutas) = ≤1.824 peticiones, unos 37 min a 1,2 s |
-| Lote completo 2026-09-26 (medido) | 304 orígenes, 1.402 peticiones a ~1,5 s (~40 min); 999 rutas de 235 orígenes, 69 orígenes sin ruta (islas, otro continente), 521 descartes, 0 cruces de antimeridiano; `car.json` v1.0.0 de 3,3 MB; distancias 1,8–8.222,8 km, duraciones 0,1–372,5 h |
+| Lote completo 2026-09-26 (medido) | 304 orígenes, 1.402 peticiones a ~1,5 s (~40 min); 999 rutas de 235 orígenes, 69 orígenes sin ruta (islas, otro continente), 521 descartes, 0 cruces de antimeridiano; `car_routes.json` v1.0.0 de 3,3 MB; distancias 1,8–8.222,8 km, duraciones 0,1–372,5 h |
 | Tolerancia ±20 % → ±25 % | Lhasa→Chengdu −20,4 %, Tiksi→Magadán −20,2 %, Nizhneyansk→Magadán −22,7 %; las tres verificadas con `overview=full` (12k–27k vértices) a ±0,3 %: la distancia OSRM es real, la que pierde es la polilínea `simplified` en alta montaña |
 | `429` en el lote real | 9 avisos absorbidos por el backoff; 3 rutas (Tarawa→Suva, Parauapebas→Two Boats, Horta→Porta Delgada) agotaron los 3 reintentos → `[SKIP]`, el lote continúa |
 | Guarda `SNAP_MAX_KM` en campo | Regina→Baker Lake descartada como `NoSegment` (enganche a 621,6 km: OSRM cruzó a otra costa); tope `snapKm` máximo real en el lote: 15,1 km (djanet, pista del desierto) |
@@ -262,7 +262,7 @@ Cada uno, si aterriza, irá en su propia especificación.
 
 - Pool acotado a las 5 ciudades más cercanas → sí, techo de 6 peticiones por origen
 - Perfil único `car`, el resto aborta → sí
-- Artefacto `assets/data/car.json` → sí
+- Artefacto `assets/data/car_routes.json` → sí
 - Lote de los 304 orígenes con pausas → sí
 - Caché en `SENSIBLE/.cache` y `.gitignore` arreglado → sí
 - Distancia de OSRM, no Haversine → sí

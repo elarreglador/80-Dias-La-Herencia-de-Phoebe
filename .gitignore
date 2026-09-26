@@ -48,3 +48,7 @@ docs/origenes/cities15000.no-alts.json
 docs/origenes/__pycache__/
 __pycache__/
 *.pyc
+
+# Cachés de terceros y worktrees — nunca se versionan (SPEC 006)
+SENSIBLE/
+.worktrees/

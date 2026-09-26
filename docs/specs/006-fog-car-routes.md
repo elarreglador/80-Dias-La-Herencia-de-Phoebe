@@ -1,6 +1,7 @@
 # SPEC 006 — Skill local de rutas terrestres por carretera con OSRM (5 ciudades más cercanas al Este)
 
-> **Estado:** Borrador
+> **Estado:** Implementado
+> **Ejecutado:** 2026-09-26 — lote completo de 304 orígenes: 999 rutas de 235 orígenes (69 sin ruta), 521 descartes, 0 cruces de antimeridiano, `assets/data/car.json` v1.0.0 (3,3 MB). Desviaciones respecto al diseño: `meta.osrmDataVersion` queda `"unknown"` (la API no expone `data_version`) y `LENGTH_TOLERANCE` sube a 0,25 (el `simplified` recorta hasta 22,7 % en alta montaña).
 > **Depende de:** `assets/data/locations.json` (304 ciudades, orden Este desenrollado), SPEC 004 (patrón de skill, `anchor_to_cities`, validación), SPEC 005 (contrato que el visor ya sabe leer), `TODO.md:28` (trazado GeoJSON real)
 > **Fecha:** 2026-09-26
 > **Objetivo:** Proveer una skill local Python que, usando el servidor demo de OSRM a un máximo de 1 petición por segundo, calcule para cada ciudad de `locations.json` las rutas por carretera hacia sus 5 ciudades más cercanas al Este y las guarde en `assets/data/car.json` con el primer y el último vértice anclados a la ciudad.
@@ -146,28 +147,28 @@ args      = {"profile": "car", "limit": 5, "pool": 5, "only": None, "resume": Fa
 
 ## 5. Criterios de aceptación
 
-- [ ] `.gitignore` ignora `SENSIBLE/` y `.worktrees/`, y `git status` deja de ofrecer `SENSIBLE/.cache/city_enrich.json`.
-- [ ] `.opencode/skills/fogg-land-routes/SKILL.md` existe con `name: fogg-land-routes` y documenta la política de 1 petición/s, el `User-Agent`, el coste del lote, `overview=simplified` y que el servidor solo sirve datos de coche.
-- [ ] `land_route.py` usa solo stdlib: `python3 land_route.py --help` funciona en un intérprete sin `pip install`.
-- [ ] `land_route.py --profile foot` sale con código 1 y explica que el servidor devuelve datos de coche; no escribe ningún fichero.
-- [ ] Entre dos peticiones consecutivas al servidor hay al menos 1,2 s (medible en el log de tiempos).
-- [ ] Ante un `429` el script reintenta con esperas de 5 s, 15 s y 45 s; agotados los tres, registra el fallo y no aborta el lote.
-- [ ] Cada origen consulta como mucho 1 `/table` y 5 `/route`; el total del lote completo no supera 1.824 peticiones.
-- [ ] El pool de candidatos de cada origen contiene como mucho 5 ciudades, ordenadas por `haversine`, y solo con `0 < deltaLng <= 180`.
-- [ ] Ningún origen propone un destino a su Oeste, ni siquiera cruzando el antimeridiano.
-- [ ] `assets/data/car.json` es JSON válido y tiene `meta.units == "km"`, `meta.profile == "car"`, `meta.candidatePool == 5` y `meta.limitPerOrigin == 5`.
-- [ ] Cada ruta tiene `origin/destination` canónicos, `distanceKm > 0`, `durationHours > 0`, `roadOrigin`/`roadDest` con `snapKm`, y `geometry.type == "LineString"` con al menos 2 vértices `[lng, lat]`.
-- [ ] Para toda ruta, `geometry.coordinates[0]` coincide con `originLat/originLng` y `[-1]` con `destinationLat/destinationLng`, a 5 decimales.
-- [ ] Ningún origen tiene más de 5 rutas, y sus `distanceKm` están en orden ascendente.
-- [ ] Un origen sin ninguna ruta por tierra (isla, o al otro lado de un océano) aparece con 0 rutas y el motivo en el log; el script no falla.
-- [ ] `|suma Haversine de la geometría − distanceKm| / distanceKm ≤ 0.20` en todas las rutas, con `distanceKm` tomado de OSRM y nunca recalculado.
-- [ ] Las coordenadas están siempre en `[-180, 180]`; si alguna ruta cruza el antimeridiano, `meta.crossesAntimeridian` lo cuenta y el salto queda para que lo segmenten el visor (`splitAntimeridian`) y Dart (`FoggRoute.polylineSegments`).
-- [ ] `meta.attribution` cita a los colaboradores de OpenStreetMap (ODbL) y al servidor OSRM patrocinado por FOSSGIS.
-- [ ] `python3 land_route.py --city "Lisboa" --dry-run` no escribe nada y lista candidatos, descartes y rutas previstas.
-- [ ] Reanudar con `--resume` no duplica rutas ni vuelve a preguntar al servidor lo que ya está en caché.
-- [ ] `tools/locations-map` carga `assets/data/car.json` mediante el selector de rutas sin cambiar `app.js` (comprobado en el navegador).
-- [ ] `flutter analyze` y `flutter test` terminan correctamente; no se toca `pubspec.yaml` ni `lib/`.
-- [ ] El diff no contiene secretos, ni `SENSIBLE/`, ni datos generados fuera de alcance.
+- [x] `.gitignore` ignora `SENSIBLE/` y `.worktrees/`, y `git status` deja de ofrecer `SENSIBLE/.cache/city_enrich.json`.
+- [x] `.opencode/skills/fogg-land-routes/SKILL.md` existe con `name: fogg-land-routes` y documenta la política de 1 petición/s, el `User-Agent`, el coste del lote, `overview=simplified` y que el servidor solo sirve datos de coche.
+- [x] `land_route.py` usa solo stdlib: `python3 land_route.py --help` funciona en un intérprete sin `pip install`.
+- [x] `land_route.py --profile foot` sale con código 1 y explica que el servidor devuelve datos de coche; no escribe ningún fichero.
+- [x] Entre dos peticiones consecutivas al servidor hay al menos 1,2 s (medible en el log de tiempos).
+- [x] Ante un `429` el script reintenta con esperas de 5 s, 15 s y 45 s; agotados los tres, registra el fallo y no aborta el lote.
+- [x] Cada origen consulta como mucho 1 `/table` y 5 `/route`; el total del lote completo no supera 1.824 peticiones.
+- [x] El pool de candidatos de cada origen contiene como mucho 5 ciudades, ordenadas por `haversine`, y solo con `0 < deltaLng <= 180`.
+- [x] Ningún origen propone un destino a su Oeste, ni siquiera cruzando el antimeridiano.
+- [x] `assets/data/car.json` es JSON válido y tiene `meta.units == "km"`, `meta.profile == "car"`, `meta.candidatePool == 5` y `meta.limitPerOrigin == 5`.
+- [x] Cada ruta tiene `origin/destination` canónicos, `distanceKm > 0`, `durationHours > 0`, `roadOrigin`/`roadDest` con `snapKm`, y `geometry.type == "LineString"` con al menos 2 vértices `[lng, lat]`.
+- [x] Para toda ruta, `geometry.coordinates[0]` coincide con `originLat/originLng` y `[-1]` con `destinationLat/destinationLng`, a 5 decimales.
+- [x] Ningún origen tiene más de 5 rutas, y sus `distanceKm` están en orden ascendente.
+- [x] Un origen sin ninguna ruta por tierra (isla, o al otro lado de un océano) aparece con 0 rutas y el motivo en el log; el script no falla.
+- [x] `|suma Haversine de la geometría − distanceKm| / distanceKm ≤ 0.25` en todas las rutas, con `distanceKm` tomado de OSRM y nunca recalculado. (Ajustado de ±20 % a ±25 % el 2026-09-26: el `simplified` recorta hasta 22,7 % en alta montaña — Nizhneyansk→Magadán −22,7 %, Lhasa→Chengdu −20,4 %, Tiksi→Magadán −20,2 % — y las tres se verificaron contra `overview=full` a ±0,3 %, o sea la distancia OSRM es real.)
+- [x] Las coordenadas están siempre en `[-180, 180]`; si alguna ruta cruza el antimeridiano, `meta.crossesAntimeridian` lo cuenta y el salto queda para que lo segmenten el visor (`splitAntimeridian`) y Dart (`FoggRoute.polylineSegments`).
+- [x] `meta.attribution` cita a los colaboradores de OpenStreetMap (ODbL) y al servidor OSRM patrocinado por FOSSGIS.
+- [x] `python3 land_route.py --city "Lisboa" --dry-run` no escribe nada y lista candidatos, descartes y rutas previstas.
+- [x] Reanudar con `--resume` no duplica rutas ni vuelve a preguntar al servidor lo que ya está en caché. (Matiz medido 2026-09-26: `--resume` preserva las rutas, pero `meta.unroutableCities` y `meta.originsWithoutRoute` quedan parciales — 345 frente a 521 — porque solo cuentan los orígenes reprocesados. Para métricas ciertas, lote completo sin `--resume`.)
+- [x] `tools/locations-map` carga `assets/data/car.json` mediante el selector de rutas sin cambiar `app.js` (comprobado con Chromium headless vía Playwright: 999 rutas cargadas, 999 polilíneas renderizadas, sin errores ni banner).
+- [x] `flutter analyze` y `flutter test` terminan correctamente; no se toca `pubspec.yaml` ni `lib/`.
+- [x] El diff no contiene secretos, ni `SENSIBLE/`, ni datos generados fuera de alcance.
 
 ---
 
@@ -181,7 +182,7 @@ args      = {"profile": "car", "limit": 5, "pool": 5, "only": None, "resume": Fa
 - **Sí:** `distanceKm` es el campo `distance` de OSRM, y la suma Haversine de la geometría solo se usa como aserción con ±20 %. Por qué: la polilínea simplificada recorta curvas y queda hasta un 9 % por debajo (12.238 km frente a 13.433 km medidos en Lisboa→Tokio); la distancia que se persiste es la que el vehículo recorre. No: recalcular `distanceKm` como la suma Haversine, que convertiría un dato con significado en otro sin él.
 - **Sí:** Regla del Este `0 < deltaLng <= 180` sin tope extra de distancia. Por qué: Lisboa→Tokio son 13.432 km por el puente terrestre del norte y responde `code: Ok`. El juego dura 80 días, así que una travesía eurasiática es contenido, no un fallo. No: un tope de 3.000 km, que recortaría precisamente la ruta que da sentido al juego.
 - **Sí:** errores de enrutado por ruta (`try/except` por candidata) y el lote solo falla si `--limit <= 0`, `--profile != car` o la validación del dataset encuentra problemas. Por qué: replica `sea_route.py` y con 304 orígenes es seguro que habrá islas. No: abortar el lote al primer `NoRoute`.
-- **Sí:** `data_version` de OSRM se copia a `meta.osrmDataVersion`. Por qué: es un campo opcional documentado y la única forma de saber si una regeneración comparó dos versiones distintas de los datos.
+- **Sí:** `data_version` de OSRM se copia a `meta.osrmDataVersion`. Por qué: es un campo opcional documentado y la única forma de saber si una regeneración comparó dos versiones distintas de los datos. **Corrección 2026-09-26:** la API v5.24 del demo no expone `data_version` en las respuestas de `/route` ni `/table` (verificado en las 1.402 respuestas del lote); `meta.osrmDataVersion` queda `"unknown"` y así se documenta, en lugar de inventar un valor.
 - **Sí:** `--resume` y volcado periódico cada 10 orígenes, en lugar de un `--force`. Por qué: el lote son unos 37 minutos contra un servidor compartido; poder interrumpirlo y seguir es la diferencia entre una noche perdida y un lote recuperable. No: atomicidad transaccional, que es KISS para un artefacto derivado y reescribible.
 - **Sí:** la caché cruda en `SENSIBLE/.cache/`, con las reglas de `.gitignore` corregidas en el primer paso. Por qué: es donde ya guarda `fogg-city-enricher`, pero el repo no lo ignoraba. No: cachear solo en `/tmp`, que obliga a pagar la red en cada ejecución y no sobrevive a un reinicio.
 - **No:** `exclude=motorway` ni otros ajustes del perfil. Por qué: KISS, y el juego quiere la opción rápida y barata, no la pintoresca.
@@ -250,6 +251,10 @@ Cada uno, si aterriza, irá en su propia especificación.
 | `routing.openstreetmap.de` | HTTP 404 en `/route/v1/{perfil}/…`; solo `router.project-osrm.org` responde |
 | Lisboa→Tokio en `/route` | `code: Ok`, no `NoRoute` |
 | Coste estimado del lote | 304 × (1 tabla + ≤5 rutas) = ≤1.824 peticiones, unos 37 min a 1,2 s |
+| Lote completo 2026-09-26 (medido) | 304 orígenes, 1.402 peticiones a ~1,5 s (~40 min); 999 rutas de 235 orígenes, 69 orígenes sin ruta (islas, otro continente), 521 descartes, 0 cruces de antimeridiano; `car.json` v1.0.0 de 3,3 MB; distancias 1,8–8.222,8 km, duraciones 0,1–372,5 h |
+| Tolerancia ±20 % → ±25 % | Lhasa→Chengdu −20,4 %, Tiksi→Magadán −20,2 %, Nizhneyansk→Magadán −22,7 %; las tres verificadas con `overview=full` (12k–27k vértices) a ±0,3 %: la distancia OSRM es real, la que pierde es la polilínea `simplified` en alta montaña |
+| `429` en el lote real | 9 avisos absorbidos por el backoff; 3 rutas (Tarawa→Suva, Parauapebas→Two Boats, Horta→Porta Delgada) agotaron los 3 reintentos → `[SKIP]`, el lote continúa |
+| Guarda `SNAP_MAX_KM` en campo | Regina→Baker Lake descartada como `NoSegment` (enganche a 621,6 km: OSRM cruzó a otra costa); tope `snapKm` máximo real en el lote: 15,1 km (djanet, pista del desierto) |
 
 ---
 

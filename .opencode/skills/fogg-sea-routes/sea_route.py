@@ -1,17 +1,22 @@
 #!/usr/bin/env python3
 """
-fogg-sea-routes — 5 rutas marítimas más cortas hacia el Este con searoute
+fogg-sea-routes — hasta 5 rutas marítimas más cortas hacia el Este por puerto
 Proyecto eu.elarreglador.pf
 
-- Recorre assets/data/locations.json desde índice origen hacia Este desenrollado
-- Valida snap puerto <10 km Haversine (searoute first/last vertex)
-- Ordena por distanceKm y persiste 5 más cortas en assets/data/sea_routes.json
-- Merge idempotente origin::destination, sin tocar locations.json
+- Resuelve el puerto de cada ciudad de locations.json: nodo de la malla marítima
+  (distancia al mar) + puerto WPI que devuelve searoute (include_ports)
+- Descarta las ciudades sin mar a <= THRESHOLD_KM (el WPI no sirve como filtro:
+  Denver, Kansas City o Harare son puertos fluviales a 0 km del centro)
+- De los puertos candidatos conserva solo los cuyo puerto queda al Este del puerto
+  origen, desenrollado: 0 < deltaLng <= 180
+- Selecciona las `limit` rutas más cortas por distancia marítima y persiste
+  assets/data/sea_routes.json (reescritura completa, no merge)
 
 Uso:
-  python3 .opencode/skills/fogg-sea-routes/sea_route.py --city "Londres" --dry-run
-  python3 .opencode/skills/fogg-sea-routes/sea_route.py --city "Londres"
-  python3 .opencode/skills/fogg-sea-routes/sea_route.py --city "Londres" --limit 5 --force
+  python3 .opencode/skills/fogg-sea-routes/sea_route.py --dry-run
+  python3 .opencode/skills/fogg-sea-routes/sea_route.py
+  python3 .opencode/skills/fogg-sea-routes/sea_route.py --city "Lisboa" --dry-run
+  python3 .opencode/skills/fogg-sea-routes/sea_route.py --out /tmp/prueba.json
 
 Stdlib + searoute==1.6.0
 """
@@ -24,7 +29,7 @@ import sys
 import unicodedata
 from datetime import date
 from pathlib import Path
-import difflib
+from typing import Any
 
 # ---------------------------------------------------------------------------
 # Rutas y constantes
@@ -33,12 +38,21 @@ PROJECT_ROOT = Path(__file__).resolve().parents[3]  # PF/
 JSON_PATH = PROJECT_ROOT / "assets" / "data" / "locations.json"
 SEA_ROUTES_PATH = PROJECT_ROOT / "assets" / "data" / "sea_routes.json"
 
-THRESHOLD_KM = 10
-ORIGIN_ABORT_KM = 100  # si snapOrigin >100, origen inland profundo → abort
+PROJECT = "eu.elarreglador.pf"
+TOOL_NAME = "fogg-sea-routes"
+SCHEMA_VERSION = "2.0.0"
 SEAROUTE_VERSION = "1.6.0"
 
+THRESHOLD_KM = 10  # ciudad -> mar; por encima la ciudad no es un puerto
+MAX_EAST_DEG = 180  # tope del salto Este, evita la vuelta al mundo por el Oeste
+DEFAULT_LIMIT = 5
+MAX_DISTANCE_KM = 40000
+LENGTH_TOLERANCE = 0.20  # |haversine_sum - distanceKm| / distanceKm
+COORD_PRECISION = 5  # ~1 m, suficiente para un visualizar
+PROBE_DEG = 0.7  # desplazamiento del punto sonda para forzar un enrutado
+
 # ---------------------------------------------------------------------------
-# Helpers
+# Helpers geodésicos
 # ---------------------------------------------------------------------------
 
 def normalize(s: str) -> str:
@@ -50,19 +64,29 @@ def normalize(s: str) -> str:
     return stripped.lower().strip()
 
 
+def normalize_lng(lng: float) -> float:
+    """Dobla una longitud a [-180, 180]."""
+    return (lng + 180.0) % 360.0 - 180.0
+
+
+def eastward_delta(lng_from: float, lng_to: float) -> float:
+    """Desplazamiento Este de `lng_from` a `lng_to`, desenrollado en (-180, 180]."""
+    return normalize_lng(lng_to - lng_from)
+
+
 def haversine(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
-    """Distancia Haversine en km entre dos puntos [lat,lng]."""
+    """Distancia Haversine en km entre dos puntos [lat, lng]."""
     R = 6371.0088
     phi1, phi2 = math.radians(lat1), math.radians(lat2)
     dphi = math.radians(lat2 - lat1)
-    dlambda = math.radians(lng2 - lng1)
+    dlambda = math.radians(eastward_delta(lng1, lng2))
     a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2) ** 2
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
     return R * c
 
 
 def haversine_sum(coordinates) -> float:
-    """Suma Haversine de segmentos GeoJSON [lng,lat]."""
+    """Suma Haversine de segmentos GeoJSON [lng, lat], con longitud ya normalizada."""
     total = 0.0
     for i in range(len(coordinates) - 1):
         lng1, lat1 = coordinates[i]
@@ -70,6 +94,10 @@ def haversine_sum(coordinates) -> float:
         total += haversine(lat1, lng1, lat2, lng2)
     return total
 
+
+# ---------------------------------------------------------------------------
+# Catálogo de ciudades
+# ---------------------------------------------------------------------------
 
 def load_locations():
     """Carga locations.json, valida y calcula lng_u desenrollado."""
@@ -82,7 +110,6 @@ def load_locations():
     if not isinstance(cities, list) or not cities:
         print("[ERROR] locations.json sin 'cities' o vacío", file=sys.stderr)
         sys.exit(1)
-    # validar campos mínimos
     for c in cities:
         if not all(k in c for k in ("name", "lat", "lng", "timezone")):
             print(f"[ERROR] Ciudad sin campos requeridos: {c}", file=sys.stderr)
@@ -107,428 +134,366 @@ def load_locations():
     return data, cities, unwrapped
 
 
-def find_origin_index(cities, target: str):
-    """Resuelve índice origen con normalización NFD sobre name|asciiname."""
-    norm_target = normalize(target)
+def find_city_indices(cities, targets) -> list[int]:
+    """Resuelve índices origen con normalización NFD sobre name|asciiname."""
+    if not targets:
+        return list(range(len(cities)))
+    wanted = {}
+    for t in targets:
+        wanted[normalize(t)] = t
+    found = []
+    missing = []
     for idx, c in enumerate(cities):
-        names = [c.get("name", ""), c.get("asciiname", "")]
-        # alternatenames no existe en locations.json actual, pero si futuro
-        if c.get("alternatenames"):
-            names += c["alternatenames"].split(",")
-        for n in names:
-            if normalize(n) == norm_target:
-                return idx, c
-    # no encontrado → sugerencias con difflib
-    all_names = [c["name"] for c in cities]
-    suggestions = difflib.get_close_matches(target, all_names, n=3, cutoff=0.6)
-    if not suggestions:
-        # fallback: 3 primeras costeras Este (heurística) o primeras 3
-        suggestions = all_names[:3]
-    print(f'[ERROR] Ciudad origen "{target}" no encontrada en locations.json', file=sys.stderr)
-    if suggestions:
-        print(f'  Sugerencias: {", ".join(suggestions)}', file=sys.stderr)
-    sys.exit(1)
+        names = {normalize(c.get("name", "")), normalize(c.get("asciiname", ""))} - {""}
+        for key in wanted:
+            if key in names:
+                found.append(idx)
+                break
+    for t in targets:
+        key = normalize(t)
+        if not any(key in {normalize(c.get("name", "")), normalize(c.get("asciiname", ""))}
+                   for c in cities):
+            missing.append(t)
+    if missing:
+        print(f'[ERROR] Ciudades no encontradas en locations.json: {", ".join(missing)}',
+              file=sys.stderr)
+        sys.exit(1)
+    return found
 
 
-def load_or_init_sea_routes():
-    """Lee sea_routes.json si existe o crea esqueleto."""
-    if SEA_ROUTES_PATH.exists():
+# ---------------------------------------------------------------------------
+# searoute
+# ---------------------------------------------------------------------------
+
+def graph_size(graph: Any) -> int:
+    """Número de nodos de un grafo de searoute (Graph no está tipado en el paquete)."""
+    return int(graph.number_of_nodes())
+
+
+def load_searoute():
+    """Devuelve (módulo, red de la malla, red de puertos). Las redes se construyen una vez."""
+    try:
+        import searoute
+    except ImportError as e:
+        print(
+            f"[ERROR] searoute no instalado: {e}. "
+            "Ejecute: pip install -r .opencode/skills/fogg-sea-routes/requirements.txt",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    return searoute, searoute.setup_M(), searoute.setup_P()
+
+
+def probe_lng_of(lng: float) -> float:
+    """Punto sonda al Este de la ciudad, replegado si se sale del rango."""
+    probe = lng + PROBE_DEG
+    return probe if probe <= 179.0 else lng - PROBE_DEG
+
+
+def sea_snap_km(sr, M, P, city) -> float:
+    """Distancia Haversine de la ciudad al nodo de la malla marítima más cercano."""
+    lng, lat = float(city["lng"]), float(city["lat"])
+    feature = sr.searoute([lng, lat], [probe_lng_of(lng), lat],
+                          units="km", algorithm="astar", M=M, P=P)
+    first_lng, first_lat = feature["geometry"]["coordinates"][0]
+    return haversine(lat, lng, first_lat, first_lng)
+
+
+def resolve_port(sr, M, P, city, sea_km: float) -> dict:
+    """Puerto WPI de la ciudad (código, nombre, país) más la distancia al mar."""
+    lng, lat = float(city["lng"]), float(city["lat"])
+    feature = sr.searoute([lng, lat], [probe_lng_of(lng), lat], units="km",
+                          include_ports=True, algorithm="astar", M=M, P=P)
+    port = feature.properties.get("port_origin") or {}
+    return {
+        "city": city["name"],
+        "lat": lat,
+        "lng": lng,
+        "seaKm": sea_km,
+        "port": {
+            "code": port.get("port"),
+            "name": port.get("name"),
+            # El WPI escribe los países con guiones bajos ("French_polynesia"); el código
+            # es la clave de búsqueda, el país es solo etiqueta de interfaz.
+            "country": (port.get("cty") or "").replace("_", " "),
+            "lat": round(float(port["y"]), COORD_PRECISION),
+            "lng": round(normalize_lng(float(port["x"])), COORD_PRECISION),
+        },
+    }
+
+
+# ---------------------------------------------------------------------------
+# Selección de rutas
+# ---------------------------------------------------------------------------
+
+def select_routes(sr, M, P, origin, ports, limit, verbose=False):
+    """Rutas marítimas más cortas hacia el Este. `ports` es la lista ya resuelta."""
+    o_lng, o_lat = origin["port"]["lng"], origin["port"]["lat"]
+    candidates = []
+    for dest in ports:
+        if dest["city"] == origin["city"]:
+            continue
+        # Regla del Este sobre el puerto, no sobre la ciudad
+        delta = eastward_delta(o_lng, dest["port"]["lng"])
+        if not (0 < delta <= MAX_EAST_DEG):
+            continue
+        gc_km = haversine(o_lat, o_lng, dest["port"]["lat"], dest["port"]["lng"])
+        candidates.append((gc_km, dest))
+    candidates.sort(key=lambda item: item[0])
+
+    selected = []
+    for gc_km, dest in candidates:
+        # Poda por cota inferior: la distancia marítima nunca es menor que la de
+        # círculo grande, así que en cuanto gc supera la 5ª válida no puede entrar.
+        if len(selected) >= limit and gc_km > selected[-1][0]:
+            break
         try:
-            with open(SEA_ROUTES_PATH, encoding="utf-8") as f:
-                data = json.load(f)
-            # validar estructura mínima
-            if "meta" not in data or "routes" not in data:
-                raise ValueError("estructura inválida")
-            if not isinstance(data["routes"], list):
-                raise ValueError("routes no es lista")
-            return data
+            feature = sr.searoute(
+                [origin["lng"], origin["lat"]],
+                [dest["lng"], dest["lat"]],
+                units="km",
+                include_ports=True,
+                algorithm="astar",
+                M=M,
+                P=P,
+            )
         except Exception as e:
-            print(f"[WARN] sea_routes.json existente inválido, reiniciando: {e}", file=sys.stderr)
-    # crear nuevo
-    meta = {
-        "project": "eu.elarreglador.pf",
+            print(f"[SKIP] {origin['city']} -> {dest['city']} searoute error: {e}", file=sys.stderr)
+            continue
+        distance = feature.properties.get("length")
+        if not isinstance(distance, (int, float)) or not (0 < distance < MAX_DISTANCE_KM):
+            continue
+        # searoute entrega el marco desenrollado y puede salirse de [-180, 180];
+        # se dobla cada vértice y el salto 179 -> -179 lo segmenta el consumidor.
+        coordinates = [
+            [round(normalize_lng(float(x)), COORD_PRECISION), round(float(y), COORD_PRECISION)]
+            for x, y in feature["geometry"]["coordinates"]
+        ]
+        if len(coordinates) < 2:
+            continue
+        selected.append((float(distance), dest, coordinates))
+        if verbose:
+            print(f"    {dest['city']:<24} {distance:9.1f} km  gc {gc_km:8.1f} km")
+
+    selected.sort(key=lambda item: item[0])
+    return selected[:limit]
+
+
+def build_route(origin, dest, distance_km, coordinates) -> dict:
+    return {
+        "origin": origin["city"],
+        "originLat": origin["lat"],
+        "originLng": origin["lng"],
+        "destination": dest["city"],
+        "destinationLat": dest["lat"],
+        "destinationLng": dest["lng"],
+        "distanceKm": round(distance_km, 1),
+        "portOrigin": dict(origin["port"], seaKm=round(origin["seaKm"], 1)),
+        "portDest": dict(dest["port"], seaKm=round(dest["seaKm"], 1)),
+        "geometry": {"type": "LineString", "coordinates": coordinates},
+    }
+
+
+# ---------------------------------------------------------------------------
+# Validación y persistencia
+# ---------------------------------------------------------------------------
+
+def crosses_antimeridian(coordinates) -> bool:
+    """True si algún vértice salta de un meridiano al otro."""
+    for i in range(len(coordinates) - 1):
+        if abs(coordinates[i + 1][0] - coordinates[i][0]) > 180:
+            return True
+    return False
+
+
+def validate_dataset(routes, limit) -> list[str]:
+    """Invariantes del dataset. Lista vacía = correcto."""
+    problems = []
+    seen = set()
+    by_origin = {}
+    for route in routes:
+        key = f'{route["origin"]}::{route["destination"]}'
+        if key in seen:
+            problems.append(f"duplicado {key}")
+        seen.add(key)
+        if route["origin"] == route["destination"]:
+            problems.append(f"origen == destino {key}")
+        by_origin.setdefault(route["origin"], []).append(route)
+
+        distance = route["distanceKm"]
+        if not isinstance(distance, (int, float)) or not (0 < distance < MAX_DISTANCE_KM):
+            problems.append(f"distanceKm fuera de rango en {key}: {distance}")
+        coords = route["geometry"]["coordinates"]
+        if len(coords) < 2:
+            problems.append(f"geometría con menos de 2 vértices en {key}")
+            continue
+        for lng, lat in coords:
+            if not (-180 <= lng <= 180 and -90 <= lat <= 90):
+                problems.append(f"coordenada fuera de rango en {key}: {lng},{lat}")
+                break
+        delta = eastward_delta(route["portOrigin"]["lng"], route["portDest"]["lng"])
+        if not (0 < delta <= MAX_EAST_DEG):
+            problems.append(f"Regla del Este incumplida en {key}: delta {delta:.3f}º")
+        hsum = haversine_sum(coords)
+        if distance and abs(hsum - distance) / distance > LENGTH_TOLERANCE:
+            problems.append(
+                f"distanceKm {distance:.1f} vs haversine {hsum:.1f} en {key} "
+                f"(±{LENGTH_TOLERANCE * 100:.0f}%)"
+            )
+
+    for origin, group in by_origin.items():
+        if len(group) > limit:
+            problems.append(f"{origin} tiene {len(group)} rutas, máximo {limit}")
+        distances = [r["distanceKm"] for r in group]
+        if distances != sorted(distances):
+            problems.append(f"{origin} no ordenado por distanceKm ascendente")
+    return problems
+
+
+def build_meta(origins_total, routes_count, cities_without_port, crossings, limit) -> dict:
+    return {
+        "project": PROJECT,
         "name": "Fogg Sea Routes — Herencia de Phoebe",
-        "version": "1.0.0",
+        "version": SCHEMA_VERSION,
         "generated": date.today().isoformat(),
-        "tool": "fogg-sea-routes",
+        "tool": TOOL_NAME,
         "searoute": SEAROUTE_VERSION,
         "units": "km",
         "thresholdKm": THRESHOLD_KM,
-        "source": "searoute (avoid land) + GeoNames cities15000"
+        "maxEastDeg": MAX_EAST_DEG,
+        "limitPerOrigin": limit,
+        "origins": origins_total,
+        "routes": routes_count,
+        "citiesWithoutPort": cities_without_port,
+        "crossesAntimeridian": crossings,
+        "eastRule": "0 < deltaLng(portDest - portOrigin) <= 180 (desenrollado)",
+        "geometry": "LineString [lng,lat] de puerto a puerto, siempre en [-180,180]; "
+                    "al cruzar el antimeridiano los vértices saltan de 179 a -179 y "
+                    "el consumidor debe segmentar (splitAntimeridian / polylineSegments)",
+        "source": "searoute (avoid land) + GeoNames cities15000",
     }
-    return {"meta": meta, "routes": []}
 
 
-def validate_route(route) -> list[str]:
-    """Valida ruta y retorna lista de warnings (vacía si OK)."""
-    warns = []
-    d = route.get("distanceKm")
-    if not isinstance(d, (int, float)) or not (0 < d < 40000):
-        warns.append(f"distanceKm fuera de rango 0-40000: {d}")
-    geom = route.get("geometry", {})
-    if geom.get("type") != "LineString":
-        warns.append(f"geometry.type != LineString: {geom.get('type')}")
-    coords = geom.get("coordinates", [])
-    if not isinstance(coords, list) or len(coords) < 2:
-        warns.append(f"coordinates.length <2: {len(coords) if isinstance(coords, list) else type(coords)}")
-    else:
-        for lng, lat in coords:
-            if not (-180 <= lng <= 180 and -90 <= lat <= 90):
-                warns.append(f"coord fuera de rango lng {lng} lat {lat}")
-                break
-        # ±20% haversine sum vs distanceKm
+def write_output(out_path, meta, routes) -> None:
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(out_path, "w", encoding="utf-8") as f:
+        json.dump({"meta": meta, "routes": routes}, f, indent=2, ensure_ascii=False)
+        f.write("\n")
+    try:
+        with open(out_path, encoding="utf-8") as f:
+            json.load(f)
+    except Exception as e:
+        print(f"[ERROR] JSON inválido tras escribir: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
+# ---------------------------------------------------------------------------
+# Orquestación
+# ---------------------------------------------------------------------------
+
+def resolve_ports(sr, M, P, cities, indices, verbose=False):
+    """Separa puertos válidos (mar a <= THRESHOLD_KM) del resto."""
+    ports = []
+    rejected = []
+    for idx in indices:
+        city = cities[idx]
         try:
-            hsum = haversine_sum(coords)
-            if d and hsum:
-                diff = abs(hsum - d) / d
-                if diff > 0.20:
-                    warns.append(f"distanceKm {d:.1f} vs haversine sum {hsum:.1f} diff {diff*100:.1f}% >20%")
+            sea_km = sea_snap_km(sr, M, P, city)
         except Exception as e:
-            warns.append(f"haversine sum error: {e}")
-    # campos obligatorios
-    for k in ("origin", "destination", "originLat", "originLng", "destinationLat", "destinationLng"):
-        if k not in route:
-            warns.append(f"falta campo {k}")
-    if route.get("origin") == route.get("destination"):
-        warns.append("origin == destination")
-    return warns
+            print(f"[WARN] {city['name']}: no se pudo medir el mar ({e})", file=sys.stderr)
+            rejected.append((city["name"], float("inf")))
+            continue
+        if sea_km > THRESHOLD_KM:
+            rejected.append((city["name"], sea_km))
+            continue
+        ports.append(resolve_port(sr, M, P, city, sea_km))
+        if verbose:
+            p = ports[-1]["port"]
+            print(f"  {city['name']:<22} {str(p['code'] or '?'):<7} "
+                  f"{str(p['name'])[:24]:<24} mar {sea_km:5.1f} km")
+    ports.sort(key=lambda p: p["port"]["lng"])
+    return ports, rejected
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Fogg Sea Routes — 5 rutas marítimas más cortas hacia el Este (searoute 1.6.0, threshold 10km)",
+        description=(
+            "Fogg Sea Routes — hasta 5 rutas marítimas más cortas hacia el Este por puerto "
+            f"(searoute {SEAROUTE_VERSION}, mar a <= {THRESHOLD_KM} km)"
+        ),
         formatter_class=argparse.RawTextHelpFormatter
     )
-    parser.add_argument("--city", required=True, help='Ciudad origen (ej. "Londres") — debe existir en locations.json')
-    parser.add_argument("--limit", type=int, default=5, help="Número de rutas más cortas a guardar (default 5)")
-    parser.add_argument("--dry-run", action="store_true", help="Lista candidatos sin escribir sea_routes.json")
-    parser.add_argument("--force", action="store_true", help="Fuerza recálculo aunque sea_routes.json exista")
+    parser.add_argument("--city", action="append", default=[], metavar="NOMBRE",
+                        help="Ciudad origen (repetible). Sin --city: todas las ciudades con puerto")
+    parser.add_argument("--limit", type=int, default=DEFAULT_LIMIT,
+                        help=f"Rutas por puerto (default {DEFAULT_LIMIT})")
+    parser.add_argument("--dry-run", action="store_true",
+                        help="Detalla el resultado sin escribir disco")
+    parser.add_argument("--out", type=Path, default=SEA_ROUTES_PATH,
+                        help=f"Ruta de salida (default {SEA_ROUTES_PATH})")
     args = parser.parse_args()
 
     if args.limit <= 0:
         print("[ERROR] --limit debe ser >0", file=sys.stderr)
         sys.exit(1)
 
-    # cargar locations
-    loc_data, cities, unwrapped = load_locations()
-    print(f"[INFO] Cargado {len(cities)} ciudades desde {JSON_PATH}")
+    _, cities, _ = load_locations()
+    selected_indices = find_city_indices(cities, args.city)
+    selected_names = {cities[i]["name"] for i in selected_indices}
+    print(f"[INFO] {len(cities)} ciudades en {JSON_PATH}")
+    print(f"[INFO] orígenes solicitados: {len(selected_indices)}"
+          f"{' (el lote completo)' if not selected_names else ''}")
 
-    # resolver origen
-    origin_idx, origin_city = find_origin_index(cities, args.city)
-    origin_lng_u = unwrapped[origin_idx]
-    origin_name = origin_city["name"]  # canónico
-    print(f'[INFO] Origen: {origin_name} ({origin_city["lat"]}, {origin_city["lng"]}) lng_u {origin_lng_u:.2f} idx {origin_idx}')
+    sr, M, P = load_searoute()
+    print(f"[INFO] searoute {SEAROUTE_VERSION}: {graph_size(M)} nodos de malla, "
+          f"{graph_size(P)} puertos")
 
-    # importar searoute
-    try:
-        import searoute
-    except ImportError as e:
-        print(f"[ERROR] searoute no instalado: {e}. Ejecute: pip install -r .opencode/skills/fogg-sea-routes/requirements.txt", file=sys.stderr)
+    # El pool de candidatos es siempre el de todos los puertos válidos del catálogo:
+    # filtrar los orígenes no debe alterar los destinos disponibles de cada uno.
+    print("[INFO] Resolviendo puertos")
+    all_ports, rejected = resolve_ports(sr, M, P, cities, range(len(cities)), verbose=args.dry_run)
+    origins = [p for p in all_ports if p["city"] in selected_names]
+    if not origins:
+        print("[WARN] Ningún origen solicitado tiene mar a "
+              f"<= {THRESHOLD_KM} km", file=sys.stderr)
+    print(f"[INFO] {len(all_ports)} puertos válidos, {len(rejected)} ciudades descartadas sin mar")
+    if rejected:
+        rejected.sort(key=lambda item: item[1])
+        preview = ", ".join(f"{name}({km:.0f} km)" for name, km in rejected[:12])
+        print(f"[INFO] Descartadas, muestra: {preview}{' …' if len(rejected) > 12 else ''}")
+
+    routes = []
+    for origin in origins:
+        selected = select_routes(sr, M, P, origin, all_ports, args.limit, verbose=args.dry_run)
+        if args.dry_run:
+            print(f"  {origin['city']:<22} {len(selected)} rutas")
+        for distance, dest, coordinates in selected:
+            routes.append(build_route(origin, dest, distance, coordinates))
+        if not selected and not args.dry_run:
+            print(f"[WARN] {origin['city']} sin ruta hacia el Este", file=sys.stderr)
+
+    problems = validate_dataset(routes, args.limit)
+    for p in problems:
+        print(f"[ERROR] {p}", file=sys.stderr)
+    if problems:
+        print(f"[ERROR] {len(problems)} problemas de validación, no se escribe", file=sys.stderr)
         sys.exit(1)
 
-    # recorrer hacia Este
-    candidates = []
-    origin_snap_checked = False
-    origin_is_inland = False
-    skipped_inland = 0
-    skipped_error = 0
+    crossings = [r for r in routes if crosses_antimeridian(r["geometry"]["coordinates"])]
+    print(f"[INFO] {len(routes)} rutas para {len(origins)} orígenes")
+    print(f"[INFO] {len(crossings)} rutas cruzan el antimeridiano "
+          f"(coordenadas normalizadas, las segmenta el consumidor)")
+    if crossings and not args.dry_run:
+        print("[WARN] " + ", ".join(f'{r["origin"]}->{r["destination"]}' for r in crossings),
+              file=sys.stderr)
 
-    # preparar lista de sugerencias costeras para abort origen inland
-    # se calculará bajo demanda si detectamos origen inland
-
-    for i in range(origin_idx + 1, len(cities)):
-        dest = cities[i]
-        dest_lng_u = unwrapped[i]
-        # Regla del Este desenrollada
-        if dest_lng_u <= origin_lng_u:
-            # no debería ocurrir si catálogo ordenado, pero validar
-            print(f'[SKIP] {dest["name"]} no es Este (lng_u {dest_lng_u:.2f} <= {origin_lng_u:.2f})')
-            continue
-
-        # invocar searoute
-        try:
-            # searoute espera [lng, lat]
-            result = searoute.searoute(
-                [float(origin_city["lng"]), float(origin_city["lat"])],
-                [float(dest["lng"]), float(dest["lat"])],
-                units="km"
-            )
-        except Exception as e:
-            # searoute lanza excepción si puntos en tierra sin ruta
-            print(f'[SKIP] {dest["name"]} searoute error: {e}')
-            skipped_error += 1
-            continue
-
-        # manejar respuesta vacía o FeatureCollection
-        if result is None:
-            print(f'[WARN] {dest["name"]} searoute devolvió None')
-            skipped_error += 1
-            continue
-        # si es FeatureCollection (cuando include_ports con múltiples), tomar primer Feature
-        # pero en nuestro caso sin include_ports siempre Feature
-        if isinstance(result, dict) and result.get("type") == "FeatureCollection":
-            feats = result.get("features", [])
-            if not feats:
-                print(f'[WARN] {dest["name"]} FeatureCollection vacío')
-                skipped_error += 1
-                continue
-            result = feats[0]
-
-        geometry = result.get("geometry")  # type: ignore
-        properties = result.get("properties", {})  # type: ignore
-        if not geometry or geometry.get("type") != "LineString":
-            print(f'[WARN] {dest["name"]} geometry no LineString: {geometry}')
-            skipped_error += 1
-            continue
-        coordinates = geometry.get("coordinates", [])
-        if not isinstance(coordinates, list) or len(coordinates) < 2:
-            print(f'[WARN] {dest["name"]} coordinates inválidas len {len(coordinates) if isinstance(coordinates, list) else "NA"}')
-            skipped_error += 1
-            continue
-
-        distanceKm = properties.get("length")
-        if distanceKm is None:
-            # fallback: calcular haversine sum
-            distanceKm = haversine_sum(coordinates)
-            print(f'[WARN] {dest["name"]} sin properties.length, usando haversine sum {distanceKm:.1f}')
-
-        # validar snap Haversine ciudad→primer/último vértice
-        try:
-            first_lng, first_lat = coordinates[0]
-            last_lng, last_lat = coordinates[-1]
-            snapOriginKm = haversine(float(origin_city["lat"]), float(origin_city["lng"]), first_lat, first_lng)
-            snapDestKm = haversine(float(dest["lat"]), float(dest["lng"]), last_lat, last_lng)
-        except Exception as e:
-            print(f'[WARN] {dest["name"]} error snap calc: {e}')
-            skipped_error += 1
-            continue
-
-        # Validar origen inland una sola vez (primer éxito)
-        if not origin_snap_checked:
-            origin_snap_checked = True
-            if snapOriginKm > ORIGIN_ABORT_KM:
-                # origen profundo inland → abort con 3 sugerencias costeras Este
-                temp_suggestions = []
-                for j in range(origin_idx + 1, min(len(cities), origin_idx + 30)):
-                    cand = cities[j]
-                    try:
-                        r2 = searoute.searoute([float(origin_city["lng"]), float(origin_city["lat"])],[float(cand["lng"]), float(cand["lat"])], units="km")
-                        # r2 puede ser Feature o FeatureCollection
-                        if isinstance(r2, dict) and r2.get("type") == "FeatureCollection":
-                            feats = r2.get("features", [])
-                            if not feats:
-                                continue
-                            r2 = feats[0]
-                        c2 = r2.get("geometry", {}).get("coordinates", [])  # type: ignore
-                        if len(c2) >= 2:
-                            sd2 = haversine(float(cand["lat"]), float(cand["lng"]), c2[-1][1], c2[-1][0])
-                            if sd2 < THRESHOLD_KM:
-                                temp_suggestions.append(cand["name"])
-                                if len(temp_suggestions) >= 3:
-                                    break
-                    except:
-                        continue
-                if not temp_suggestions:
-                    temp_suggestions = [cities[k]["name"] for k in range(origin_idx+1, min(len(cities), origin_idx+4))]
-                print(f'[ERROR] origin has no port within {THRESHOLD_KM}km (snap {snapOriginKm:.1f}km) — origen inland', file=sys.stderr)
-                print(f'  Sugerencias costeras Este: {", ".join(temp_suggestions)}', file=sys.stderr)
-                sys.exit(1)
-            elif snapOriginKm > THRESHOLD_KM:
-                print(f'[WARN] origin snap {snapOriginKm:.1f}km >{THRESHOLD_KM}km estuarino (ej. Londres Támesis) — continuando como costero')
-
-        # Validar destino inland
-        if snapDestKm > THRESHOLD_KM:
-            print(f'[SKIP] {dest["name"]} inland snapDest {snapDestKm:.1f}km >{THRESHOLD_KM}km (snapOrigin {snapOriginKm:.1f}km)')
-            skipped_inland += 1
-            continue
-        if snapOriginKm > THRESHOLD_KM:
-            # ya advertido, pero log por cada ruta como WARN
-            # no descartamos, solo informamos
-            print(f'[OK] {dest["name"]} snapOrigin {snapOriginKm:.1f}km (>10 estuarino) snapDest {snapDestKm:.1f}km distance {distanceKm:.1f}km')
-        else:
-            print(f'[OK] {dest["name"]} snapDest {snapDestKm:.1f}km snapOrigin {snapOriginKm:.1f}km distance {distanceKm:.1f}km')
-
-        # validar distancia y geometría básica antes de acumular
-        if not (0 < distanceKm < 40000):
-            print(f'[WARN] {dest["name"]} distanceKm fuera de rango: {distanceKm}')
-            skipped_error += 1
-            continue
-        if len(coordinates) < 2:
-            print(f'[WARN] {dest["name"]} coordinates <2')
-            skipped_error += 1
-            continue
-        # validar rangos lng/lat
-        valid = True
-        for lng, lat in coordinates:
-            if not (-180 <= lng <= 180 and -90 <= lat <= 90):
-                print(f'[WARN] {dest["name"]} coord fuera de rango lng {lng} lat {lat}')
-                valid = False
-                break
-        if not valid:
-            skipped_error += 1
-            continue
-
-        # acumular candidato
-        candidates.append({
-            "city": dest,
-            "distanceKm": float(distanceKm),
-            "geometry": {"type": "LineString", "coordinates": coordinates},
-            "snapOriginKm": snapOriginKm,
-            "snapDestKm": snapDestKm,
-        })
-
-    # fin recorrido
-    if not candidates:
-        print(f'[WARN] No se encontraron rutas marítimas válidas desde "{origin_name}" hacia el Este (evaluadas {len(cities)-origin_idx-1} ciudades, SKIP inland {skipped_inland}, errores {skipped_error})')
-        if not args.dry_run:
-            print("[ERROR] 0 rutas halladas — no se escribe sea_routes.json", file=sys.stderr)
-            sys.exit(1)
-        else:
-            print("[INFO] dry-run: 0 rutas, no se escribe")
-            sys.exit(0)
-
-    # ordenar por distanceKm ascendente y tomar 5 más cortas
-    candidates.sort(key=lambda x: x["distanceKm"])
-    selected = candidates[:args.limit]
-    print(f'[INFO] {len(candidates)} candidatos válidos, seleccionando {len(selected)} más cortas (limit {args.limit})')
-    for idx, cand in enumerate(selected, 1):
-        c = cand["city"]
-        print(f'  #{idx} {c["name"]} {cand["distanceKm"]:.1f}km snapDest {cand["snapDestKm"]:.1f}km')
-
-    # dry-run: listar y no escribir
     if args.dry_run:
-        print(f'[INFO] dry-run: no se escribe {SEA_ROUTES_PATH}')
-        # también mostrar que Niamey sería SKIP si estuviera en rango
-        # ya listado arriba, pero asegurar que se visualiza
-        # verificar que no se creó/modificó archivo
+        print(f"[INFO] dry-run: no se escribe {args.out}")
         return
 
-    # construir rutas GeoJSON
-    new_routes = []
-    for cand in selected:
-        dest = cand["city"]
-        route = {
-            "origin": origin_name,
-            "originLat": float(origin_city["lat"]),
-            "originLng": float(origin_city["lng"]),
-            "destination": dest["name"],
-            "destinationLat": float(dest["lat"]),
-            "destinationLng": float(dest["lng"]),
-            "distanceKm": round(float(cand["distanceKm"]), 1),
-            "geometry": cand["geometry"]
-        }
-        # validación extra
-        warns = validate_route(route)
-        for w in warns:
-            print(f'[WARN] {dest["name"]} validación: {w}')
-        new_routes.append(route)
-
-    # validar orden ascendente
-    for i in range(len(new_routes)-1):
-        if new_routes[i]["distanceKm"] > new_routes[i+1]["distanceKm"]:
-            print(f'[WARN] rutas no ordenadas: {new_routes[i]["destination"]} {new_routes[i]["distanceKm"]} > {new_routes[i+1]["destination"]} {new_routes[i+1]["distanceKm"]}')
-
-    # cargar o inicializar sea_routes.json
-    sea_data = load_or_init_sea_routes()
-    old_routes = sea_data.get("routes", [])
-    old_meta = sea_data.get("meta", {})
-
-    # merge idempotente por clave origin::destination
-    # construir dict
-    route_map = {}
-    for r in old_routes:
-        key = f'{r.get("origin")}::{r.get("destination")}'
-        route_map[key] = r
-
-    changed = False
-    for nr in new_routes:
-        key = f'{nr["origin"]}::{nr["destination"]}'
-        old = route_map.get(key)
-        if old is None:
-            route_map[key] = nr
-            changed = True
-            print(f'[INFO] Nueva ruta {key} {nr["distanceKm"]}km')
-        else:
-            # comparar distanceKm y geometry
-            if old.get("distanceKm") != nr.get("distanceKm") or old.get("geometry") != nr.get("geometry"):
-                route_map[key] = nr
-                changed = True
-                print(f'[INFO] Actualizada ruta {key} {old.get("distanceKm")} -> {nr.get("distanceKm")}km')
-            else:
-                print(f'[INFO] Ruta {key} sin cambios')
-
-    # reconstruir lista ordenada por distanceKm ascendente global? spec dice routes ordenadas por distanceKm ascendente
-    # Pero merge debe preservar todas, ordenadas. Ordenamos global por distanceKm.
-    merged_routes = list(route_map.values())
-    # Ordenar por distanceKm para cumplir criterio de JSON válido ordenado
-    # Sin embargo, si hay múltiples orígenes, ordenar global puede mezclar orígenes.
-    # Spec ejemplo implica orden por distanceKm ascendente dentro del archivo.
-    # Mantendremos orden ascendente global.
-    merged_routes.sort(key=lambda x: x["distanceKm"])
-
-    # verificar duplicados origin==destination y clave única
-    seen_keys = set()
-    deduped = []
-    for r in merged_routes:
-        k = f'{r["origin"]}::{r["destination"]}'
-        if k in seen_keys:
-            print(f'[WARN] duplicado {k} omitido')
-            continue
-        if r["origin"] == r["destination"]:
-            print(f'[WARN] ruta origin==destination {k} omitida')
-            continue
-        seen_keys.add(k)
-        deduped.append(r)
-    merged_routes = deduped
-
-    # actualizar meta si hubo cambio o force
-    new_meta = dict(old_meta) if old_meta else {}
-    # asegurar campos base
-    new_meta.update({
-        "project": "eu.elarreglador.pf",
-        "name": "Fogg Sea Routes — Herencia de Phoebe",
-        "tool": "fogg-sea-routes",
-        "searoute": SEAROUTE_VERSION,
-        "units": "km",
-        "thresholdKm": THRESHOLD_KM,
-        "source": "searoute (avoid land) + GeoNames cities15000"
-    })
-    # version bump solo si cambió contenido
-    old_dump = json.dumps({"meta": old_meta, "routes": old_routes}, sort_keys=True, ensure_ascii=False) if old_routes or old_meta else ""
-    new_dump_for_compare = json.dumps({"meta": new_meta, "routes": merged_routes}, sort_keys=True, ensure_ascii=False)
-    # comparar solo routes para decidir version bump
-    routes_changed = json.dumps(old_routes, sort_keys=True) != json.dumps(merged_routes, sort_keys=True)
-    if routes_changed or not old_meta.get("version"):
-        # bump version 1.0.0 -> 1.0.1 si ya existe 1.0.0
-        curr_ver = old_meta.get("version", "1.0.0")
-        if curr_ver == "1.0.0" and routes_changed:
-            new_meta["version"] = "1.0.1"
-        elif not curr_ver:
-            new_meta["version"] = "1.0.0"
-        else:
-            # si ya 1.0.1 y cambia de nuevo, mantener 1.0.1 (spec dice bump 1.0.0→1.0.1 si cambia)
-            new_meta["version"] = curr_ver
-    else:
-        new_meta["version"] = old_meta.get("version", "1.0.0")
-
-    new_meta["generated"] = date.today().isoformat()
-
-    final_data = {"meta": new_meta, "routes": merged_routes}
-
-    # escribir
-    SEA_ROUTES_PATH.parent.mkdir(parents=True, exist_ok=True)
-    with open(SEA_ROUTES_PATH, "w", encoding="utf-8") as f:
-        json.dump(final_data, f, indent=2, ensure_ascii=False)
-        f.write("\n")
-    print(f'[INFO] Guardado {len(merged_routes)} rutas ({len(new_routes)} nuevas/actualizadas desde {origin_name}) en {SEA_ROUTES_PATH}')
-    # validar JSON
-    try:
-        with open(SEA_ROUTES_PATH, encoding="utf-8") as f:
-            json.load(f)
-        print(f'[INFO] JSON válido: {SEA_ROUTES_PATH}')
-    except Exception as e:
-        print(f'[ERROR] JSON inválido tras escribir: {e}', file=sys.stderr)
-        sys.exit(1)
+    meta = build_meta(len(origins), len(routes), len(rejected), len(crossings), args.limit)
+    write_output(args.out, meta, routes)
+    print(f'[INFO] Guardadas {len(routes)} rutas ({meta["generated"]}) en {args.out}')
 
 
 if __name__ == "__main__":

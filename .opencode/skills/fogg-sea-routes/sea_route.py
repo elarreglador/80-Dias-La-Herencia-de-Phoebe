@@ -9,6 +9,8 @@ Proyecto eu.elarreglador.pf
   Denver, Kansas City o Harare son puertos fluviales a 0 km del centro)
 - De los puertos candidatos conserva solo los cuyo puerto queda al Este del puerto
   origen, desenrollado: 0 < deltaLng <= 180
+- Ancla cada geometría a las coordenadas de la ciudad en ambos extremos: searoute
+  devuelve la malla marítima, cuyo primer y último vértice son nodos de mar
 - Selecciona las `limit` rutas más cortas por distancia marítima y persiste
   assets/data/sea_routes.json (reescritura completa, no merge)
 
@@ -40,7 +42,7 @@ SEA_ROUTES_PATH = PROJECT_ROOT / "assets" / "data" / "sea_routes.json"
 
 PROJECT = "eu.elarreglador.pf"
 TOOL_NAME = "fogg-sea-routes"
-SCHEMA_VERSION = "2.0.0"
+SCHEMA_VERSION = "3.0.0"
 SEAROUTE_VERSION = "1.6.0"
 
 THRESHOLD_KM = 10  # ciudad -> mar; por encima la ciudad no es un puerto
@@ -223,6 +225,42 @@ def resolve_port(sr, M, P, city, sea_km: float) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# Geometría de la ruta
+# ---------------------------------------------------------------------------
+
+def city_vertex(city) -> list[float]:
+    """Coordenadas de la ciudad como primer/último vértice de la LineString.
+
+    `searoute` devuelve la malla marítima: su primer y último vértice son nodos
+    de esa malla, no la ciudad. Se anteponen/posponen las coordenadas del
+    catálogo para que la polilínea arranque y termine donde lo espera el
+    consumidor. `normalize_lng` es defensivo: `load_locations` no acota `lng`.
+    """
+    return [
+        round(normalize_lng(float(city["lng"])), COORD_PRECISION),
+        round(float(city["lat"]), COORD_PRECISION),
+    ]
+
+
+def anchor_to_cities(coordinates, origin, dest) -> list:
+    """Antepone la ciudad origen y pospone la ciudad destino.
+
+    Nunca sustituye un vértice: el camino que resuelve la malla se conserva
+    entero y solo se le añade el tramo ciudad↔puerto en cada extremo. Si la
+    ciudad ya coincide con el vértice vecino (misma posición redondeada a
+    `COORD_PRECISION`, p. ej. Macau) no se duplica, que un segmento de longitud
+    cero rompe los mapas.
+    """
+    start = city_vertex(origin)
+    end = city_vertex(dest)
+    if coordinates[0] != start:
+        coordinates = [start] + coordinates
+    if coordinates[-1] != end:
+        coordinates = coordinates + [end]
+    return coordinates
+
+
+# ---------------------------------------------------------------------------
 # Selección de rutas
 # ---------------------------------------------------------------------------
 
@@ -271,6 +309,9 @@ def select_routes(sr, M, P, origin, ports, limit, verbose=False):
         ]
         if len(coordinates) < 2:
             continue
+        # La malla empieza y acaba en el nodo marino, no en la ciudad: se ancla
+        # a las coordenadas del catálogo sin tocar el camino intermedio.
+        coordinates = anchor_to_cities(coordinates, origin, dest)
         selected.append((float(distance), dest, coordinates))
         if verbose:
             print(f"    {dest['city']:<24} {distance:9.1f} km  gc {gc_km:8.1f} km")
@@ -327,6 +368,17 @@ def validate_dataset(routes, limit) -> list[str]:
         if len(coords) < 2:
             problems.append(f"geometría con menos de 2 vértices en {key}")
             continue
+        # La geometría arranca y termina en la ciudad, no en el nodo de la malla.
+        # `originLat/originLng` conservan la precisión de locations.json, así que
+        # la comparación va contra el mismo redondeo que aplica `city_vertex`.
+        expected_start = [round(normalize_lng(float(route["originLng"])), COORD_PRECISION),
+                          round(float(route["originLat"]), COORD_PRECISION)]
+        expected_end = [round(normalize_lng(float(route["destinationLng"])), COORD_PRECISION),
+                        round(float(route["destinationLat"]), COORD_PRECISION)]
+        if coords[0] != expected_start:
+            problems.append(f"no arranca en la ciudad origen en {key}: {coords[0]}")
+        if coords[-1] != expected_end:
+            problems.append(f"no termina en la ciudad destino en {key}: {coords[-1]}")
         for lng, lat in coords:
             if not (-180 <= lng <= 180 and -90 <= lat <= 90):
                 problems.append(f"coordenada fuera de rango en {key}: {lng},{lat}")
@@ -367,9 +419,14 @@ def build_meta(origins_total, routes_count, cities_without_port, crossings, limi
         "citiesWithoutPort": cities_without_port,
         "crossesAntimeridian": crossings,
         "eastRule": "0 < deltaLng(portDest - portOrigin) <= 180 (desenrollado)",
-        "geometry": "LineString [lng,lat] de puerto a puerto, siempre en [-180,180]; "
-                    "al cruzar el antimeridiano los vértices saltan de 179 a -179 y "
-                    "el consumidor debe segmentar (splitAntimeridian / polylineSegments)",
+        "geometry": "LineString [lng,lat] de ciudad a ciudad: el primer y el último "
+                    "vértice son las coordenadas de la ciudad de locations.json y entre "
+                    "medias va la malla marítima de searoute. Siempre en [-180,180]; al "
+                    "cruzar el antimeridiano los vértices saltan de 179 a -179 y el "
+                    "consumidor debe segmentar (splitAntimeridian / polylineSegments)",
+        "distanceNote": "distanceKm es properties.length de searoute (nodo de malla a "
+                        "nodo de malla) y NO incluye los tramos ciudad-puerto de los "
+                        "extremos, de hasta ~15.7 km (Portsmouth-Cowes, Isla de Wight)",
         "source": "searoute (avoid land) + GeoNames cities15000",
     }
 

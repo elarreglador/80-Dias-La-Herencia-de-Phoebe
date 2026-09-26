@@ -157,7 +157,7 @@ Cada paso deja el visor ejecutable y mantiene disponible la carga actual de ciud
 
 2. **Implementa la lectura y validación — `tools/locations-map/app.js` — procesa el archivo seleccionado sin tocar el asset** — `FileReader.readAsText`, `JSON.parse`, `validateSeaRoutes` y `normalizeSeaRoutes` deben ejecutarse antes de limpiar o modificar la capa. Prueba: seleccionar un JSON válido activa el estado de carga; seleccionar un JSON inválido muestra error y conserva la capa previa.
 
-3. **Crea la capa de rutas — `tools/locations-map/app.js` — dibuja una polilínea lógica por ruta** — añade `seaRoutesLayer` al mapa por debajo de `markerLayer`, convierte `[lng, lat]` a `[lat, lng]`, aplica `#1E88E5`, `weight 3`, `opacity 0.9` y `dashArray '8 12'`. Prueba: `assets/data/sea_routes.json` actual muestra sus 9 rutas lógicas y conserva los markers rojos.
+3. **Crea la capa de rutas — `tools/locations-map/app.js` — dibuja una polilínea lógica por ruta** — añade `seaRoutesLayer` al mapa por debajo de `markerLayer`, convierte `[lng, lat]` a `[lat, lng]`, aplica `#1E88E5`, `weight 3`, `opacity 0.9` y `dashArray '8 12'`. Prueba: `assets/data/sea_routes.json` actual muestra sus 165 rutas lógicas y conserva los markers rojos.
 
 4. **Añade animación y movimiento reducido — `tools/locations-map/style.css` — hace avanzar el patrón azul en el sentido del viaje** — define `seaRouteFlow` con `stroke-dashoffset` de `0` a `-20` en `1.2s` lineal infinito y una regla `prefers-reduced-motion: reduce` sin animación. Prueba: la animación se observa en una ruta y desaparece cuando el navegador simula movimiento reducido.
 
@@ -173,7 +173,7 @@ Cada paso deja el visor ejecutable y mantiene disponible la carga actual de ciud
 
 - [ ] `tools/locations-map/index.html` contiene un botón visible `Cargar rutas marítimas`, un `input[type=file]` separado con `accept` para JSON y un elemento `#route-status` inicializado en `0 rutas marítimas`; el selector existente de ciudades sigue funcionando.
 - [ ] Al abrir el visor no se realiza ninguna petición ni lectura automática de `sea_routes.json`; la capa de rutas comienza vacía.
-- [ ] Al seleccionar `assets/data/sea_routes.json`, `#route-status` muestra `9 rutas marítimas` y el nombre `sea_routes.json` para el dataset versionado actual, y se dibuja una polilínea lógica por cada elemento de `routes`.
+- [ ] Al seleccionar `assets/data/sea_routes.json`, `#route-status` muestra `165 rutas marítimas` y el nombre `sea_routes.json` para el dataset versionado actual, y se dibuja una polilínea lógica por cada elemento de `routes`.
 - [ ] Cada geometría GeoJSON se convierte de `[lng, lat]` a `[lat, lng]` antes de llegar a Leaflet; el popup de una ruta de prueba muestra las coordenadas visuales esperadas.
 - [ ] Cada ruta usa color `#1E88E5`, grosor `3`, opacidad `0.9` y patrón discontinuo `8 12` en SVG.
 - [ ] El patrón de la línea se desplaza continuamente en `1.2s` lineales desde el origen hacia el destino, sin depender de hover ni de interacción del usuario.
@@ -218,7 +218,7 @@ Cada paso deja el visor ejecutable y mantiene disponible la carga actual de ciud
 
 | Riesgo | Mitigación |
 | --- | --- |
-| La animación CSS de muchas geometrías puede elevar el consumo de CPU | El dataset actual contiene 9 rutas y 273 vértices; además, `prefers-reduced-motion` desactiva la animación y el renderer SVG existente es suficiente para esta herramienta de desarrollo. |
+| La animación CSS de muchas geometrías puede elevar el consumo de CPU | El dataset actual contiene 165 rutas y 9608 vértices; además, `prefers-reduced-motion` desactiva la animación y el renderer SVG existente es suficiente para esta herramienta de desarrollo. |
 | El signo de `stroke-dashoffset` puede parecer invertido en distintos navegadores o al cambiar el CRS | Verificar visualmente el sentido origen-destino en Chrome y documentar el valor CSS en `style.css`; no depender de una animación JS sincronizada con el mapa. |
 | Una geometría válida con salto `179 → -179` puede crear una línea horizontal a través del mundo | Detectar saltos mayores de `180°`, interpolar los puntos de borde y verificar el caso sintético durante la implementación. |
 | Un archivo local puede contener HTML malicioso en nombres o notas | Construir popups con `textContent` o escapar todos los valores antes de usar HTML; no interpolar el JSON directamente. |
@@ -246,7 +246,7 @@ Cada uno, si aterriza, irá en su propia especificación.
 
 ## 9. Referencias
 
-- `assets/data/sea_routes.json:1` — dataset GeoJSON versionado por SPEC 004, con 9 rutas y coordenadas `[lng, lat]`.
+- `assets/data/sea_routes.json:1` — dataset GeoJSON versionado por SPEC 004, con 165 rutas y coordenadas `[lng, lat]`.
 - `docs/specs/003-visor-locations-mapa.md:23` — alcance y convenciones del visor standalone existente.
 - `docs/specs/004-fogg-sea-routes.md:57` — contrato de datos de `sea_routes.json` y reglas de la geometría.
 - `tools/locations-map/index.html:12` — mapa, panel, selector de ciudades y scripts existentes.

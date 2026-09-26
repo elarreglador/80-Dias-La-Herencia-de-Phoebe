@@ -65,3 +65,4 @@ Checklist vivo. Marque con `[x]` al completar.
 - [x] Estructura base (.worktrees, SENSIBLE, .gitignore)
 - [x] README.md fundacional (castellano, código en inglés, `eu.elarreglador.pf`)
 - [x] TODO.md inicial
+- [x] Rutas marítimas hacia el Este: `sea_routes.json` v3.0.0, 165 rutas de 33 orígenes (specs 004/005), geometría anclada a las coordenadas de la ciudad y segmentación de antimeridiano. Pendiente solo el consumo desde el mapa Flutter (ítem v1 de arriba)

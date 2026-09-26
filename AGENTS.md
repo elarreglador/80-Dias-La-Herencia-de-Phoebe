@@ -50,7 +50,7 @@ flutter run -d chrome
 ## Datos y visor de desarrollo
 
 - `assets/data/locations.json` — 304 ciudades `{meta, cities:[{name, asciiname, lat, lng, timezone}]}`. Está declarado en `pubspec.yaml` pero **ningún código Dart lo lee** (verificado: cero `rootBundle`/`loadString` en `lib/`). Solo lo consume el visor dev.
-- `assets/data/sea_routes.json` — 9 rutas `{meta, routes:[{origin, destination, distanceKm, geometry: LineString}]}`. **No** está en los assets de `pubspec.yaml`.
+- `assets/data/sea_routes.json` — esquema **v3.0.0**, 165 rutas `{meta, routes:[{origin, originLat/Lng, destination, destinationLat/Lng, distanceKm, portOrigin, portDest, geometry: LineString}]}`. `geometry.coordinates[0]` y `[-1]` son las coordenadas de la ciudad (5 decimales), no el puerto; en medio va la malla de `searoute`. `distanceKm` es la longitud nodo a nodo y **no** incluye esos dos tramos. **No** está en los assets de `pubspec.yaml`.
 - `tools/locations-map/` es Leaflet 1.9.4 vanilla: sin build, sin `node_modules`, sin `flutter run`. `serve_map.sh` **copia** `assets/data/locations.json` → `tools/locations-map/locations.json` antes de servir, y esa copia **está versionada**: si la regeneras, revisa el diff.
 - `docs/origenes/cities15000.txt` (8.2 MB, GeoNames) es el origen versionado; los derivados pesados (`cities15000.json`, `.no-alts.json`) están gitignored y se regeneran con `docs/origenes/01_cities_to_json.py` y `02_strip_alternates.py`.
 - GeoNames es **CC-BY 4.0**: la atribución es obligatoria y ya se renderiza en el mapa vía `RichAttributionWidget`. Si redistribuyes datos derivados, no la quites.

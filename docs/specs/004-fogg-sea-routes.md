@@ -212,3 +212,20 @@ Cada paso deja el repo ejecutable, `sea_routes.json` válido si existe, y `flutt
 
 > Siguiente paso tras aprobar esta spec: ejecutar `/spec-impl 01-fogg-sea-routes` (pasos §3) con validación `json.tool` + `flutter analyze` verde.
 
+---
+
+## 10. Addendum 2026-09-26 — geometría de ciudad a ciudad (esquema 3.0.0)
+
+El cuerpo de esta spec describe el diseño `v1` (puerto implícito, merge idempotente) y queda **superado** en cuatro aspectos por el estado real del artefacto. Este addendum registra el delta; no reescribe §2.
+
+| Aspecto | `v1` (§2.2) | Actual `v3.0.0` | Delta |
+|---|---|---|---|
+| Puerto | implícito, misma ciudad | `portOrigin`/`portDest` explícitos (WPI: código, nombre, país, lat/lng, `seaKm`) | `v2` |
+| Regla del Este | sobre la ciudad | sobre el **puerto** (desenrollada) | `v2` |
+| Escritura | merge idempotente por `origin::destination` | reescritura completa, sin merge | `v2` |
+| `geometry.coordinates[0]` / `[-1]` | nodo de la malla `searoute` | **coordenadas de la ciudad**, redondeadas a 5 decimales | `v3` (este addendum) |
+
+Motivo del último punto: `searoute` se *pide* ciudad→ciudad pero *devuelve* la malla marítima, así que la polilínea arrancaba en un nodo de mar a hasta 15,7 km del centro de la ciudad (Portsmouth → Cowes). `anchor_to_cities()` antepone y pospone las coordenadas de `locations.json` **sin sustituir** los vértices de la malla, de modo que el camino marino queda intacto y la línea empieza y acaba en la ciudad que espera el consumidor.
+
+Consecuencias asumidas: `distanceKm` sigue siendo `properties.length` de `searoute` (nodo a nodo) y **no** incluye los dos tramos añadidos — la suma Haversine de la geometría queda hasta un 1,95 % por encima, dentro del ±20 % que ya toleraba §2.2. `validate_dataset` incorpora la invariante de extremos. Detalle operativo en `.opencode/skills/fogg-sea-routes/SKILL.md`.
+

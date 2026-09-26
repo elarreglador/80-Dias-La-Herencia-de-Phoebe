@@ -1,13 +1,13 @@
 ---
 name: fogg-sea-routes
-description: Skill local Python que resuelve el puerto de cada ciudad de locations.json con searoute, descarta las que están a más de 10 km del mar, aplica la Regla del Este sobre los puertos y persiste hasta 5 rutas marítimas más cortas por puerto en sea_routes.json (reescritura completa). Exclusiva proyecto eu.elarreglador.pf.
+description: Skill local Python que resuelve el puerto de cada ciudad de locations.json con searoute, descarta las que están a más de 10 km del mar, aplica la Regla del Este sobre los puertos y persiste hasta 5 rutas marítimas más cortas por puerto en sea_routes.json (reescritura completa). La LineString arranca y termina en las coordenadas de la ciudad, no en el puerto. Exclusiva proyecto eu.elarreglador.pf.
 ---
 
 # Fogg Sea Routes — 5 rutas marítimas más cortas hacia el Este por puerto
 
 Recorre `assets/data/locations.json` (304 ciudades), resuelve el puerto de cada una con `searoute`, descarta las que no están a `<= 10 km` del mar, aplica la Regla del Este **sobre los puertos** (no sobre las ciudades) y persiste las 5 rutas marítimas más cortas de cada puerto en `assets/data/sea_routes.json`.
 
-**Estado actual:** `version 2.0.0`, 33 orígenes, 165 rutas, 271 ciudades descartadas, 17 cruces del antimeridiano, 9278 vértices, ~1,5 s de ejecución.
+**Estado actual:** `version 3.0.0`, 33 orígenes, 165 rutas, 271 ciudades descartadas, 17 cruces del antimeridiano, 9608 vértices, ~1,5 s de ejecución.
 
 ## Cuándo usar
 
@@ -42,38 +42,55 @@ sea_route.py --out /tmp/prueba.json   # no toca assets/
    - `searoute` de ciudad a ciudad con `include_ports=True`; excepción → `SKIP` con `WARN` y sigue.
    - Las 5 más cortas se ordenan por `distanceKm` ascendente.
 5. **Normaliza** cada vértice con `normalize_lng()` a `[-180, 180]`. `searoute` entrega el marco desenrollado y se sale del rango (devuelve `lng` hasta `-208.8`); sin esto el visor **rechaza el fichero entero**.
-6. **Valida** y, si no hay problemas, escribe con `indent=2, ensure_ascii=False` y revalida el JSON.
+6. **Ancla** la geometría a la ciudad: `anchor_to_cities()` antepone `city_vertex(origen)` y pospone `city_vertex(destino)`. Nunca sustituye, solo añade, y no duplica vértice si la ciudad ya coincide con el nodo vecino. Ver "Geometría de ciudad a ciudad".
+7. **Valida** y, si no hay problemas, escribe con `indent=2, ensure_ascii=False` y revalida el JSON.
 
-## Esquema `sea_routes.json` v2
+## Esquema `sea_routes.json` v3
 
 ```jsonc
 {
   "meta": {
     "project": "eu.elarreglador.pf",
-    "version": "2.0.0", "generated": "2026-09-26",
+    "version": "3.0.0", "generated": "2026-09-26",
     "tool": "fogg-sea-routes", "searoute": "1.6.0",
     "units": "km",                    // obligatorio: lo exige el visor
     "thresholdKm": 10, "maxEastDeg": 180, "limitPerOrigin": 5,
     "origins": 33, "routes": 165, "citiesWithoutPort": 271,
     "crossesAntimeridian": 17,        // informativo
     "eastRule": "0 < deltaLng(portDest - portOrigin) <= 180 (desenrollado)",
-    "geometry": "LineString [lng,lat] …",
+    "geometry": "LineString [lng,lat] de ciudad a ciudad: …",
+    "distanceNote": "distanceKm es properties.length de searoute …",
     "source": "searoute (avoid land) + GeoNames cities15000"
   },
   "routes": [{
-    "origin": "Sidney", "originLat": -33.86882, "originLng": 151.20929,
-    "destination": "Apia", "destinationLat": -13.83452, "destinationLng": -171.76310,
+    "origin": "Sidney", "originLat": -33.86785, "originLng": 151.20732,
+    "destination": "Apia", "destinationLat": -13.8345235, "destinationLng": -171.7630955,
     "distanceKm": 4706.1,
     "portOrigin": { "code": "AUSYD", "name": "Sydney", "country": "Australia",
                     "lat": -33.85, "lng": 151.2, "seaKm": 1.6 },
     "portDest":   { "code": "WSAPW", "name": "Apia", "country": "Samoa",
                     "lat": -13.85, "lng": -171.76, "seaKm": 2.6 },
-    "geometry": { "type": "LineString", "coordinates": [[151.2, -33.85], …] }
+    "geometry": { "type": "LineString",
+                  "coordinates": [[151.20732, -33.86785], …, [-171.76310, -13.83452]] }
   }]
 }
 ```
 
-`v2` breaking: se añadió `portOrigin`/`portDest` y la Regla del Este pasó de las ciudades a los puertos, así que las 9 rutas de `v1.0.1` no son comparables (5 de ellas además eran westward).
+### Geometría de ciudad a ciudad
+
+`geometry.coordinates[0]` son las coordenadas de `origin` y `[-1]` las de `destination`, ambas redondeadas a `COORD_PRECISION` (5 decimales). `originLat/originLng` conservan la precisión íntegra de `locations.json`, así que la igualdad es a 5 decimales, no byte a byte. `validate_dataset` lo comprueba ruta por ruta.
+
+Entre esos dos extremos va la malla de `searoute` intacta. `searoute` se *pide* ciudad→ciudad, pero *devuelve* la malla: su primer y último vértice son nodos de mar, a 0,4–15,7 km de la ciudad. `anchor_to_cities` los antepone/pospone sin sustituir, de modo que el tramo añadido es una línea recta ciudad→nodo y el camino marino no se recorta.
+
+Consecuencias:
+
+- **+2 vértices por ruta**: 9278 → 9608 (2 × 165, sin duplicados; Macau cae a 0,41 km del nodo, el caso más cerrado).
+- **`distanceKm` no cambia**: sigue siendo `properties.length` de `searoute`, la distancia de nodo a nodo. El tramo ciudad→nodo no va incluido, y por eso la suma Haversine de la geometría queda hasta un **1,95 %** por encima de `distanceKm` (muy dentro del ±20 % de `LENGTH_TOLERANCE`).
+- **Ningún cruce nuevo**: en las 165 rutas `|city.lng - nodo.lng| < 180°`, así que los 17 cruces se siguen produciendo dentro del camino marino y `splitAntimeridian` / `polylineSegments` no segmentan de más.
+
+### Historial de esquema
+
+`v3` breaking: `geometry` pasa de arrancar en el puerto a arrancar en la ciudad. `v2` ya había sido breaking por añadir `portOrigin`/`portDest` y mover la Regla del Este de las ciudades a los puertos, así que las 9 rutas de `v1.0.1` no son comparables con las actuales.
 
 ## Regla del Este
 
@@ -86,7 +103,7 @@ sea_route.py --out /tmp/prueba.json   # no toca assets/
 - Visor dev: `splitAntimeridian()` (`tools/locations-map/app.js:163`) inserta `[180, lat]` / `[-180, lat]` e interpola la latitud.
 - Dart: `FoggRoute.polylineSegments` (`lib/domain/entities/fogg_route.dart:55`) hace lo mismo en Y Mercator.
 
-De las 165 rutas, **17 cruzan** (Sidney, Townsville, Melbourne y Fukuoka hacia el Pacífico). De los 981 candidatos, 74 cruzan: hay que medir el cruce sobre el subconjunto que se escribe, no sobre el total.
+De las 165 rutas, **17 cruzan** (Sidney, Townsville, Melbourne y Fukuoka hacia el Pacífico). De los 981 candidatos, 74 cruzan: hay que medir el cruce sobre el subconjunto que se escribe, no sobre el total. Ninguno de los 17 es un artefacto del anclaje a la ciudad: en las 165 rutas `|city.lng - nodo.lng| < 180°`, así que el salto `179 → -179` estaba en el camino marino antes de añadir las coordenadas de ciudad.
 
 ## Umbral de mar
 
@@ -109,6 +126,8 @@ Mediana de las 304 ciudades: 113,6 km al mar. A 10 km salen 33 puertos reales (F
 - **`searoute` entrega longitudes fuera de rango.** El marco desenrollado suma 360 al pasar el antimeridiano (`Denver → Sidney` termina en `-208.817139`). `normalize_lng()` es obligatorio: el visor valida `lng ∈ [-180,180]` en `app.js:136` y lanza `Rutas marítimas inválidas` para *todo* el fichero.
 - **Cuidadoso con Haversine.** `sin²(Δλ/2)` es simétrico, así que un Δλ de 356° da el mismo resultado que uno de 4°: no hay que "arreglarlo", pero sí usar `eastward_delta` para no sumar 35.000 km en el salto `179 → -179`.
 - **Sondeo de puerto ≠ el puerto de la ruta.** Con el punto sonda 0,7° al Este, Portsmouth resuelve a `GBCOW Cowes` (en la Isla de Wight, ~10 km). Es la respuesta del WPI para la dirección del sondeo, no un error: el `city` manda, `port` documenta.
+- **El tramo anclado no es agua.** El primer y el último segmento de la `LineString` unen la ciudad con el nodo de la malla en línea recta, y ese nodo puede no ser el muelle: el peor caso es Portsmouth, 15,7 km hasta Cowes en la Isla de Wight; el más ajustado, Macau, 0,41 km. Del mismo modo, `seaKm` mide el sondeo (≤ 9,6 km) y el enrutado real puede anclar a otro nodo. Con `THRESHOLD_KM = 10` es cosmético, pero si se sube el umbral (ver tabla) este tramo crece con él y hay que revisarlo.
+- **`distanceKm` no incluye el tramo anclado.** Es `properties.length` de `searoute` (nodo a nodo). La suma Haversine de la geometría queda hasta un 1,95 % por encima; dentro de `LENGTH_TOLERANCE`, pero no son la misma cifra y no deben tratarse como iguales. Lo declara `meta.distanceNote`.
 - **Regla del Este sobre puertos ≠ sobre ciudades**, ver arriba. Y al revés: Honolulu (+157,85) queda al Este de Vancouver (-123,12) y de Ciudad de México (-99,13), lo que es correcto.
 - **Sin consumidor Dart todavía.** `lib/` no lee este JSON (cero `rootBundle`). El único consumidor vivo es el visor dev; `TransportMode.ship` aún no lo consume.
 - **Sin ruta:** `try/except` por candidata, `SKIP` con `WARN`, no aborta el lote. Sólo aborta si `--limit <= 0`, si la ciudad no existe en `locations.json` o si la validación falla.

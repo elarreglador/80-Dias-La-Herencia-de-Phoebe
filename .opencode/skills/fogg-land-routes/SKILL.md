@@ -1,13 +1,13 @@
 ---
 name: fogg-land-routes
-description: Skill local Python que calcula hasta 5 rutas por carretera hacia el Este por ciudad de locations.json con el servidor demo de OSRM (1 petición/s, User-Agent identificable), descarta pares sin camino y persiste geometrías ancladas a la ciudad en car_routes.json. Solo perfil car. Exclusiva proyecto eu.elarreglador.pf.
+description: Skill local Python que calcula hasta 5 rutas por carretera hacia el Este por ciudad de locations.json con el servidor demo de OSRM (1 petición/s, User-Agent identificable), con fallback al Oeste si un origen no llega a 2 rutas, descarta pares sin camino (verificándolos con /route cuando el /table devuelve nulos espurios) y persiste geometrías ancladas a la ciudad en car_routes.json. Solo perfil car. Exclusiva proyecto eu.elarreglador.pf.
 ---
 
 # Fogg Land Routes — 5 rutas por carretera hacia el Este por ciudad
 
-Recorre `assets/data/locations.json` (304 ciudades), toma por origen sus 5 vecinas más próximas por círculo grande que cumplan la Regla del Este, pregunta al servidor demo de OSRM cuáles tienen camino y persiste como mucho 5 rutas por origen en `assets/data/car_routes.json`.
+Recorre `assets/data/locations.json` (304 ciudades), toma por origen sus 5 vecinas más próximas por círculo grande que cumplan la Regla del Este (con pool oeste de reserva para no dejar a nadie sin salida), pregunta al servidor demo de OSRM cuáles tienen camino y persiste como mucho 5 rutas por origen en `assets/data/car_routes.json`.
 
-**Estado actual:** `version 1.0.0`, esquema clonado de `sea_routes.json` v3 con `roadOrigin`/`roadDest` en lugar de `port*`, más `durationHours`. **Lote completo 2026-09-26:** 304 orígenes, 999 rutas de 235 orígenes (69 sin ruta), 521 descartes, 0 cruces de antimeridiano, `assets/data/car_routes.json` de 3,3 MB. `meta.osrmDataVersion` es `"unknown"`: la API v5.24 del demo no expone `data_version` en `/route` ni `/table`.
+**Estado actual:** `version 1.1.0`, esquema clonado de `sea_routes.json` v3 con `roadOrigin`/`roadDest` en lugar de `port*`, más `durationHours` y `heading`. **Lote completo 2026-09-26 + corrección 2026-10-07:** 304 orígenes, 1001 rutas de 236 orígenes (68 sin ruta), 525 descartes, 0 cruces de antimeridiano, `assets/data/car_routes.json` de 3,5 MB. `meta.osrmDataVersion` es `"unknown"`: la API v5.24 del demo no expone `data_version` en `/route` ni `/table`.
 
 ## Cuándo usar
 
@@ -21,7 +21,7 @@ python3 .opencode/skills/fogg-land-routes/land_route.py --resume
 python3 .opencode/skills/fogg-land-routes/land_route.py --out /tmp/prueba.json
 ```
 
-**El script siempre reescribe el fichero entero.** No hay merge: el JSON es un artefacto derivado y `meta.generated` refleja la fecha de esa generación. `--resume` salta los orígenes ya presentes para recuperar un lote interrumpido; el volcado periódico cada 10 orígenes hace lo mismo sin flags.
+**Por defecto reescribe el fichero entero.** `--resume` cambia a merge: carga las rutas existentes, rellena `heading` en las del esquema 1.0.0 (todas `east`), salta los orígenes ya presentes y solo calcula los que falten; siembra `unroutableCities` del meta previo y deriva `origins`/`originsWithoutRoute` del fichero para que los contadores no se reinicien. El volcado periódico cada 10 orígenes protege los lotes largos sin flags.
 
 ## Fuentes
 
@@ -34,8 +34,9 @@ python3 .opencode/skills/fogg-land-routes/land_route.py --out /tmp/prueba.json
 
 1. **Carga** `locations.json` y valida `name/lat/lng/timezone` numéricos; calcula `lng_u` desenrollado como en `sea_route.py`.
 2. **Rechaza** `--profile distinto de car` con código 1: el servidor devuelve respuestas byte-idénticas para `driving`, `foot` y `bike` (`weight_name=routability`); escribir `foot.json` sería un fichero mentiroso.
-3. **Construye el pool** por origen (`build_pool`): `0 < eastward_delta < = 180` sobre la **ciudad**, excluye el propio nombre, ordena por Haversine y corta a `--pool` (5). Techo demostrable: 1 `/table` + como mucho 5 `/route` por origen.
-4. **Matriz** (`table_distances`): una llamada `/table` con origen + candidatas (como mucho 6 coordenadas). Todo `distances[i] == null` se descarta con `[SKIP] sin camino terrestre`; el origen puede quedar con 0 rutas (islas, otro continente) sin que el lote falle.
+3. **Construye el pool** por origen (`build_pool`): `0 < eastward_delta <= 180` sobre la **ciudad** (`direction="east"`), excluye el propio nombre, ordena por Haversine y corta a `--pool` (5). Techo demostrable: 1 `/table` + como mucho 5 `/route` por origen.
+4. **Matriz** (`table_distances`): una llamada `/table` con origen + candidatas (como mucho 6 coordenadas). Un `null` de celda **no se descarta en la matriz**: el demo devuelve nulos espurios (Teresina→Salvador es enrutable con 1.146,5 km / 15,9 h y el `/table` lo niega), así que la verificación la hace `build_route` con `/route` (y `SNAP_MAX_KM` descarta los enganches fantasma a miles de km). El origen puede quedar con 0 rutas (islas, otro continente) sin que el lote falle.
+4b. **Fallback al Oeste:** si al origen le quedan menos de `MIN_ROUTES_PER_ORIGIN` (2) rutas este, se consulta un segundo `/table` con el pool oeste (5 vecinas con `-180 <= deltaLng < 0`) y se completan huecos hasta el mínimo. Prioridad: una ciudad que no puede ser origen deja al jugador bloqueado, así que la Regla del Este cede.
 5. **Geometrías** (`build_route`): una llamada `/route` por candidata superviviente; `normalize_lng` en cada vértice; `anchor_to_cities()` antepone/pospone la ciudad sin sustituir el camino intermedio; `distanceKm = distance/1000` (1 decimal), `durationHours = duration/3600` (1 decimal); `roadOrigin/roadDest` con `name/lat/lng/snapKm` (aviso en log si `snapKm > 1 km`; descarte como `NoSegment` si `snapKm > 50 km`, ver riesgos).
 6. **Valida** (`validate_dataset`) y, si no hay problemas, escribe con `indent=2, ensure_ascii=False` y revalida el JSON tras escribir.
 
@@ -70,23 +71,26 @@ La caché hace que la segunda corrida idéntica no toque la red: dos llamadas al
 
 Por eso `overview=simplified` es fijo y sin flag (un lote en `full` pesaría ~160 MB), `distanceKm` es el dato de OSRM (nunca Haversine recalculado) y la validación tolera ±25 %: el `simplified` recorta hasta un 22,7 % en alta montaña (Nizhneyansk→Magadán, verificado contra `full` a ±0,3 %).
 
-## Esquema `car_routes.json` v1.0.0
+## Esquema `car_routes.json` v1.1.0
 
 ```jsonc
 {
   "meta": {
-    "project": "eu.elarreglador.pf", "version": "1.0.0",
+    "project": "eu.elarreglador.pf", "version": "1.1.0",
     "tool": "fogg-land-routes", "profile": "car",
     "osrmServer": "https://router.project-osrm.org",
     "osrmWeightName": "routability", "osrmDataVersion": "2026-09-20T00:00:00Z",
     "units": "km", "limitPerOrigin": 5, "candidatePool": 5, "maxEastDeg": 180,
-    "origins": 304, "routes": 0, "originsWithoutRoute": 0, "unroutableCities": 0,
+    "minRoutesPerOrigin": 2,          // umbral del fallback al Oeste
+    "origins": 304, "routes": 1001, "originsWithoutRoute": 68, "unroutableCities": 525,
     "crossesAntimeridian": 0,
+    "eastRule": "heading east: 0 < deltaLng(cityDest - cityOrigin) <= 180 (desenrollado); heading west: -180 <= deltaLng < 0, solo como fallback …",
     "attribution": "© OpenStreetMap contributors (ODbL); routing courtesy of the OSRM demo server sponsored by FOSSGIS",
     "source": "OSRM demo server (car) + GeoNames cities15000"
   },
   "routes": [{
     "origin": "Lisboa", "destination": "París", "distanceKm": 1735.5, "durationHours": 18.3,
+    "heading": "east",                // east|west, coherente con el signo de deltaLng
     "roadOrigin": {"name": "…", "lat": 38.72494, "lng": -9.14965, "snapKm": 0.0},
     "roadDest":   {"name": "…", "lat": 48.85363, "lng": 2.34921, "snapKm": 0.0},
     "geometry": {"type": "LineString", "coordinates": [[-9.1498, 38.72509], "…", [2.3488, 48.85341]]}
@@ -102,6 +106,8 @@ Por eso `overview=simplified` es fijo y sin flag (un lote en `full` pesaría ~16
 
 `0 < deltaLng <= 180` con longitud desenrollada, medida **sobre la ciudad** (a diferencia de la SPEC 004, que medía sobre el puerto: aquí el enganche es de metros, no de kilómetros, y no altera el orden). Lisboa→Tokio por Rusia es legal y es contenido del juego de 80 días, no un fallo.
 
+**Excepción `heading: "west"` (v1.1):** si un origen no llega a `minRoutesPerOrigin` (2) rutas este, se completa con las más cercanas al Oeste (`-180 <= deltaLng < 0`) y la ruta lleva `heading: "west"`. Prioridad: una ciudad que no puede ser origen deja al jugador bloqueado. `validate_dataset` exige coherencia entre `heading` y el signo del delta. Corrida 2026-10-07: Teresina, la única ciudad de interior del catálogo que era solo destino, obtuvo Teresina→Salvador (`east`, 1.146,5 km) y Teresina→Parauapebas (`west`, 956,5 km).
+
 ## Antimeridiano
 
 `coordinates` siempre en `[-180, 180]`; el salto `179 → -179` lo segmenta el consumidor (`splitAntimeridian` en el visor, `FoggRoute.polylineSegments` en Dart). `meta.crossesAntimeridian` lo cuenta.
@@ -111,7 +117,8 @@ Por eso `overview=simplified` es fijo y sin flag (un lote en `full` pesaría ~16
 - **Servidor compartido sin SLA:** pausa de 1,2 s, `User-Agent`, backoff y `--only N`. Si la spec se repite mucho, el siguiente paso es un OSRM propio (fuera de alcance).
 - **`simplified` subestima hasta ~23 % en alta montaña:** `distanceKm` es el de OSRM, `meta.distanceNote` lo declara, la validación tolera ±25 % (medido 2026-09-26: Nizhneyansk→Magadán −22,7 %, Lhasa→Chengdu −20,4 %, Tiksi→Magadán −20,2 %; las tres verificadas contra `overview=full` a ±0,3 %).
 - **Enganche lejos del centro:** `snapKm` queda en el JSON y el log avisa por encima de 1 km; es un aviso, no un fallo. Pero por encima de 50 km (`SNAP_MAX_KM`) la ruta se descarta: medido en campo, OSRM cruza el mar hasta otra costa (Trípoli→Lampedusa, 294 km; Djanet→Lampedusa, 1.302 km; Regina→Baker Lake, 621,6 km) y devuelve la distancia desde allí, no desde la ciudad. Sin este tope, el tramo ancla rompe la tolerancia ±25 %.
-- **Pool de 5 sin garantía de 5 rutas:** un origen rodeado de mar queda con 0 rutas; `originsWithoutRoute` y el log lo hacen visible.
+- **Pool de 5 sin garantía de 5 rutas:** un origen rodeado de mar queda con 0 rutas; `originsWithoutRoute` y el log lo hacen visible. Desde v1.1 el pool oeste cubre el mínimo de 2, pero si tampoco hay camino el origen sigue quedando sin salida.
+- **`/table` con nulos espurios:** el demo devuelve `null` en celdas que `/route` sí enruta (medido: Teresina→Salvador, 1.146,5 km / 15,9 h). Por eso un `null` de celda no descarta: la verificación es `build_route`. Coste: una petición extra por celda nula (cachéable).
 - **`NoSegment` en islas sin red:** se cuenta en `unroutableCities`, el lote continúa.
 - **Datos de terceros versionados:** `meta.attribution` (ODbL + FOSSGIS) y `meta.osrmDataVersion` delatan regeneraciones contra datos distintos.
 

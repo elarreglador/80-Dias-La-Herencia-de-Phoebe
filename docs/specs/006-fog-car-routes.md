@@ -272,3 +272,25 @@ Cada uno, si aterriza, irá en su propia especificación.
 - Tope de distancia por ruta → ninguno
 
 > Siguiente paso tras aprobar esta spec: ejecutar `/spec-impl 006-fog-car-routes` (pasos §4) con validación `json.tool` + `flutter analyze` verde.
+
+---
+
+## 12. Addendum 2026-10-07 — pool oeste, `heading` y verificación de nulos del `/table` (esquema 1.1.0)
+
+**Motivo.** Complemento del addendum §11 de la SPEC 004: Teresina era la única ciudad de interior que aparecía solo como destino (271 km del mar, sin ruta de salida) y el bloqueo de partida es prioridad sobre la Regla del Este.
+
+**Cambios.**
+
+| Cambio | Detalle |
+| --- | --- |
+| `build_pool(direction)` / 2º `/table` | Pool oeste (`-180 <= deltaLng < 0`) que solo se consulta si al origen le faltan rutas para llegar a `minRoutesPerOrigin = 2`. |
+| `heading` | `east` (invariante previa) o `west` (fallback), coherente con el signo de `deltaLng`; `validate_dataset` lo exige. |
+| Nulos espurios del `/table` | El demo devuelve `null` en celdas que `/route` sí enruta (medido: Teresina→Salvador, 1.146,5 km / 15,9 h). Un `null` ya no descarta: `build_route` verifica con `/route` antes de descartar (`[WARN] … se verifica con /route`). |
+| `--resume` | Merge con backfill de `heading` y siembra de `unroutableCities`/`origins` desde el meta previo, para no reiniciar contadores. |
+| `meta` | `minRoutesPerOrigin`, `poolRule`, `westFallbackNote`, `eastRule` ampliado. |
+
+**Esquema 1.1.0 — no breaking:** solo se añaden campos.
+
+**Resultados (corrida 2026-10-07).** 1001 rutas de 236 orígenes (antes 999/235), 68 sin ruta (antes 69), 525 descartes; 999 previas intactas salvo backfill de `heading` (1000 `east`, 1 `west`). Teresina → Salvador (1.146,5 km, 15,9 h, `east`) y Teresina → Parauapebas (956,5 km, 13,3 h, `west`).
+
+**Verificación.** `validate_dataset` final, confirmación de que las 999 rutas previas no cambiaron y `flutter test` → 85 passed.

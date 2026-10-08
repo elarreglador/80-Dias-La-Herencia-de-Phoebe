@@ -1,13 +1,13 @@
 ---
 name: fogg-sea-routes
-description: Skill local Python que resuelve el puerto de cada ciudad de locations.json con searoute, descarta las que están a más de 10 km del mar, aplica la Regla del Este sobre los puertos y persiste hasta 5 rutas marítimas más cortas por puerto en sea_routes.json (reescritura completa). La LineString arranca y termina en las coordenadas de la ciudad, no en el puerto. Exclusiva proyecto eu.elarreglador.pf.
+description: Skill local Python que resuelve el puerto de cada ciudad de locations.json con searoute, descarta las que están a más de 10 km del mar (más 9 costeras forzadas por costa real), aplica la Regla del Este sobre los puertos con fallback al Oeste si un origen no llega a 2 rutas, y persiste hasta 5 rutas marítimas más cortas por puerto en sea_routes.json (reescritura completa o merge con --resume). La LineString arranca y termina en las coordenadas de la ciudad, no en el puerto. Exclusiva proyecto eu.elarreglador.pf.
 ---
 
 # Fogg Sea Routes — 5 rutas marítimas más cortas hacia el Este por puerto
 
-Recorre `assets/data/locations.json` (304 ciudades), resuelve el puerto de cada una con `searoute`, descarta las que no están a `<= 10 km` del mar, aplica la Regla del Este **sobre los puertos** (no sobre las ciudades) y persiste las 5 rutas marítimas más cortas de cada puerto en `assets/data/sea_routes.json`.
+Recorre `assets/data/locations.json` (304 ciudades), resuelve el puerto de cada una con `searoute`, descarta las que no están a `<= 10 km` del mar (más las 9 de `FORCED_COASTAL_KM`), aplica la Regla del Este **sobre los puertos** (no sobre las ciudades) con fallback al Oeste para que ningún origen se quede sin salida, y persiste las 5 rutas marítimas más cortas de cada puerto en `assets/data/sea_routes.json`.
 
-**Estado actual:** `version 3.0.0`, 33 orígenes, 165 rutas, 271 ciudades descartadas, 17 cruces del antimeridiano, 9608 vértices, ~1,5 s de ejecución.
+**Estado actual:** `version 3.1.0`, 42 orígenes (33 por umbral + 9 forzadas), 210 rutas, 262 ciudades descartadas, 29 cruces del antimeridiano, 11257 vértices, ~1,5 s de ejecución.
 
 ## Cuándo usar
 
@@ -16,12 +16,14 @@ pip install -r .opencode/skills/fogg-sea-routes/requirements.txt   # searoute==1
 
 sea_route.py --dry-run                # todo el catálogo, no escribe
 sea_route.py                          # regenera el JSON completo
+sea_route.py --resume                 # merge: conserva lo escrito y solo calcula orígenes nuevos
 sea_route.py --city "Lisboa" --dry-run  # sólo un origen (el pool sigue siendo completo)
+sea_route.py --city "Miami" --resume  # añade rutas de una ciudad concreta sin tocar las demás
 sea_route.py --limit 3                # hasta 3 rutas por puerto
 sea_route.py --out /tmp/prueba.json   # no toca assets/
 ```
 
-**El script siempre reescribe el fichero entero.** No hay `--force` ni merge idempotente: el JSON es un artefacto derivado, se regenera desde cero y `meta.generated` refleja la fecha de esa generación. Si se cambia `THRESHOLD_KM` o `MAX_EAST_DEG`, se regenera todo.
+**Por defecto reescribe el fichero entero.** `--resume` cambia a merge: carga las rutas existentes, rellena `heading` en las del esquema 3.0.0 (todas `east`), salta los orígenes ya presentes y solo calcula los nuevos. `meta.generated` refleja la fecha de la última escritura. Si se cambia `THRESHOLD_KM` o `MAX_EAST_DEG`, lo normal es regenerar todo (sin `--resume`).
 
 ## Fuentes
 
@@ -34,10 +36,11 @@ sea_route.py --out /tmp/prueba.json   # no toca assets/
 1. **Carga** `locations.json` y valida que cada ciudad tenga `name/lat/lng/timezone` numéricos.
 2. **Resuelve el puerto de las 304 ciudades** (siempre todas, aunque se filtren orígenes con `--city`, porque el *pool* de destinos debe ser el completo):
    - `sea_snap_km()` enrutado a un punto sonda 0,7° al Este (o al Oeste si el Este pasa de 179°): distancia Haversine ciudad→primer vértice de la malla. Es la medida de "distancia al mar".
-   - `> THRESHOLD_KM` (10) → ciudad descartada, se registra con su `seaKm`.
+   - `> THRESHOLD_KM` (10) → ciudad descartada, se registra con su `seaKm`, **salvo que esté en `FORCED_COASTAL_KM`**: 9 costeras reales (km a la costa con Natural Earth 1:50m, umbral de clasificación 50 km) cuya malla está poco resuelta y cuyo `seaKm` es ficticio (11,8–152,9 km). Sin esa lista no tendrían ninguna ruta de salida y un jugador atrapado en ellas bloquearía la partida.
    - `resolve_port()` con `include_ports=True`: `properties.port_origin` da `{port, name, cty, x, y}` del WPI. El país se humaniza (`French_polynesia` → `French Polynesia`); el código es la clave.
 3. **Ordena** los puertos válidos por `port.lng` ascendente (para que el JSON salga en orden Este reproducible).
-4. **Selecciona** por puerto origen: candidatos con `0 < eastward_delta(portOrigin.lng, portDest.lng) <= 180`, ordenados por distancia de círculo grande.
+4. **Selecciona** por puerto origen: primero candidates con `0 < eastward_delta(portOrigin.lng, portDest.lng) <= 180` (`heading: "east"`), ordenados por distancia de círculo grande.
+   - **Fallback al Oeste:** si al origen le quedan menos de `MIN_ROUTES_PER_ORIGIN` (2) rutas este, se completan con las más cortas de `-180 <= delta < 0` (`heading: "west"`). Origen > regla del Este.
    - **Poda por cota inferior:** en cuanto la gc del candidato supera la de la 5ª ya seleccionada, se para el bucle. La distancia marítima nunca es menor que la gc, así que es correcto por construcción y verificado idéntico a calcular el top-5 sin podar.
    - `searoute` de ciudad a ciudad con `include_ports=True`; excepción → `SKIP` con `WARN` y sigue.
    - Las 5 más cortas se ordenan por `distanceKm` ascendente.
@@ -45,19 +48,21 @@ sea_route.py --out /tmp/prueba.json   # no toca assets/
 6. **Ancla** la geometría a la ciudad: `anchor_to_cities()` antepone `city_vertex(origen)` y pospone `city_vertex(destino)`. Nunca sustituye, solo añade, y no duplica vértice si la ciudad ya coincide con el nodo vecino. Ver "Geometría de ciudad a ciudad".
 7. **Valida** y, si no hay problemas, escribe con `indent=2, ensure_ascii=False` y revalida el JSON.
 
-## Esquema `sea_routes.json` v3
+## Esquema `sea_routes.json` v3.1
 
 ```jsonc
 {
   "meta": {
     "project": "eu.elarreglador.pf",
-    "version": "3.0.0", "generated": "2026-09-26",
+    "version": "3.1.0", "generated": "2026-10-07",
     "tool": "fogg-sea-routes", "searoute": "1.6.0",
     "units": "km",                    // obligatorio: lo exige el visor
     "thresholdKm": 10, "maxEastDeg": 180, "limitPerOrigin": 5,
-    "origins": 33, "routes": 165, "citiesWithoutPort": 271,
-    "crossesAntimeridian": 17,        // informativo
-    "eastRule": "0 < deltaLng(portDest - portOrigin) <= 180 (desenrollado)",
+    "minRoutesPerOrigin": 2,          // umbral del fallback al Oeste
+    "origins": 42, "routes": 210, "citiesWithoutPort": 262,
+    "crossesAntimeridian": 29,        // informativo
+    "eastRule": "heading east: 0 < deltaLng(portDest - portOrigin) <= 180 (desenrollado); heading west: -180 <= deltaLng < 0, solo como fallback …",
+    "forcedOrigins": "ciudades costeras reales (km a la costa, Natural Earth 1:50m) admitidas pese a superar thresholdKm …: Fakaofo (5.6 km), …",
     "geometry": "LineString [lng,lat] de ciudad a ciudad: …",
     "distanceNote": "distanceKm es properties.length de searoute …",
     "source": "searoute (avoid land) + GeoNames cities15000"
@@ -66,6 +71,7 @@ sea_route.py --out /tmp/prueba.json   # no toca assets/
     "origin": "Sidney", "originLat": -33.86785, "originLng": 151.20732,
     "destination": "Apia", "destinationLat": -13.8345235, "destinationLng": -171.7630955,
     "distanceKm": 4706.1,
+    "heading": "east",                // east|west, coherente con el signo del delta entre puertos
     "portOrigin": { "code": "AUSYD", "name": "Sydney", "country": "Australia",
                     "lat": -33.85, "lng": 151.2, "seaKm": 1.6 },
     "portDest":   { "code": "WSAPW", "name": "Apia", "country": "Samoa",
@@ -84,17 +90,19 @@ Entre esos dos extremos va la malla de `searoute` intacta. `searoute` se *pide* 
 
 Consecuencias:
 
-- **+2 vértices por ruta**: 9278 → 9608 (2 × 165, sin duplicados; Macau cae a 0,41 km del nodo, el caso más cerrado).
+- **+2 vértices por ruta**: 10837 → 11257 (2 × 210; en la práctica no se duplica ninguno, el caso más cerrado es Macau a 0,41 km del nodo).
 - **`distanceKm` no cambia**: sigue siendo `properties.length` de `searoute`, la distancia de nodo a nodo. El tramo ciudad→nodo no va incluido, y por eso la suma Haversine de la geometría queda hasta un **1,95 %** por encima de `distanceKm` (muy dentro del ±20 % de `LENGTH_TOLERANCE`).
-- **Ningún cruce nuevo**: en las 165 rutas `|city.lng - nodo.lng| < 180°`, así que los 17 cruces se siguen produciendo dentro del camino marino y `splitAntimeridian` / `polylineSegments` no segmentan de más.
+- **Cruces**: de las 210 rutas, **29 cruzan** el antimeridiano (las 17 previas + 12 de las añadidas en 3.1.0: Leningradsky, Sapporo, Wŏnsan y Manokwari hacia el Pacífico).
 
 ### Historial de esquema
 
-`v3` breaking: `geometry` pasa de arrancar en el puerto a arrancar en la ciudad. `v2` ya había sido breaking por añadir `portOrigin`/`portDest` y mover la Regla del Este de las ciudades a los puertos, así que las 9 rutas de `v1.0.1` no son comparables con las actuales.
+`v3` breaking: `geometry` pasa de arrancar en el puerto a arrancar en la ciudad. `v2` ya había sido breaking por añadir `portOrigin`/`portDest` y mover la Regla del Este de las ciudades a los puertos, así que las 9 rutas de `v1.0.1` no son comparables con las actuales. `v3.1` **no es breaking**: añade `heading` por ruta (con backfill a `east` en `--resume`), `meta.minRoutesPerOrigin`/`forcedOrigins` y admite rutas al Oeste como fallback.
 
 ## Regla del Este
 
 `0 < deltaLng <= 180` con longitud **desenrollada**: `normalize_lng(b - a)`, de modo que Tokio → San Francisco es legal (cruza el antimeridiano hacia el Este) y Sidney → Lisboa no. Idéntico criterio a `FoggRoute.validated` / `_isEastward` en Dart, pero medido **de puerto a puerto**: con las ciudades, Denver (-104,99) y Ciudad de México (-99,13) quedan casi a la misma longitud, y Denver ganaría a Ciudad de México por 5,8° de diferencia.
+
+**Excepción `heading: "west"` (v3.1):** si un origen no llega a `minRoutesPerOrigin` (2) rutas al Este, se completa con rutas al Oeste (`-180 <= deltaLng < 0`). Prioridad: una ciudad que no puede ser origen deja al jugador bloqueado, así que la Regla del Este cede. `validate_dataset` exige coherencia entre `heading` y el signo del delta; `meta.eastRule` documenta la ampliación. En la corrida de 2026-10-07 el fallback no hizo falta en el mar: las 9 costeras forzadas consiguieron 5 rutas al Este cada una.
 
 ## Antimeridiano
 
@@ -103,7 +111,7 @@ Consecuencias:
 - Visor dev: `splitAntimeridian()` (`tools/locations-map/app.js:163`) inserta `[180, lat]` / `[-180, lat]` e interpola la latitud.
 - Dart: `FoggRoute.polylineSegments` (`lib/domain/entities/fogg_route.dart:55`) hace lo mismo en Y Mercator.
 
-De las 165 rutas, **17 cruzan** (Sidney, Townsville, Melbourne y Fukuoka hacia el Pacífico). De los 981 candidatos, 74 cruzan: hay que medir el cruce sobre el subconjunto que se escribe, no sobre el total. Ninguno de los 17 es un artefacto del anclaje a la ciudad: en las 165 rutas `|city.lng - nodo.lng| < 180°`, así que el salto `179 → -179` estaba en el camino marino antes de añadir las coordenadas de ciudad.
+De las 210 rutas, **29 cruzan** (Sidney, Townsville, Melbourne y Fukuoka hacia el Pacífico, más las 12 nuevas de Leningradsky, Sapporo, Wŏnsan y Manokwari). El salto `179 → -179` se produce dentro del camino marino y `splitAntimeridian` / `polylineSegments` lo segmentan.
 
 ## Umbral de mar
 
@@ -119,6 +127,8 @@ Sensibilidad medida con el mismo criterio (`orígenes` = ciudades a `<= t` km de
 | 50 | 112 | 560 |
 
 Mediana de las 304 ciudades: 113,6 km al mar. A 10 km salen 33 puertos reales (Fukuoka→Hakata, Ciudad del Cabo→Cape Town, Hanga Roa→Isla de Pascua…); a 20–30 km entran Hamburgo, Dalian y Estocolmo, que no son puertos marítimos y sólo inflan el mapa.
+
+**Excepción `FORCED_COASTAL_KM` (v3.1):** 9 ciudades que el umbral descarta pero que están a 1,0–15,4 km de la costa real (Natural Earth 1:50m): Fakaofo, Harbour Grace, Leningradsky, Manokwari, Mascate, Miami, Salvador, Sapporo y Wŏnsan. El `seaKm` de malla les da 11,8–152,9 km porque la malla está poco resuelta en su costa — no porque estén en interior. Sin la lista no tendrían origen marítimo (y casi ninguna ruta de salida en general): 9 de las 10 ciudades "solo destino" del catálogo eran justamente estas. No subir `THRESHOLD_KM` para conseguir lo mismo: a 50 km ya entran 112 "puertos" y el mapa se llena de ríos y ciudades del interior.
 
 ## Límites y riesgos documentados
 

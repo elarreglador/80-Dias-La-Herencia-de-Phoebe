@@ -229,3 +229,27 @@ Motivo del último punto: `searoute` se *pide* ciudad→ciudad pero *devuelve* l
 
 Consecuencias asumidas: `distanceKm` sigue siendo `properties.length` de `searoute` (nodo a nodo) y **no** incluye los dos tramos añadidos — la suma Haversine de la geometría queda hasta un 1,95 % por encima, dentro del ±20 % que ya toleraba §2.2. `validate_dataset` incorpora la invariante de extremos. Detalle operativo en `.opencode/skills/fogg-sea-routes/SKILL.md`.
 
+
+---
+
+## 11. Addendum 2026-10-07 — orígenes forzados, `heading` y fallback al Oeste (esquema 3.1.0)
+
+**Motivo.** 10 ciudades del catálogo aparecían solo como destino: tenían rutas que llegaban a ellas pero ninguna de la que salir. Si un jugador quedara atrapado en una, la partida se bloquea. Regla de prioridad fijada por el usuario: **una ciudad que no puede ser origen es peor que una Regla del Este rota.**
+
+**Diagnóstico.** 9 eran costeras y fracasaban por `THRESHOLD_KM = 10` (malla `searoute` poco resuelta en su costa: 11,8–152,9 km ficticios, frente a 1,0–15,4 km reales medidos con Natural Earth 1:50m): Fakaofo, Harbour Grace, Leningradsky, Manokwari, Mascate, Miami, Salvador, Sapporo, Wŏnsan. La décima, Teresina, es de interior (271 km del mar) y no puede resolverse por vía marítima → se resolvió en la SPEC 006 con ruta terrestre.
+
+**Cambios.**
+
+| Cambio | Detalle |
+| --- | --- |
+| `FORCED_COASTAL_KM` | 9 ciudades forzadas a pesar de superar `thresholdKm`; sus `seaKm` son ficticios y así lo documenta `meta.forcedOrigins`. No subir `THRESHOLD_KM` para lograr lo mismo (a 50 km entran 112 "puertos"). |
+| `heading: "east" \| "west"` | Campo nuevo por ruta. `east` = `0 < deltaLng <= 180` (invariante previa); `west` = `-180 <= deltaLng < 0`, solo como fallback. `validate_dataset` exige coherencia entre `heading` y el signo del delta. |
+| `minRoutesPerOrigin = 2` | Si al origen le quedan menos de 2 rutas este, se completan con las más cortas del pool oeste. |
+| `--resume` | Merge: conserva lo escrito, backfill de `heading: "east"` en rutas 3.0.0 y cálculo solo de orígenes nuevos. |
+| `meta` | `minRoutesPerOrigin`, `forcedOrigins`, `eastRule` ampliado. |
+
+**Esquema 3.1.0 — no breaking:** solo se añaden campos. Regeneración con `--resume` sobre el fichero 3.0.0 del 2026-09-26.
+
+**Resultados (corrida 2026-10-07).** 210 rutas de 42 orígenes (antes 165/33); 165 previas intactas, 45 nuevas (todas `east`: el fallback oeste no hizo falta en el mar), 0 pérdidas; cruces del antimeridiano 17 → 29; 262 ciudades sin puerto (antes 271). Las 9 forzadas obtuvieron 5 rutas este cada una. Las 10 ciudades solo-destino quedan todas con ≥2 rutas de salida.
+
+**Verificación.** `validate_dataset` sobre el fichero final, revisión de que las 165 rutas previas no cambiaron, y `flutter test` → 85 passed.

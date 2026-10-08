@@ -15,8 +15,19 @@ echo "→ Sirviendo visor en http://localhost:${PORT} (dir: ${DIR})"
 echo "  Ctrl+C para detener"
 # trap limpio
 trap 'echo "✕ Servidor detenido"; exit 0' SIGINT SIGTERM
-# xdg-open opcional si existe y hay DISPLAY
-if command -v xdg-open >/dev/null 2>&1 && [ -n "${DISPLAY:-}" ]; then
-  (sleep 1 && xdg-open "http://localhost:${PORT}" >/dev/null 2>&1 &) || true
+# apertura en incognito si hay un navegador conocido; si no, xdg-open normal
+URL="http://localhost:${PORT}"
+if [ -n "${DISPLAY:-}" ]; then
+  (sleep 1 && {
+    for b in google-chrome-stable google-chrome chromium chromium-browser; do
+      if command -v "$b" >/dev/null 2>&1; then
+        "$b" --incognito "$URL" >/dev/null 2>&1 && exit 0
+      fi
+    done
+    if command -v firefox >/dev/null 2>&1; then
+      firefox --private-window "$URL" >/dev/null 2>&1 && exit 0
+    fi
+    xdg-open "$URL" >/dev/null 2>&1
+  } || true) &
 fi
 python3 -m http.server "${PORT}" --directory "${DIR}"

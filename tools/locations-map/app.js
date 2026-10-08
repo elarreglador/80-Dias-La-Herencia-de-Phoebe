@@ -16,7 +16,10 @@
   const fileInput = document.getElementById('file');
   const seaRoutesFileInput = document.getElementById('sea-routes-file');
   const loadSeaRoutesButton = document.getElementById('load-sea-routes');
-  const routeStatus = document.getElementById('route-status');
+  const seaRouteStatus = document.getElementById('sea-route-status');
+  const landRoutesFileInput = document.getElementById('land-routes-file');
+  const loadLandRoutesButton = document.getElementById('load-land-routes');
+  const landRouteStatus = document.getElementById('land-route-status');
   const dropZone = document.getElementById('drop-zone');
   const metaVersion = document.getElementById('meta-version');
 
@@ -37,15 +40,30 @@
   }).addTo(map);
   map.zoomControl.setPosition('topleft');
 
+  // Paneles de rutas: deterministas, por debajo de markerPane (600) y sobre tilePane (200)
+  map.createPane('seaRoutesPane').style.zIndex = 401;
+  map.createPane('landRoutesPane').style.zIndex = 402;
+
   let allCities = [];
   let filteredCities = [];
   let markers = [];
   let selectedCity = null;
+  const landRoutesLayer = L.layerGroup().addTo(map);
   const seaRoutesLayer = L.layerGroup().addTo(map);
   const markerLayer = L.layerGroup().addTo(map);
+  const landRouteStyle = {
+    pane: 'landRoutesPane',
+    renderer: L.svg({ pane: 'landRoutesPane' }),
+    className: 'land-route-line',
+    color: '#F9A825',
+    weight: 3,
+    opacity: 0.9,
+    dashArray: '8 12',
+    interactive: true,
+  };
   const seaRouteStyle = {
-    pane: 'overlayPane',
-    renderer: L.svg(),
+    pane: 'seaRoutesPane',
+    renderer: L.svg({ pane: 'seaRoutesPane' }),
     className: 'sea-route-line',
     color: '#1E88E5',
     weight: 3,
@@ -53,9 +71,42 @@
     dashArray: '8 12',
     interactive: true,
   };
+  let loadedLandRoutes = [];
+  let loadedLandRouteFileName = null;
+  let landRouteLoadError = null;
   let loadedSeaRoutes = [];
   let loadedSeaRouteFileName = null;
   let seaRouteLoadError = null;
+
+  // Configuración por capa: cada una tiene su layer, estilo, estado y textos
+  const seaRouteConfig = {
+    layer: seaRoutesLayer,
+    style: seaRouteStyle,
+    label: 'rutas marítimas',
+    errorLabel: 'Rutas marítimas inválidas',
+    statusEl: seaRouteStatus,
+    buttonEl: loadSeaRoutesButton,
+    loadText: 'Cargar rutas marítimas',
+    reloadText: 'Recargar rutas marítimas',
+    get routes() { return loadedSeaRoutes; },
+    get fileName() { return loadedSeaRouteFileName; },
+    setLoaded(routes, fileName) { loadedSeaRoutes = routes; loadedSeaRouteFileName = fileName; },
+    setError(error) { seaRouteLoadError = error; },
+  };
+  const landRouteConfig = {
+    layer: landRoutesLayer,
+    style: landRouteStyle,
+    label: 'rutas terrestres',
+    errorLabel: 'Rutas terrestres inválidas',
+    statusEl: landRouteStatus,
+    buttonEl: loadLandRoutesButton,
+    loadText: 'Cargar rutas terrestres',
+    reloadText: 'Recargar rutas terrestres',
+    get routes() { return loadedLandRoutes; },
+    get fileName() { return loadedLandRouteFileName; },
+    setLoaded(routes, fileName) { loadedLandRoutes = routes; loadedLandRouteFileName = fileName; },
+    setError(error) { landRouteLoadError = error; },
+  };
 
   function clampLat(lat) {
     return Math.max(-MAX_MERCATOR_LAT, Math.min(MAX_MERCATOR_LAT, lat));
@@ -82,7 +133,7 @@
     return isFiniteNumber(value) && value >= min && value <= max;
   }
 
-  function validateSeaRoutes(data) {
+  function validateRoutes(data) {
     if (!data || typeof data !== 'object' || Array.isArray(data)) {
       throw new Error('el archivo debe contener un objeto');
     }
@@ -113,6 +164,10 @@
       }
       if (!isFiniteNumber(route.distanceKm) || route.distanceKm <= 0) {
         throw new Error(`${routeLabel}: distanceKm debe ser un número positivo`);
+      }
+      if (Object.prototype.hasOwnProperty.call(route, 'durationHours')
+          && (!isFiniteNumber(route.durationHours) || route.durationHours <= 0)) {
+        throw new Error(`${routeLabel}: durationHours debe ser un número positivo`);
       }
       [
         ['originLat', -MAX_MERCATOR_LAT, MAX_MERCATOR_LAT],
@@ -187,13 +242,14 @@
     return segments;
   }
 
-  function normalizeSeaRoutes(data) {
+  function normalizeRoutes(data) {
     return data.routes.map((route) => {
       const longitudeSegments = splitAntimeridian(route.geometry.coordinates);
       return {
         origin: route.origin,
         destination: route.destination,
         distanceKm: route.distanceKm,
+        durationHours: isFiniteNumber(route.durationHours) && route.durationHours > 0 ? route.durationHours : null,
         pointCount: route.geometry.coordinates.length,
         leafletSegments: longitudeSegments.map((segment) => segment.map(([lng, lat]) => [lat, lng])),
       };
@@ -201,76 +257,63 @@
   }
 
   function routePopup(route) {
+    const hours = route.durationHours ? ` · ${route.durationHours.toFixed(1)} h` : '';
     return `
       <div style="min-width:160px">
         <strong>${escapeHtml(route.origin)} → ${escapeHtml(route.destination)}</strong><br/>
-        <span style="font-size:11px;color:#666">${route.distanceKm.toFixed(1)} km · ${route.pointCount} vértices</span>
+        <span style="font-size:11px;color:#666">${route.distanceKm.toFixed(1)} km${hours} · ${route.pointCount} vértices</span>
       </div>
     `;
   }
 
-  function updateRouteStatus() {
-    const count = loadedSeaRoutes.length;
-    routeStatus.textContent = loadedSeaRouteFileName
-      ? `${count} rutas marítimas · ${loadedSeaRouteFileName}`
-      : `${count} rutas marítimas`;
-    loadSeaRoutesButton.textContent = loadedSeaRouteFileName
-      ? 'Recargar rutas marítimas'
-      : 'Cargar rutas marítimas';
+  function updateRouteStatus(config) {
+    const count = config.routes.length;
+    config.statusEl.textContent = config.fileName
+      ? `${count} ${config.label} · ${config.fileName}`
+      : `${count} ${config.label}`;
+    config.buttonEl.textContent = config.fileName ? config.reloadText : config.loadText;
   }
 
-  function fitSeaRoutes(routes) {
-    const bounds = L.latLngBounds([]);
-    routes.forEach((route) => {
-      route.leafletSegments.forEach((segment) => {
-        segment.forEach((point) => bounds.extend(point));
-      });
-    });
-    if (bounds.isValid()) {
-      map.fitBounds(bounds, {
-        paddingTopLeft: [32, 32],
-        paddingBottomRight: [48, 32],
-      });
-    }
-  }
-
-  function createSeaRouteLines(routes) {
+  function createRouteLines(routes, style) {
     return routes.map((route) => {
-      const line = L.polyline(route.leafletSegments, seaRouteStyle);
+      const line = L.polyline(route.leafletSegments, style);
       line.bindPopup(routePopup(route), { maxWidth: 260 });
       line.on('mouseover', () => line.setStyle({ weight: 5 }));
-      line.on('mouseout', () => line.setStyle({ weight: seaRouteStyle.weight }));
+      line.on('mouseout', () => line.setStyle({ weight: style.weight }));
       return line;
     });
   }
 
-  function loadSeaRoutes(file) {
+  function loadRoutes(file, config) {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
         const data = JSON.parse(event.target.result);
-        validateSeaRoutes(data);
-        const routes = normalizeSeaRoutes(data);
-        const lines = createSeaRouteLines(routes);
-        seaRoutesLayer.clearLayers();
-        lines.forEach((line) => line.addTo(seaRoutesLayer));
-        loadedSeaRoutes = routes;
-        loadedSeaRouteFileName = file.name;
-        seaRouteLoadError = null;
-        updateRouteStatus();
+        validateRoutes(data);
+        const routes = normalizeRoutes(data);
+        const lines = createRouteLines(routes, config.style);
+        config.layer.clearLayers();
+        lines.forEach((line) => line.addTo(config.layer));
+        config.setLoaded(routes, file.name);
+        config.setError(null);
+        updateRouteStatus(config);
         hideBanner();
-        fitSeaRoutes(routes);
       } catch (error) {
-        seaRouteLoadError = error;
-        showBanner(`Rutas marítimas inválidas: ${error.message}`);
+        config.setError(error);
+        showBanner(`${config.errorLabel}: ${error.message}`);
       }
     };
     reader.onerror = () => {
-      seaRouteLoadError = new Error('no se pudo leer el archivo');
-      showBanner(`Rutas marítimas inválidas: ${seaRouteLoadError.message}`);
+      const error = new Error('no se pudo leer el archivo');
+      config.setError(error);
+      showBanner(`${config.errorLabel}: ${error.message}`);
     };
     reader.readAsText(file);
+  }
+
+  function loadSeaRoutes(file) {
+    loadRoutes(file, seaRouteConfig);
   }
 
   async function loadCities() {
@@ -452,7 +495,17 @@
 
   seaRoutesFileInput.addEventListener('change', (e) => {
     const f = e.target.files && e.target.files[0];
-    if (f) loadSeaRoutes(f);
+    if (f) loadRoutes(f, seaRouteConfig);
+    e.target.value = '';
+  });
+
+  loadLandRoutesButton.addEventListener('click', () => {
+    landRoutesFileInput.click();
+  });
+
+  landRoutesFileInput.addEventListener('change', (e) => {
+    const f = e.target.files && e.target.files[0];
+    if (f) loadRoutes(f, landRouteConfig);
     e.target.value = '';
   });
 
@@ -477,7 +530,8 @@
   });
   document.addEventListener('drop', (e) => { e.preventDefault(); dropZone.classList.add('hidden'); });
 
-  updateRouteStatus();
+  updateRouteStatus(seaRouteConfig);
+  updateRouteStatus(landRouteConfig);
 
   loadCities().then(renderAll).catch((err) => {
     console.error('[visor] no se pudo cargar locations.json', err);
@@ -493,13 +547,18 @@
     get seaRoutes() { return loadedSeaRoutes; },
     get seaRouteFileName() { return loadedSeaRouteFileName; },
     get seaRouteError() { return seaRouteLoadError; },
+    get landRoutes() { return loadedLandRoutes; },
+    get landRouteFileName() { return loadedLandRouteFileName; },
+    get landRouteError() { return landRouteLoadError; },
     seaRoutesLayer,
+    landRoutesLayer,
     reload: loadCities,
     renderAll,
     handleFile,
+    loadRoutes,
     loadSeaRoutes,
-    validateSeaRoutes,
-    normalizeSeaRoutes,
+    validateRoutes,
+    normalizeRoutes,
     splitAntimeridian,
   };
 })();

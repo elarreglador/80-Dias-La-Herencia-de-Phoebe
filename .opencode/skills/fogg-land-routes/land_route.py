@@ -6,12 +6,17 @@ Proyecto eu.elarreglador.pf
 - Para cada ciudad de locations.json toma sus 5 vecinas más próximas por
   círculo grande que cumplan la Regla del Este (0 < deltaLng <= 180) y
   consulta al servidor demo de OSRM cuáles tienen camino por carretera.
+- Si al origen le quedan menos de MIN_ROUTES_PER_ORIGIN rutas este, se
+  completa con el pool oeste (5 vecinas hacia el Oeste, -180 <= deltaLng < 0):
+  un jugador atrapado en una ciudad sin salida bloquearía la partida, así que
+  la Regla del Este cede ante la jugabilidad. Cada ruta lleva `heading`.
 - Respeta la política del servidor: como mucho 1 petición por segundo
   (pausa de 1,2 s), User-Agent identificable y backoff ante 429.
 - Ancla cada geometría a las coordenadas de la ciudad en ambos extremos:
   OSRM devuelve el punto enganchado a la calzada, no el centro urbano.
 - Selecciona como mucho `limit` rutas por origen y persiste
-  assets/data/car_routes.json (reescritura completa, no merge).
+  assets/data/car_routes.json (reescritura completa; con --resume hace merge:
+  conserva las rutas ya escritas y solo calcula los orígenes que falten).
 
 Uso:
   python3 .opencode/skills/fogg-land-routes/land_route.py --dry-run
@@ -48,7 +53,7 @@ CACHE_ROOT = PROJECT_ROOT / "SENSIBLE" / ".cache" / "fogg-land-routes"
 
 PROJECT = "eu.elarreglador.pf"
 TOOL_NAME = "fogg-land-routes"
-SCHEMA_VERSION = "1.0.0"
+SCHEMA_VERSION = "1.1.0"
 OSRM_SERVER = "https://router.project-osrm.org"
 OSRM_WEIGHT_NAME = "routability"
 USER_AGENT = "eu.elarreglador.pf/1.0"
@@ -56,6 +61,7 @@ USER_AGENT = "eu.elarreglador.pf/1.0"
 MAX_EAST_DEG = 180  # tope del salto Este, evita la vuelta al mundo por el Oeste
 DEFAULT_LIMIT = 5
 DEFAULT_POOL = 5
+MIN_ROUTES_PER_ORIGIN = 2  # mínimo de rutas de salida; por debajo se recurre al Oeste
 MAX_DISTANCE_KM = 40000
 LENGTH_TOLERANCE = 0.25  # |haversine_sum - distanceKm| / distanceKm
                      # 0,20 era demasiado estricto: el `simplified` recorta
@@ -268,11 +274,13 @@ def osrm_get(url: str, profile: str = "car") -> dict | None:
 # Pool de candidatos y matriz de distancias
 # ---------------------------------------------------------------------------
 
-def build_pool(cities, origin_idx: int, pool_size: int) -> list[dict]:
-    """Las `pool_size` ciudades más cercanas por círculo grande hacia el Este.
+def build_pool(cities, origin_idx: int, pool_size: int, direction: str = "east") -> list[dict]:
+    """Las `pool_size` ciudades más cercanas por círculo grande hacia el Este
+    (`direction="east"`) u Oeste (`direction="west"`).
 
-    Filtra con 0 < delta <= MAX_EAST_DEG sobre la ciudad (no sobre el
-    enganche), excluye el propio nombre, ordena por Haversine y corta.
+    Filtra con 0 < delta <= MAX_EAST_DEG (o -MAX_EAST_DEG <= delta < 0) sobre
+    la ciudad (no sobre el enganche), excluye el propio nombre, ordena por
+    Haversine y corta.
     """
     origin = cities[origin_idx]
     o_lat, o_lng = float(origin["lat"]), float(origin["lng"])
@@ -281,7 +289,9 @@ def build_pool(cities, origin_idx: int, pool_size: int) -> list[dict]:
         if idx == origin_idx or cand["name"] == origin["name"]:
             continue
         delta = eastward_delta(o_lng, float(cand["lng"]))
-        if not (0 < delta <= MAX_EAST_DEG):
+        if direction == "east" and not (0 < delta <= MAX_EAST_DEG):
+            continue
+        if direction == "west" and not (-MAX_EAST_DEG <= delta < 0):
             continue
         gc = haversine(o_lat, o_lng, float(cand["lat"]), float(cand["lng"]))
         scored.append({"city": cand, "gcKm": gc, "deltaLng": delta})
@@ -362,11 +372,12 @@ def _road_point(waypoint: dict, fallback: dict) -> dict:
     }
 
 
-def build_route(profile: str, origin: dict, dest: dict) -> dict | None:
+def build_route(profile: str, origin: dict, dest: dict, direction: str = "east") -> dict | None:
     """Una ruta /route con overview=simplified, anclada a las ciudades.
 
     Devuelve el dict de ruta listo para persistir, o None con el motivo
     registrado ([SKIP] NoRoute / NoSegment / TooBig / 429 / timeout).
+    `direction` se persiste como `heading` (east|west).
     """
     url = (f'{OSRM_SERVER}/route/v1/{profile}/'
            f'{float(origin["lng"])},{float(origin["lat"])};'
@@ -425,6 +436,7 @@ def build_route(profile: str, origin: dict, dest: dict) -> dict | None:
         "destinationLng": dest["lng"],
         "distanceKm": round(distance_m / 1000.0, 1),
         "durationHours": round(duration_s / 3600.0, 1),
+        "heading": direction,
         "roadOrigin": road_origin,
         "roadDest": road_dest,
         "geometry": {"type": "LineString", "coordinates": coordinates},
@@ -486,14 +498,23 @@ def validate_dataset(routes, limit) -> list[str]:
             if not (-180 <= lng <= 180 and -90 <= lat <= 90):
                 problems.append(f"coordenada fuera de rango en {key}: {lng},{lat}")
                 break
-        # Regla del Este sobre la ciudad, no sobre el enganche (SPEC 006 §6).
+        # Regla del Este sobre la ciudad, no sobre el enganche (SPEC 006 §6),
+        # salvo heading="west" (fallback de origen, SPEC 006 §12).
         try:
             delta = eastward_delta(float(route["originLng"]), float(route["destinationLng"]))
         except Exception:
             problems.append(f"lng no numérico en {key}")
             continue
-        if not (0 < delta <= MAX_EAST_DEG):
+        heading = route.get("heading") or ("east" if delta > 0 else "west")
+        if heading == "east" and not (0 < delta <= MAX_EAST_DEG):
             problems.append(f"Regla del Este incumplida en {key}: delta {delta:.3f}º")
+        elif heading == "west" and not (-MAX_EAST_DEG <= delta < 0):
+            problems.append(f"heading west con delta {delta:.3f}º en {key}")
+        elif heading not in ("east", "west"):
+            problems.append(f"heading desconocido {heading!r} en {key}")
+        if route.get("heading") and route["heading"] != ("east" if delta > 0 else "west"):
+            problems.append(f"heading {route['heading']} no coincide con el delta "
+                            f"{delta:.3f}º en {key}")
         hsum = haversine_sum(coords)
         if distance and abs(hsum - distance) / distance > LENGTH_TOLERANCE:
             problems.append(
@@ -513,7 +534,8 @@ def validate_dataset(routes, limit) -> list[str]:
 def build_meta(origins_total: int, routes: list, unroutable: int,
                without_route: int, limit: int, pool: int, profile: str) -> dict:
     crossings = sum(1 for r in routes if crosses_antimeridian(r["geometry"]["coordinates"]))
-    return {
+    west = [r for r in routes if r.get("heading") == "west"]
+    meta = {
         "project": PROJECT,
         "name": "Fogg Land Routes — Herencia de Phoebe",
         "version": SCHEMA_VERSION,
@@ -525,6 +547,7 @@ def build_meta(origins_total: int, routes: list, unroutable: int,
         "osrmDataVersion": _osrm_data_version or "unknown",
         "units": "km",
         "limitPerOrigin": limit,
+        "minRoutesPerOrigin": MIN_ROUTES_PER_ORIGIN,
         "maxEastDeg": MAX_EAST_DEG,
         "candidatePool": pool,
         "origins": origins_total,
@@ -532,9 +555,13 @@ def build_meta(origins_total: int, routes: list, unroutable: int,
         "originsWithoutRoute": without_route,
         "unroutableCities": unroutable,
         "crossesAntimeridian": crossings,
-        "eastRule": "0 < deltaLng(cityDest - cityOrigin) <= 180 (desenrollado)",
-        "poolRule": ("los 5 candidatos más cercanos por círculo grande dentro de "
-                     "maxEastDeg; se descartan los que OSRM no puede enrutar"),
+        "eastRule": "heading east: 0 < deltaLng(cityDest - cityOrigin) <= 180 (desenrollado); "
+                    "heading west: -180 <= deltaLng < 0, solo como fallback cuando un origen "
+                    "tiene menos de minRoutesPerOrigin rutas al Este",
+        "poolRule": ("los pool candidatos más cercanos por círculo grande dentro de "
+                     "maxEastDeg en cada dirección; se descartan los que OSRM no puede "
+                     "enrutar; el pool oeste solo se consulta si el este no llega a "
+                     "minRoutesPerOrigin rutas"),
         "geometry": ("LineString [lng,lat] de ciudad a ciudad: el primer y el último "
                      "vértice son las coordenadas de la ciudad de locations.json y entre "
                      "medias va la carretera de OSRM con overview=simplified"),
@@ -545,6 +572,12 @@ def build_meta(origins_total: int, routes: list, unroutable: int,
                         "OSRM demo server sponsored by FOSSGIS"),
         "source": "OSRM demo server (car) + GeoNames cities15000",
     }
+    if west:
+        meta["westFallbackNote"] = (
+            f"{len(west)} rutas con heading west; destinos hacia el Oeste porque el origen "
+            f"no alcanzó minRoutesPerOrigin rutas al Este"
+        )
+    return meta
 
 
 def write_output(out_path: Path, meta: dict, routes: list) -> None:
@@ -560,19 +593,29 @@ def write_output(out_path: Path, meta: dict, routes: list) -> None:
         sys.exit(1)
 
 
-def load_existing(out_path: Path) -> tuple[list, set]:
-    """Rutas ya escritas (para --resume). Devuelve (rutas, orígenes)."""
+def load_existing(out_path: Path) -> tuple[list, set, dict]:
+    """Rutas ya escritas (para --resume). Devuelve (rutas, orígenes, meta previo).
+
+    Rellena `heading` en las rutas del esquema 1.0.0, que no lo traían:
+    con la Regla del Este histórica todas son rutas al Este.
+    """
     if not out_path.exists():
-        return [], set()
+        return [], set(), {}
     try:
         with open(out_path, encoding="utf-8") as f:
             data = json.load(f)
         routes = data.get("routes") or []
+        for route in routes:
+            if "heading" not in route:
+                delta = eastward_delta(float(route["originLng"]),
+                                       float(route["destinationLng"]))
+                route["heading"] = "east" if delta > 0 else "west"
         origins = {r["origin"] for r in routes if "origin" in r}
-        return routes, origins
+        meta = data.get("meta") or {}
+        return routes, origins, meta
     except Exception as e:
         print(f"[WARN] No se pudo leer {out_path} para --resume ({e})", file=sys.stderr)
-        return [], set()
+        return [], set(), {}
 
 
 # ---------------------------------------------------------------------------
@@ -631,86 +674,107 @@ def main():
 
     existing_routes: list = []
     done_origins: set = set()
+    prev_meta: dict = {}
     if args.resume and not args.dry_run:
-        existing_routes, done_origins = load_existing(args.out)
+        existing_routes, done_origins, prev_meta = load_existing(args.out)
         if done_origins:
-            print(f"[INFO] --resume: {len(done_origins)} orígenes ya en {args.out}, se saltan")
+            print(f"[INFO] --resume: {len(done_origins)} orígenes ya en {args.out}, se saltan "
+                  f"({len(existing_routes)} rutas conservadas)")
 
     routes: list = list(existing_routes)
-    unroutable_hits = 0
+    # `unroutable_hits` es acumulado (se siembra del meta previo en --resume);
+    # `origins_without` es de esta corrida y el meta final lo deriva del catálogo.
+    unroutable_hits = int(prev_meta.get("unroutableCities") or 0)
     origins_without = 0
     processed = 0
+
+    def current_meta() -> dict:
+        unique = len({r["origin"] for r in routes})
+        base = int(prev_meta.get("origins") or 0) if args.resume else 0
+        origins_total = max(base, unique + origins_without)
+        return build_meta(origins_total, routes, unroutable_hits,
+                          origins_total - unique, args.limit, args.pool, args.profile)
 
     for pos, idx in enumerate(selected_indices):
         origin = cities[idx]
         if origin["name"] in done_origins:
             continue
-        pool = build_pool(cities, idx, args.pool)
+        pool_east = build_pool(cities, idx, args.pool, "east")
         if args.dry_run:
-            print(f'  {origin["name"]:<22} {len(pool)} candidatas')
-            for item in pool:
-                c = item["city"]
-                print(f'    {c["name"]:<24} gc {item["gcKm"]:8.1f} km  '
-                      f'delta {item["deltaLng"]:6.1f}º')
-        if not pool:
-            print(f'[WARN] {origin["name"]}: sin candidatas al Este', file=sys.stderr)
-            origins_without += 1
+            pool_west = build_pool(cities, idx, args.pool, "west")
+            print(f'  {origin["name"]:<22} {len(pool_east)} candidatas este, '
+                  f'{len(pool_west)} oeste')
+            for label, pool in (("", pool_east), ("[oeste]", pool_west)):
+                for item in pool:
+                    c = item["city"]
+                    print(f'    {label:<8} {c["name"]:<24} gc {item["gcKm"]:8.1f} km  '
+                          f'delta {item["deltaLng"]:6.1f}º')
+            print(f'  {origin["name"]:<22} rutas previstas al Este (el pool oeste solo '
+                  f'entra si no llega a {MIN_ROUTES_PER_ORIGIN})')
             processed += 1
             continue
 
-        row = None if args.dry_run else table_distances(args.profile, origin, pool)
-        kept = []
-        if args.dry_run:
-            kept = pool
-        elif row is None:
-            print(f'[WARN] {origin["name"]}: /table sin respuesta, se intenta ruta directa',
-                  file=sys.stderr)
-            kept = pool
-        else:
-            for item, dist in zip(pool, row[1:]):
-                if dist is None:
-                    unroutable_hits += 1
-                    print(f'[SKIP] {origin["name"]} → {item["city"]["name"]}: '
-                          f'sin camino terrestre', file=sys.stderr)
-                    continue
-                item["roadKm"] = float(dist)
-                kept.append(item)
-            if not kept:
-                print(f'[WARN] {origin["name"]}: sin camino terrestre al Este',
+        built: list = []
+        for direction in ("east", "west"):
+            if direction == "west" and len(built) >= MIN_ROUTES_PER_ORIGIN:
+                break
+            pool = build_pool(cities, idx, args.pool, direction)
+            if not pool:
+                if direction == "east":
+                    print(f'[WARN] {origin["name"]}: sin candidatas al Este', file=sys.stderr)
+                continue
+            row = table_distances(args.profile, origin, pool)
+            kept = []
+            if row is None:
+                print(f'[WARN] {origin["name"]}: /table sin respuesta, se intenta ruta directa',
                       file=sys.stderr)
-                origins_without += 1
-                processed += 1
-                continue
+                kept = pool
+            else:
+                for item, dist in zip(pool, row[1:]):
+                    if dist is None:
+                        # El /table del demo devuelve nulos espurios (p. ej.
+                        # Teresina→Salvador, verificado con /route: 1146 km).
+                        # No se descarta aquí: la verificación la hace
+                        # build_route, que con /route y el guardia SNAP_MAX_KM
+                        # distingue "sin camino" de "enganchado al otro lado".
+                        print(f'[WARN] {origin["name"]} → {item["city"]["name"]}: '
+                              f'/table sin distancia, se verifica con /route',
+                              file=sys.stderr)
+                        kept.append(item)
+                        continue
+                    item["roadKm"] = float(dist)
+                    kept.append(item)
+                if not kept:
+                    print(f'[WARN] {origin["name"]}: sin camino terrestre {direction}',
+                          file=sys.stderr)
+                    continue
+            room = args.limit - len(built)
+            if direction == "west":
+                # El oeste es fallback: solo cubre el hueco hasta el mínimo.
+                room = min(room, MIN_ROUTES_PER_ORIGIN - len(built))
+            for item in kept[:max(0, room)]:
+                dest = item["city"]
+                route = build_route(args.profile, origin, dest, direction)
+                if route is None:
+                    unroutable_hits += 1
+                    continue
+                built.append(route)
 
-        built = []
-        if args.dry_run:
-            print(f'  {origin["name"]:<22} {len(kept)} rutas previstas')
-            for item in kept:
-                c = item["city"]
-                print(f'    -> {c["name"]:<22} gc {item["gcKm"]:8.1f} km')
-            processed += 1
-            continue
-
-        for item in kept[:args.limit]:
-            dest = item["city"]
-            route = build_route(args.profile, origin, dest)
-            if route is None:
-                unroutable_hits += 1
-                continue
-            built.append(route)
         built.sort(key=lambda r: r["distanceKm"])
         built = built[:args.limit]
         if not built:
             origins_without += 1
             print(f'[WARN] {origin["name"]}: 0 rutas por tierra', file=sys.stderr)
+        elif len(built) < MIN_ROUTES_PER_ORIGIN:
+            print(f'[WARN] {origin["name"]}: solo {len(built)} rutas '
+                  f'(< {MIN_ROUTES_PER_ORIGIN})', file=sys.stderr)
         routes.extend(built)
         done_origins.add(origin["name"])
         processed += 1
 
         # Volcado periódico cada 10 orígenes para no perder el lote.
         if processed % 10 == 0:
-            meta = build_meta(len(selected_indices), routes, unroutable_hits,
-                              origins_without, args.limit, args.pool, args.profile)
+            meta = current_meta()
             write_output(args.out, meta, routes)
             print(f"[INFO] Volcado parcial: {processed} orígenes, {len(routes)} rutas")
 
@@ -721,9 +785,12 @@ def main():
         print(f"[ERROR] {len(problems)} problemas de validación, no se escribe", file=sys.stderr)
         sys.exit(1)
 
+    unique_origins = len({r["origin"] for r in routes})
     crossings = sum(1 for r in routes if crosses_antimeridian(r["geometry"]["coordinates"]))
-    print(f"[INFO] {len(routes)} rutas para {processed} orígenes procesados")
-    print(f"[INFO] {origins_without} orígenes sin ruta, {unroutable_hits} descartes sin camino")
+    print(f"[INFO] {len(routes)} rutas de {unique_origins} orígenes "
+          f"({processed} procesados en esta corrida)")
+    print(f"[INFO] {origins_without} orígenes sin ruta en esta corrida, "
+          f"{unroutable_hits} descartes sin camino (acumulado)")
     print(f"[INFO] {crossings} rutas cruzan el antimeridiano "
           f"(coordenadas normalizadas, las segmenta el consumidor)")
 
@@ -731,8 +798,7 @@ def main():
         print(f"[INFO] dry-run: no se escribe {args.out}")
         return
 
-    meta = build_meta(len(selected_indices), routes, unroutable_hits,
-                      origins_without, args.limit, args.pool, args.profile)
+    meta = current_meta()
     write_output(args.out, meta, routes)
     print(f'[INFO] Guardadas {len(routes)} rutas ({meta["generated"]}) en {args.out}')
 

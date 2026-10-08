@@ -6,18 +6,24 @@ Proyecto eu.elarreglador.pf
 - Resuelve el puerto de cada ciudad de locations.json: nodo de la malla marítima
   (distancia al mar) + puerto WPI que devuelve searoute (include_ports)
 - Descarta las ciudades sin mar a <= THRESHOLD_KM (el WPI no sirve como filtro:
-  Denver, Kansas City o Harare son puertos fluviales a 0 km del centro)
-- De los puertos candidatos conserva solo los cuyo puerto queda al Este del puerto
-  origen, desenrollado: 0 < deltaLng <= 180
+  Denver, Kansas City o Harare son puertos fluviales a 0 km del centro), salvo
+  las de FORCED_COASTAL_KM: costeras de verdad cuya malla está poco resuelta y
+  que sin excepción quedarían sin ninguna ruta de salida (partida bloqueada)
+- De los puertos candidatos selecciona primero los que quedan al Este del puerto
+  origen, desenrollado: 0 < deltaLng <= 180. Si un origen queda por debajo de
+  MIN_ROUTES_PER_ORIGIN rutas este, se completa con rutas al Oeste
+  (heading "west": -180 <= deltaLng < 0). Cada ruta lleva su campo `heading`
 - Ancla cada geometría a las coordenadas de la ciudad en ambos extremos: searoute
   devuelve la malla marítima, cuyo primer y último vértice son nodos de mar
 - Selecciona las `limit` rutas más cortas por distancia marítima y persiste
-  assets/data/sea_routes.json (reescritura completa, no merge)
+  assets/data/sea_routes.json (reescritura completa; con --resume hace merge:
+  conserva las rutas ya escritas y solo calcula los orígenes que falten)
 
 Uso:
   python3 .opencode/skills/fogg-sea-routes/sea_route.py --dry-run
   python3 .opencode/skills/fogg-sea-routes/sea_route.py
   python3 .opencode/skills/fogg-sea-routes/sea_route.py --city "Lisboa" --dry-run
+  python3 .opencode/skills/fogg-sea-routes/sea_route.py --city "Miami" --resume
   python3 .opencode/skills/fogg-sea-routes/sea_route.py --out /tmp/prueba.json
 
 Stdlib + searoute==1.6.0
@@ -42,12 +48,31 @@ SEA_ROUTES_PATH = PROJECT_ROOT / "assets" / "data" / "sea_routes.json"
 
 PROJECT = "eu.elarreglador.pf"
 TOOL_NAME = "fogg-sea-routes"
-SCHEMA_VERSION = "3.0.0"
+SCHEMA_VERSION = "3.1.0"
 SEAROUTE_VERSION = "1.6.0"
 
 THRESHOLD_KM = 10  # ciudad -> mar; por encima la ciudad no es un puerto
 MAX_EAST_DEG = 180  # tope del salto Este, evita la vuelta al mundo por el Oeste
 DEFAULT_LIMIT = 5
+MIN_ROUTES_PER_ORIGIN = 2  # mínimo de rutas de salida; por debajo se recurre al Oeste
+
+# Ciudades costeras reales que superan THRESHOLD_KM porque la malla de searoute
+# está poco resuelta en su costa (sea_snap_km no es su distancia real al mar).
+# Valor: km a la línea de costa (Natural Earth 1:50m, umbral de clasificación
+# 50 km; la más lejana, Sapporo, está a 15,4 km). Sin esta excepción quedarían
+# sin ninguna ruta de origen y un jugador que aterrizara en ellas no podría
+# salir: la regla del Este cede ante la jugabilidad.
+FORCED_COASTAL_KM = {
+    "Fakaofo": 5.6,
+    "Harbour Grace": 3.5,
+    "Leningradsky": 10.2,
+    "Manokwari": 4.0,
+    "Mascate": 4.1,
+    "Miami": 1.0,
+    "Salvador": 1.9,
+    "Sapporo": 15.4,
+    "Wonsan": 4.4,
+}
 MAX_DISTANCE_KM = 40000
 LENGTH_TOLERANCE = 0.20  # |haversine_sum - distanceKm| / distanceKm
 COORD_PRECISION = 5  # ~1 m, suficiente para un visualizar
@@ -264,16 +289,21 @@ def anchor_to_cities(coordinates, origin, dest) -> list:
 # Selección de rutas
 # ---------------------------------------------------------------------------
 
-def select_routes(sr, M, P, origin, ports, limit, verbose=False):
-    """Rutas marítimas más cortas hacia el Este. `ports` es la lista ya resuelta."""
+def select_routes(sr, M, P, origin, ports, limit, direction="east", verbose=False):
+    """Rutas marítimas más cortas hacia el Este (`direction="east"`) u Oeste.
+
+    `ports` es la lista ya resuelta. El filtro se aplica sobre el puerto
+    (no sobre la ciudad) con la Regla del Este o su espejo para el Oeste.
+    """
     o_lng, o_lat = origin["port"]["lng"], origin["port"]["lat"]
     candidates = []
     for dest in ports:
         if dest["city"] == origin["city"]:
             continue
-        # Regla del Este sobre el puerto, no sobre la ciudad
         delta = eastward_delta(o_lng, dest["port"]["lng"])
-        if not (0 < delta <= MAX_EAST_DEG):
+        if direction == "east" and not (0 < delta <= MAX_EAST_DEG):
+            continue
+        if direction == "west" and not (-MAX_EAST_DEG <= delta < 0):
             continue
         gc_km = haversine(o_lat, o_lng, dest["port"]["lat"], dest["port"]["lng"])
         candidates.append((gc_km, dest))
@@ -321,6 +351,9 @@ def select_routes(sr, M, P, origin, ports, limit, verbose=False):
 
 
 def build_route(origin, dest, distance_km, coordinates) -> dict:
+    # `heading` se deriva del signo del salto entre puertos: si fuera distinto
+    # del filtro que seleccionó la ruta, lo detecta validate_dataset.
+    delta = eastward_delta(origin["port"]["lng"], dest["port"]["lng"])
     return {
         "origin": origin["city"],
         "originLat": origin["lat"],
@@ -329,6 +362,7 @@ def build_route(origin, dest, distance_km, coordinates) -> dict:
         "destinationLat": dest["lat"],
         "destinationLng": dest["lng"],
         "distanceKm": round(distance_km, 1),
+        "heading": "east" if delta > 0 else "west",
         "portOrigin": dict(origin["port"], seaKm=round(origin["seaKm"], 1)),
         "portDest": dict(dest["port"], seaKm=round(dest["seaKm"], 1)),
         "geometry": {"type": "LineString", "coordinates": coordinates},
@@ -383,9 +417,18 @@ def validate_dataset(routes, limit) -> list[str]:
             if not (-180 <= lng <= 180 and -90 <= lat <= 90):
                 problems.append(f"coordenada fuera de rango en {key}: {lng},{lat}")
                 break
+        # Regla del Este (o del Oeste si heading="west") sobre los puertos.
         delta = eastward_delta(route["portOrigin"]["lng"], route["portDest"]["lng"])
-        if not (0 < delta <= MAX_EAST_DEG):
+        heading = route.get("heading") or ("east" if delta > 0 else "west")
+        if heading == "east" and not (0 < delta <= MAX_EAST_DEG):
             problems.append(f"Regla del Este incumplida en {key}: delta {delta:.3f}º")
+        elif heading == "west" and not (-MAX_EAST_DEG <= delta < 0):
+            problems.append(f"heading west con delta {delta:.3f}º en {key}")
+        elif heading not in ("east", "west"):
+            problems.append(f"heading desconocido {heading!r} en {key}")
+        if route.get("heading") and route["heading"] != ("east" if delta > 0 else "west"):
+            problems.append(f"heading {route['heading']} no coincide con el delta "
+                            f"{delta:.3f}º en {key}")
         hsum = haversine_sum(coords)
         if distance and abs(hsum - distance) / distance > LENGTH_TOLERANCE:
             problems.append(
@@ -402,8 +445,9 @@ def validate_dataset(routes, limit) -> list[str]:
     return problems
 
 
-def build_meta(origins_total, routes_count, cities_without_port, crossings, limit) -> dict:
-    return {
+def build_meta(origins_total, routes, cities_without_port, crossings, limit) -> dict:
+    west = [r for r in routes if r.get("heading") == "west"]
+    meta = {
         "project": PROJECT,
         "name": "Fogg Sea Routes — Herencia de Phoebe",
         "version": SCHEMA_VERSION,
@@ -414,11 +458,14 @@ def build_meta(origins_total, routes_count, cities_without_port, crossings, limi
         "thresholdKm": THRESHOLD_KM,
         "maxEastDeg": MAX_EAST_DEG,
         "limitPerOrigin": limit,
+        "minRoutesPerOrigin": MIN_ROUTES_PER_ORIGIN,
         "origins": origins_total,
-        "routes": routes_count,
+        "routes": len(routes),
         "citiesWithoutPort": cities_without_port,
         "crossesAntimeridian": crossings,
-        "eastRule": "0 < deltaLng(portDest - portOrigin) <= 180 (desenrollado)",
+        "eastRule": "heading east: 0 < deltaLng(portDest - portOrigin) <= 180 (desenrollado); "
+                    "heading west: -180 <= deltaLng < 0, solo como fallback cuando un origen "
+                    "tiene menos de minRoutesPerOrigin rutas al Este",
         "geometry": "LineString [lng,lat] de ciudad a ciudad: el primer y el último "
                     "vértice son las coordenadas de la ciudad de locations.json y entre "
                     "medias va la malla marítima de searoute. Siempre en [-180,180]; al "
@@ -429,6 +476,18 @@ def build_meta(origins_total, routes_count, cities_without_port, crossings, limi
                         "extremos, de hasta ~15.7 km (Portsmouth-Cowes, Isla de Wight)",
         "source": "searoute (avoid land) + GeoNames cities15000",
     }
+    if FORCED_COASTAL_KM:
+        meta["forcedOrigins"] = (
+            "ciudades costeras reales (km a la costa, Natural Earth 1:50m) admitidas pese a "
+            f"superar thresholdKm porque la malla está poco resuelta en su costa: "
+            + ", ".join(f"{name} ({km} km)" for name, km in sorted(FORCED_COASTAL_KM.items()))
+        )
+    if west:
+        meta["westFallbackNote"] = (
+            f"{len(west)} rutas con heading west; destinos hacia el Oeste porque el origen "
+            f"no alcanzó minRoutesPerOrigin rutas al Este"
+        )
+    return meta
 
 
 def write_output(out_path, meta, routes) -> None:
@@ -444,14 +503,43 @@ def write_output(out_path, meta, routes) -> None:
         sys.exit(1)
 
 
+def load_existing(out_path: Path) -> tuple[list, set]:
+    """Rutas ya escritas (para --resume). Devuelve (rutas, orígenes).
+
+    Rellena `heading` en las rutas del esquema 3.0.0, que no lo traían:
+    con el signo del salto entre puertos siempre fueron rutas al Este.
+    """
+    if not out_path.exists():
+        return [], set()
+    try:
+        with open(out_path, encoding="utf-8") as f:
+            data = json.load(f)
+        routes = data.get("routes") or []
+        for route in routes:
+            if "heading" not in route:
+                delta = eastward_delta(route["portOrigin"]["lng"], route["portDest"]["lng"])
+                route["heading"] = "east" if delta > 0 else "west"
+        origins = {r["origin"] for r in routes if "origin" in r}
+        return routes, origins
+    except Exception as e:
+        print(f"[WARN] No se pudo leer {out_path} para --resume ({e})", file=sys.stderr)
+        return [], set()
+
+
 # ---------------------------------------------------------------------------
 # Orquestación
 # ---------------------------------------------------------------------------
 
 def resolve_ports(sr, M, P, cities, indices, verbose=False):
-    """Separa puertos válidos (mar a <= THRESHOLD_KM) del resto."""
+    """Separa puertos válidos (mar a <= THRESHOLD_KM) del resto.
+
+    `FORCED_COASTAL_KM` salta el umbral: esas ciudades se resuelven como
+    puerto aunque la malla le dé una distancia ficticia.
+    """
+    forced = {normalize(name) for name in FORCED_COASTAL_KM}
     ports = []
     rejected = []
+    forced_hit = []
     for idx in indices:
         city = cities[idx]
         try:
@@ -460,14 +548,22 @@ def resolve_ports(sr, M, P, cities, indices, verbose=False):
             print(f"[WARN] {city['name']}: no se pudo medir el mar ({e})", file=sys.stderr)
             rejected.append((city["name"], float("inf")))
             continue
-        if sea_km > THRESHOLD_KM:
+        is_forced = (normalize(city["name"]) in forced
+                     or normalize(city.get("asciiname") or "") in forced)
+        if sea_km > THRESHOLD_KM and not is_forced:
             rejected.append((city["name"], sea_km))
             continue
         ports.append(resolve_port(sr, M, P, city, sea_km))
+        if is_forced and sea_km > THRESHOLD_KM:
+            forced_hit.append(city["name"])
         if verbose:
             p = ports[-1]["port"]
             print(f"  {city['name']:<22} {str(p['code'] or '?'):<7} "
-                  f"{str(p['name'])[:24]:<24} mar {sea_km:5.1f} km")
+                  f"{str(p['name'])[:24]:<24} mar {sea_km:5.1f} km"
+                  f"{'  (forzada)' if is_forced else ''}")
+    if forced_hit:
+        print(f"[INFO] Orígenes forzados por costa real ({len(forced_hit)}): "
+              f"{', '.join(forced_hit)}")
     ports.sort(key=lambda p: p["port"]["lng"])
     return ports, rejected
 
@@ -484,6 +580,9 @@ def main():
                         help="Ciudad origen (repetible). Sin --city: todas las ciudades con puerto")
     parser.add_argument("--limit", type=int, default=DEFAULT_LIMIT,
                         help=f"Rutas por puerto (default {DEFAULT_LIMIT})")
+    parser.add_argument("--resume", action="store_true",
+                        help="Conserva las rutas ya escritas en --out y solo calcula "
+                             "los orígenes que falten (merge, no reescritura)")
     parser.add_argument("--dry-run", action="store_true",
                         help="Detalla el resultado sin escribir disco")
     parser.add_argument("--out", type=Path, default=SEA_ROUTES_PATH,
@@ -519,15 +618,36 @@ def main():
         preview = ", ".join(f"{name}({km:.0f} km)" for name, km in rejected[:12])
         print(f"[INFO] Descartadas, muestra: {preview}{' …' if len(rejected) > 12 else ''}")
 
-    routes = []
+    routes: list = []
+    done_origins: set = set()
+    if args.resume and not args.dry_run:
+        routes, done_origins = load_existing(args.out)
+        if done_origins:
+            print(f"[INFO] --resume: {len(done_origins)} orígenes ya en {args.out}, "
+                  f"se saltan ({len(routes)} rutas conservadas)")
+
     for origin in origins:
-        selected = select_routes(sr, M, P, origin, all_ports, args.limit, verbose=args.dry_run)
+        if origin["city"] in done_origins:
+            continue
+        selected = select_routes(sr, M, P, origin, all_ports, args.limit, "east",
+                                 verbose=args.dry_run)
+        # Fallback al Oeste: nadie debe quedarse sin salida por la Regla del Este.
+        need = min(args.limit, MIN_ROUTES_PER_ORIGIN) - len(selected)
+        if need > 0:
+            west = select_routes(sr, M, P, origin, all_ports, need, "west",
+                                 verbose=args.dry_run)
+            if west:
+                print(f"[INFO] {origin['city']}: {len(selected)} rutas al Este, "
+                      f"se completan {len(west)} con el Oeste", file=sys.stderr)
+            selected = sorted(list(selected) + list(west), key=lambda item: item[0])
+            selected = selected[:args.limit]
         if args.dry_run:
             print(f"  {origin['city']:<22} {len(selected)} rutas")
         for distance, dest, coordinates in selected:
             routes.append(build_route(origin, dest, distance, coordinates))
         if not selected and not args.dry_run:
-            print(f"[WARN] {origin['city']} sin ruta hacia el Este", file=sys.stderr)
+            print(f"[WARN] {origin['city']} sin ruta hacia el Este ni el Oeste",
+                  file=sys.stderr)
 
     problems = validate_dataset(routes, args.limit)
     for p in problems:
@@ -537,7 +657,12 @@ def main():
         sys.exit(1)
 
     crossings = [r for r in routes if crosses_antimeridian(r["geometry"]["coordinates"])]
-    print(f"[INFO] {len(routes)} rutas para {len(origins)} orígenes")
+    origins_meta = len({r["origin"] for r in routes})
+    if not args.resume:
+        # Sin --resume también se contabilizan los puertos que no llegaron a
+        # generar ruta (comportamiento histórico del meta).
+        origins_meta = max(origins_meta, len(origins))
+    print(f"[INFO] {len(routes)} rutas para {origins_meta} orígenes")
     print(f"[INFO] {len(crossings)} rutas cruzan el antimeridiano "
           f"(coordenadas normalizadas, las segmenta el consumidor)")
     if crossings and not args.dry_run:
@@ -548,7 +673,7 @@ def main():
         print(f"[INFO] dry-run: no se escribe {args.out}")
         return
 
-    meta = build_meta(len(origins), len(routes), len(rejected), len(crossings), args.limit)
+    meta = build_meta(origins_meta, routes, len(rejected), len(crossings), args.limit)
     write_output(args.out, meta, routes)
     print(f'[INFO] Guardadas {len(routes)} rutas ({meta["generated"]}) en {args.out}')
 

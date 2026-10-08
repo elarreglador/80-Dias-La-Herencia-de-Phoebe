@@ -2,8 +2,8 @@
   "meta": {
     "project": "eu.elarreglador.pf",
     "name": "Fogg Land Routes — Herencia de Phoebe",
-    "version": "1.0.0",
-    "generated": "2026-09-26",
+    "version": "1.1.0",
+    "generated": "2026-10-07",
     "tool": "fogg-land-routes",
     "profile": "car",
     "osrmServer": "https://router.project-osrm.org",
@@ -11,19 +11,21 @@
     "osrmDataVersion": "unknown",
     "units": "km",
     "limitPerOrigin": 5,
+    "minRoutesPerOrigin": 2,
     "maxEastDeg": 180,
     "candidatePool": 5,
     "origins": 304,
-    "routes": 999,
-    "originsWithoutRoute": 69,
-    "unroutableCities": 521,
+    "routes": 1001,
+    "originsWithoutRoute": 68,
+    "unroutableCities": 525,
     "crossesAntimeridian": 0,
-    "eastRule": "0 < deltaLng(cityDest - cityOrigin) <= 180 (desenrollado)",
-    "poolRule": "los 5 candidatos más cercanos por círculo grande dentro de maxEastDeg; se descartan los que OSRM no puede enrutar",
+    "eastRule": "heading east: 0 < deltaLng(cityDest - cityOrigin) <= 180 (desenrollado); heading west: -180 <= deltaLng < 0, solo como fallback cuando un origen tiene menos de minRoutesPerOrigin rutas al Este",
+    "poolRule": "los pool candidatos más cercanos por círculo grande dentro de maxEastDeg en cada dirección; se descartan los que OSRM no puede enrutar; el pool oeste solo se consulta si el este no llega a minRoutesPerOrigin rutas",
     "geometry": "LineString [lng,lat] de ciudad a ciudad: el primer y el último vértice son las coordenadas de la ciudad de locations.json y entre medias va la carretera de OSRM con overview=simplified",
     "distanceNote": "distanceKm es routes[0].distance de OSRM; NO es la suma Haversine de la geometría, que con overview=simplified queda hasta un 9% por debajo al recortar curvas",
     "attribution": "© OpenStreetMap contributors (ODbL); routing courtesy of the OSRM demo server sponsored by FOSSGIS",
-    "source": "OSRM demo server (car) + GeoNames cities15000"
+    "source": "OSRM demo server (car) + GeoNames cities15000",
+    "westFallbackNote": "1 rutas con heading west; destinos hacia el Oeste porque el origen no alcanzó minRoutesPerOrigin rutas al Este"
   },
   "routes": [
     {
@@ -207,7 +209,8 @@
             50.85045
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Londres",
@@ -478,7 +481,8 @@
             52.37403
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Londres",
@@ -645,7 +649,8 @@
             48.85341
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Londres",
@@ -900,7 +905,8 @@
             53.55073
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Londres",
@@ -1043,7 +1049,8 @@
             45.74906
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Niamey",
@@ -1210,7 +1217,8 @@
             12.00012
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Niamey",
@@ -1377,7 +1385,8 @@
             22.785
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Niamey",
@@ -1552,7 +1561,8 @@
             12.10672
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Niamey",
@@ -1783,7 +1793,8 @@
             24.07152
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "París",
@@ -1922,7 +1933,8 @@
             50.85045
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "París",
@@ -2053,7 +2065,8 @@
             45.74906
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "París",
@@ -2196,7 +2209,8 @@
             52.37403
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "París",
@@ -2423,7 +2437,8 @@
             48.13743
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "París",
@@ -2666,7 +2681,8 @@
             44.40478
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Bruselas",
@@ -2805,7 +2821,8 @@
             52.37403
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Bruselas",
@@ -2992,7 +3009,8 @@
             53.55073
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Bruselas",
@@ -3111,7 +3129,8 @@
             45.74906
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Bruselas",
@@ -3314,7 +3333,8 @@
             52.52437
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Bruselas",
@@ -3553,7 +3573,8 @@
             48.13743
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lyon",
@@ -3740,7 +3761,8 @@
             44.40478
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lyon",
@@ -3959,7 +3981,8 @@
             48.13743
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lyon",
@@ -4090,7 +4113,8 @@
             52.37403
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lyon",
@@ -4337,7 +4361,8 @@
             41.89193
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lyon",
@@ -4592,7 +4617,8 @@
             50.08804
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Amsterdam",
@@ -4843,7 +4869,8 @@
             53.55073
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Amsterdam",
@@ -5014,7 +5041,8 @@
             52.52437
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Amsterdam",
@@ -5253,7 +5281,8 @@
             48.13743
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Amsterdam",
@@ -5492,7 +5521,8 @@
             50.08804
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Amsterdam",
@@ -5699,7 +5729,8 @@
             59.91273
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "tamanrasset",
@@ -5946,7 +5977,8 @@
             24.07152
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "tamanrasset",
@@ -6105,7 +6137,8 @@
             12.00012
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "tamanrasset",
@@ -6320,7 +6353,8 @@
             12.10672
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "tamanrasset",
@@ -6531,7 +6565,8 @@
             32.88743
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kano",
@@ -6686,7 +6721,8 @@
             12.10672
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kano",
@@ -6909,7 +6945,8 @@
             24.07152
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kano",
@@ -7148,7 +7185,8 @@
             0.39241
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kano",
@@ -7415,7 +7453,8 @@
             -1.07647
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Genova",
@@ -7662,7 +7701,8 @@
             41.89193
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Genova",
@@ -7845,7 +7885,8 @@
             48.13743
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Genova",
@@ -8036,7 +8077,8 @@
             45.81444
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Genova",
@@ -8183,7 +8225,8 @@
             50.08804
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Genova",
@@ -8370,7 +8413,8 @@
             52.52437
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Libreville",
@@ -8625,7 +8669,8 @@
             -1.07647
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Libreville",
@@ -8804,7 +8849,8 @@
             -8.83682
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Libreville",
@@ -9075,7 +9121,8 @@
             12.10672
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Libreville",
@@ -9210,7 +9257,8 @@
             -14.91717
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Libreville",
@@ -9569,7 +9617,8 @@
             0.51528
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "djanet",
@@ -9724,7 +9773,8 @@
             32.88743
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "djanet",
@@ -10003,7 +10053,8 @@
             12.10672
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "djanet",
@@ -10274,7 +10325,8 @@
             30.06263
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "djanet",
@@ -10549,7 +10601,8 @@
             29.85034
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Hamburgo",
@@ -10688,7 +10741,8 @@
             52.52437
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Hamburgo",
@@ -10887,7 +10941,8 @@
             50.08804
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Hamburgo",
@@ -11034,7 +11089,8 @@
             48.13743
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Hamburgo",
@@ -11213,7 +11269,8 @@
             52.22977
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Hamburgo",
@@ -11376,7 +11433,8 @@
             59.91273
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Oslo",
@@ -11571,7 +11629,8 @@
             59.32938
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Oslo",
@@ -11766,7 +11825,8 @@
             52.52437
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Oslo",
@@ -12133,7 +12193,8 @@
             60.16952
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Oslo",
@@ -12340,7 +12401,8 @@
             56.946
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Oslo",
@@ -12563,7 +12625,8 @@
             59.43696
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Munich",
@@ -12786,7 +12849,8 @@
             50.08804
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Munich",
@@ -13041,7 +13105,8 @@
             45.81444
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Munich",
@@ -13208,7 +13273,8 @@
             52.52437
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Munich",
@@ -13367,7 +13433,8 @@
             41.89193
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Munich",
@@ -13610,7 +13677,8 @@
             52.22977
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Roma",
@@ -13857,7 +13925,8 @@
             45.81444
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Roma",
@@ -14048,7 +14117,8 @@
             50.08804
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Roma",
@@ -14175,7 +14245,8 @@
             52.52437
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Roma",
@@ -14430,7 +14501,8 @@
             44.43225
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tripoli",
@@ -14625,7 +14697,8 @@
             30.06263
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tripoli",
@@ -14824,7 +14897,8 @@
             29.85034
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Luanda",
@@ -15007,7 +15081,8 @@
             -14.91717
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Luanda",
@@ -15158,7 +15233,8 @@
             -1.07647
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Luanda",
@@ -15297,7 +15373,8 @@
             -22.67842
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Luanda",
@@ -15560,7 +15637,8 @@
             0.51528
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Luanda",
@@ -15787,7 +15865,8 @@
             -15.40669
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Berlin",
@@ -15914,7 +15993,8 @@
             50.08804
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Berlin",
@@ -16049,7 +16129,8 @@
             52.22977
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Berlin",
@@ -16280,7 +16361,8 @@
             49.83826
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Berlin",
@@ -16463,7 +16545,8 @@
             45.81444
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Berlin",
@@ -16654,7 +16737,8 @@
             59.32938
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lubango",
@@ -16785,7 +16869,8 @@
             -22.67842
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lubango",
@@ -16952,7 +17037,8 @@
             -24.65451
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lubango",
@@ -17139,7 +17225,8 @@
             -15.40669
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lubango",
@@ -17374,7 +17461,8 @@
             -1.07647
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lubango",
@@ -17501,7 +17589,8 @@
             -28.11396
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Praga",
@@ -17708,7 +17797,8 @@
             52.22977
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Praga",
@@ -17879,7 +17969,8 @@
             45.81444
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Praga",
@@ -18122,7 +18213,8 @@
             49.83826
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Praga",
@@ -18333,7 +18425,8 @@
             56.946
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Praga",
@@ -18492,7 +18585,8 @@
             59.32938
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Swakopmund",
@@ -18619,7 +18713,8 @@
             -24.65451
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Swakopmund",
@@ -18894,7 +18989,8 @@
             -28.11396
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Swakopmund",
@@ -19089,7 +19185,8 @@
             -33.92584
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Swakopmund",
@@ -19252,7 +19349,8 @@
             -15.40669
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Swakopmund",
@@ -19443,7 +19541,8 @@
             -17.82772
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Yamena",
@@ -19702,7 +19801,8 @@
             0.51528
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Yamena",
@@ -19949,7 +20049,8 @@
             -1.07647
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Yamena",
@@ -20184,7 +20285,8 @@
             15.55177
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Yamena",
@@ -20467,7 +20569,8 @@
             0.31628
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Yamena",
@@ -20666,7 +20769,8 @@
             25.69893
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Alima",
@@ -21125,7 +21229,8 @@
             0.51528
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Alima",
@@ -21324,7 +21429,8 @@
             -15.40669
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Alima",
@@ -21659,7 +21765,8 @@
             0.31628
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Alima",
@@ -22034,7 +22141,8 @@
             -3.36667
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Alima",
@@ -22445,7 +22553,8 @@
             -1.28333
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Zagreb",
@@ -22696,7 +22805,8 @@
             49.83826
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Zagreb",
@@ -22963,7 +23073,8 @@
             44.43225
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Zagreb",
@@ -23126,7 +23237,8 @@
             52.22977
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Zagreb",
@@ -23293,7 +23405,8 @@
             41.01384
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Zagreb",
@@ -23484,7 +23597,8 @@
             50.45466
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Estocolmo",
@@ -23663,7 +23777,8 @@
             60.16952
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Estocolmo",
@@ -23910,7 +24025,8 @@
             52.22977
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Estocolmo",
@@ -24253,7 +24369,8 @@
             56.946
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Estocolmo",
@@ -24648,7 +24765,8 @@
             59.43696
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Estocolmo",
@@ -24871,7 +24989,8 @@
             59.93863
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Ciudad del Cabo",
@@ -25030,7 +25149,8 @@
             -28.11396
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Ciudad del Cabo",
@@ -25173,7 +25293,8 @@
             -24.65451
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Ciudad del Cabo",
@@ -25296,7 +25417,8 @@
             -17.82772
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Ciudad del Cabo",
@@ -25439,7 +25561,8 @@
             -15.40669
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Varsovia",
@@ -25574,7 +25697,8 @@
             49.83826
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Varsovia",
@@ -25717,7 +25841,8 @@
             56.946
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Varsovia",
@@ -25912,7 +26037,8 @@
             50.45466
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Varsovia",
@@ -26111,7 +26237,8 @@
             59.43696
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Varsovia",
@@ -26222,7 +26349,8 @@
             60.16952
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Leopolis",
@@ -26361,7 +26489,8 @@
             50.45466
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Leopolis",
@@ -26496,7 +26625,8 @@
             44.43225
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Leopolis",
@@ -26639,7 +26769,8 @@
             49.99232
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Leopolis",
@@ -26838,7 +26969,8 @@
             56.946
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Leopolis",
@@ -27045,7 +27177,8 @@
             41.01384
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Riga",
@@ -27172,7 +27305,8 @@
             59.43696
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Riga",
@@ -27315,7 +27449,8 @@
             60.16952
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Riga",
@@ -27438,7 +27573,8 @@
             59.93863
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Riga",
@@ -27585,7 +27721,8 @@
             55.75204
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Riga",
@@ -27788,7 +27925,8 @@
             50.45466
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tallin",
@@ -27871,7 +28009,8 @@
             60.16952
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tallin",
@@ -28066,7 +28205,8 @@
             59.93863
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tallin",
@@ -28221,7 +28361,8 @@
             55.75204
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tallin",
@@ -28384,7 +28525,8 @@
             64.52167
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tallin",
@@ -28595,7 +28737,8 @@
             64.5461
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Warrenton",
@@ -28682,7 +28825,8 @@
             -24.65451
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Warrenton",
@@ -28825,7 +28969,8 @@
             -17.82772
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Warrenton",
@@ -28976,7 +29121,8 @@
             -15.40669
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Warrenton",
@@ -29175,7 +29321,8 @@
             -6.82349
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Helsinki",
@@ -29382,7 +29529,8 @@
             59.93863
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Helsinki",
@@ -29545,7 +29693,8 @@
             55.75204
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Helsinki",
@@ -29680,7 +29829,8 @@
             50.45466
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Helsinki",
@@ -29899,7 +30049,8 @@
             64.5461
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Helsinki",
@@ -30182,7 +30333,8 @@
             64.52167
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kisangani",
@@ -30401,7 +30553,8 @@
             0.31628
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kisangani",
@@ -30608,7 +30761,8 @@
             -1.28333
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kisangani",
@@ -30807,7 +30961,8 @@
             -3.36667
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kisangani",
@@ -31026,7 +31181,8 @@
             -6.82349
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kisangani",
@@ -31185,7 +31341,8 @@
             -15.40669
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Gaborone",
@@ -31264,7 +31421,8 @@
             -17.82772
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Gaborone",
@@ -31379,7 +31537,8 @@
             -15.40669
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Gaborone",
@@ -31546,7 +31705,8 @@
             -6.82349
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Gaborone",
@@ -31721,7 +31881,8 @@
             -3.36667
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Bucarest",
@@ -31904,7 +32065,8 @@
             41.01384
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Bucarest",
@@ -32019,7 +32181,8 @@
             50.45466
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Bucarest",
@@ -32182,7 +32345,8 @@
             49.99232
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Bucarest",
@@ -32401,7 +32565,8 @@
             51.66833
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Bucarest",
@@ -32552,7 +32717,8 @@
             55.75204
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lusaka",
@@ -32731,7 +32897,8 @@
             -17.82772
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lusaka",
@@ -32926,7 +33093,8 @@
             -6.82349
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lusaka",
@@ -33153,7 +33321,8 @@
             -3.36667
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lusaka",
@@ -33292,7 +33461,8 @@
             -1.28333
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lusaka",
@@ -33431,7 +33601,8 @@
             0.31628
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Estambul",
@@ -33618,7 +33789,8 @@
             50.45466
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Estambul",
@@ -33853,7 +34025,8 @@
             49.99232
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "San Petersburgo",
@@ -33972,7 +34145,8 @@
             55.75204
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "San Petersburgo",
@@ -34135,7 +34309,8 @@
             64.52167
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "San Petersburgo",
@@ -34350,7 +34525,8 @@
             64.5461
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "San Petersburgo",
@@ -34457,7 +34633,8 @@
             51.66833
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "San Petersburgo",
@@ -34576,7 +34753,8 @@
             50.45466
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kiev",
@@ -34715,7 +34893,8 @@
             49.99232
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kiev",
@@ -35030,7 +35209,8 @@
             51.66833
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kiev",
@@ -35233,7 +35413,8 @@
             51.54048
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kiev",
@@ -35456,7 +35637,8 @@
             55.75204
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kiev",
@@ -35767,7 +35949,8 @@
             55.78874
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Harare",
@@ -35978,7 +36161,8 @@
             -6.82349
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Harare",
@@ -36121,7 +36305,8 @@
             -3.36667
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Harare",
@@ -36292,7 +36477,8 @@
             -1.28333
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Harare",
@@ -36451,7 +36637,8 @@
             0.31628
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Saqqara",
@@ -36566,7 +36753,8 @@
             30.06263
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Saqqara",
@@ -36781,7 +36969,8 @@
             29.97371
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Saqqara",
@@ -36920,7 +37109,8 @@
             31.26531
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Saqqara",
@@ -37147,7 +37337,8 @@
             31.76904
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Saqqara",
@@ -37318,7 +37509,8 @@
             25.69893
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "el cairo",
@@ -37493,7 +37685,8 @@
             29.97371
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "el cairo",
@@ -37612,7 +37805,8 @@
             31.26531
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "el cairo",
@@ -37795,7 +37989,8 @@
             31.76904
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "el cairo",
@@ -37966,7 +38161,8 @@
             25.69893
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "el cairo",
@@ -38113,7 +38309,8 @@
             21.49012
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Puerto Said",
@@ -38240,7 +38437,8 @@
             29.97371
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Puerto Said",
@@ -38419,7 +38617,8 @@
             31.76904
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Puerto Said",
@@ -38610,7 +38809,8 @@
             25.69893
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Puerto Said",
@@ -38761,7 +38961,8 @@
             33.34058
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Puerto Said",
@@ -38912,7 +39113,8 @@
             21.49012
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Suez",
@@ -39103,7 +39305,8 @@
             31.76904
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Suez",
@@ -39270,7 +39473,8 @@
             25.69893
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Suez",
@@ -39401,7 +39605,8 @@
             19.61745
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Suez",
@@ -39544,7 +39749,8 @@
             21.49012
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Suez",
@@ -39707,7 +39913,8 @@
             33.34058
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Jartum",
@@ -39858,7 +40065,8 @@
             19.61745
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Jartum",
@@ -39981,7 +40189,8 @@
             25.69893
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Jartum",
@@ -40128,7 +40337,8 @@
             0.31628
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Jartum",
@@ -40315,7 +40525,8 @@
             21.49012
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Jartum",
@@ -40550,7 +40761,8 @@
             15.35452
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kampala",
@@ -40821,7 +41033,8 @@
             -1.28333
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kampala",
@@ -41000,7 +41213,8 @@
             -3.36667
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kampala",
@@ -41163,7 +41377,8 @@
             -6.82349
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kampala",
@@ -41334,7 +41549,8 @@
             19.61745
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kampala",
@@ -41521,7 +41737,8 @@
             15.35452
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Luxor",
@@ -41644,7 +41861,8 @@
             19.61745
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Luxor",
@@ -41907,7 +42125,8 @@
             31.76904
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Luxor",
@@ -42106,7 +42325,8 @@
             21.49012
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Luxor",
@@ -42317,7 +42537,8 @@
             33.34058
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Luxor",
@@ -42540,7 +42761,8 @@
             24.68773
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Belomorsk",
@@ -42919,7 +43141,8 @@
             64.5461
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Belomorsk",
@@ -43078,7 +43301,8 @@
             55.75204
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Belomorsk",
@@ -43261,7 +43485,8 @@
             55.78874
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Belomorsk",
@@ -43444,7 +43669,8 @@
             51.66833
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Belomorsk",
@@ -43751,7 +43977,8 @@
             67.65588
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "jerusalen",
@@ -43930,7 +44157,8 @@
             33.34058
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "jerusalen",
@@ -44057,7 +44285,8 @@
             21.49012
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "jerusalen",
@@ -44208,7 +44437,8 @@
             30.50852
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "jerusalen",
@@ -44347,7 +44577,8 @@
             24.68773
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "jerusalen",
@@ -44518,7 +44749,8 @@
             19.61745
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Jarkiv",
@@ -44721,7 +44953,8 @@
             51.66833
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Jarkiv",
@@ -44984,7 +45217,8 @@
             51.54048
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Jarkiv",
@@ -45155,7 +45389,8 @@
             55.75204
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Jarkiv",
@@ -45370,7 +45605,8 @@
             53.20767
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Jarkiv",
@@ -45633,7 +45869,8 @@
             55.78874
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Arusha",
@@ -45748,7 +45985,8 @@
             -1.28333
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Arusha",
@@ -45871,7 +46109,8 @@
             -6.82349
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Arusha",
@@ -46054,7 +46293,8 @@
             19.61745
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Arusha",
@@ -46237,7 +46477,8 @@
             15.35452
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Nairobi",
@@ -46396,7 +46637,8 @@
             -6.82349
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Nairobi",
@@ -46567,7 +46809,8 @@
             19.61745
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Nairobi",
@@ -46722,7 +46965,8 @@
             21.49012
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Nairobi",
@@ -46901,7 +47145,8 @@
             15.35452
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Puerto Sudan",
@@ -47128,7 +47373,8 @@
             21.49012
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Puerto Sudan",
@@ -47275,7 +47521,8 @@
             33.34058
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Puerto Sudan",
@@ -47534,7 +47781,8 @@
             24.68773
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Puerto Sudan",
@@ -47701,7 +47949,8 @@
             30.50852
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Puerto Sudan",
@@ -47900,7 +48149,8 @@
             15.35452
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Moscu",
@@ -48055,7 +48305,8 @@
             51.66833
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Moscu",
@@ -48198,7 +48449,8 @@
             55.78874
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Moscu",
@@ -48341,7 +48593,8 @@
             51.54048
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Moscu",
@@ -48516,7 +48769,8 @@
             53.20767
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Moscu",
@@ -48639,7 +48893,8 @@
             64.5461
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "yidda",
@@ -48774,7 +49029,8 @@
             24.68773
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "yidda",
@@ -49001,7 +49257,8 @@
             15.35452
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "yidda",
@@ -49140,7 +49397,8 @@
             30.50852
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "yidda",
@@ -49311,7 +49569,8 @@
             33.34058
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "yidda",
@@ -49454,7 +49713,8 @@
             25.07725
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Voronezh",
@@ -49613,7 +49873,8 @@
             51.54048
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Voronezh",
@@ -49884,7 +50145,8 @@
             53.20767
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Voronezh",
@@ -50055,7 +50317,8 @@
             55.78874
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Voronezh",
@@ -50214,7 +50477,8 @@
             50.27969
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Voronezh",
@@ -50449,7 +50713,8 @@
             53.39808
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Dar Es-Salam",
@@ -50648,7 +50913,8 @@
             24.68773
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Dar Es-Salam",
@@ -50851,7 +51117,8 @@
             15.35452
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Dar Es-Salam",
@@ -51066,7 +51333,8 @@
             25.07725
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Arcángel",
@@ -51233,7 +51501,8 @@
             55.78874
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Arcángel",
@@ -51424,7 +51693,8 @@
             53.20767
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Arcángel",
@@ -51623,7 +51893,8 @@
             51.54048
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Arcángel",
@@ -51874,7 +52145,8 @@
             67.65588
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Arcángel",
@@ -52165,7 +52437,8 @@
             71.28024
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Sana",
@@ -52296,7 +52569,8 @@
             24.68773
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Sana",
@@ -52475,7 +52749,8 @@
             25.07725
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Sana",
@@ -52602,7 +52877,8 @@
             30.50852
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Sana",
@@ -52813,7 +53089,8 @@
             23.58413
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Sana",
@@ -52960,7 +53237,8 @@
             33.34058
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "bagdad",
@@ -53155,7 +53433,8 @@
             30.50852
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "bagdad",
@@ -53386,7 +53665,8 @@
             35.69439
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "bagdad",
@@ -53597,7 +53877,8 @@
             32.65246
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "bagdad",
@@ -53748,7 +54029,8 @@
             40.37767
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "bagdad",
@@ -53891,7 +54173,8 @@
             24.68773
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Saratov",
@@ -54122,7 +54405,8 @@
             53.20767
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Saratov",
@@ -54265,7 +54549,8 @@
             55.78874
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Saratov",
@@ -54464,7 +54749,8 @@
             50.27969
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Saratov",
@@ -54671,7 +54957,8 @@
             53.39808
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Saratov",
@@ -54878,7 +55165,8 @@
             55.1611
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Riad",
@@ -55033,7 +55321,8 @@
             30.50852
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Riad",
@@ -55168,7 +55457,8 @@
             25.07725
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Riad",
@@ -55279,7 +55569,8 @@
             23.58413
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Basora",
@@ -55570,7 +55861,8 @@
             32.65246
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Basora",
@@ -55821,7 +56113,8 @@
             35.69439
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Basora",
@@ -55952,7 +56245,8 @@
             25.07725
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Basora",
@@ -56155,7 +56449,8 @@
             40.37767
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Basora",
@@ -56314,7 +56609,8 @@
             23.58413
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Indiga",
@@ -56541,7 +56837,8 @@
             71.28024
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Indiga",
@@ -56760,7 +57057,8 @@
             55.78874
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Indiga",
@@ -56923,7 +57221,8 @@
             53.20767
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Indiga",
@@ -57174,7 +57473,8 @@
             55.1611
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kazan",
@@ -57313,7 +57613,8 @@
             53.20767
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kazan",
@@ -57596,7 +57897,8 @@
             53.39808
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kazan",
@@ -57767,7 +58069,8 @@
             55.1611
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kazan",
@@ -57918,7 +58221,8 @@
             50.27969
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kazan",
@@ -58141,7 +58445,8 @@
             54.87343
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Baku",
@@ -58324,7 +58629,8 @@
             35.69439
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Baku",
@@ -58443,7 +58749,8 @@
             32.65246
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Baku",
@@ -58638,7 +58945,8 @@
             35.27401
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Baku",
@@ -58873,7 +59181,8 @@
             41.55177
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Baku",
@@ -59076,7 +59385,8 @@
             50.27969
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Samara",
@@ -59271,7 +59581,8 @@
             50.27969
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Samara",
@@ -59522,7 +59833,8 @@
             53.39808
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Samara",
@@ -59669,7 +59981,8 @@
             55.1611
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Samara",
@@ -59876,7 +60189,8 @@
             54.87343
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Samara",
@@ -60107,7 +60421,8 @@
             44.85278
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Teheran",
@@ -60234,7 +60549,8 @@
             32.65246
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Teheran",
@@ -60485,7 +60801,8 @@
             35.27401
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Teheran",
@@ -60672,7 +60989,8 @@
             41.55177
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Isfahan",
@@ -60947,7 +61265,8 @@
             35.27401
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Isfahan",
@@ -61162,7 +61481,8 @@
             41.55177
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Isfahan",
@@ -61377,7 +61697,8 @@
             34.52813
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Dubai",
@@ -61508,7 +61829,8 @@
             23.58413
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Aktobe",
@@ -61647,7 +61969,8 @@
             53.39808
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Aktobe",
@@ -61786,7 +62109,8 @@
             55.1611
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Aktobe",
@@ -61925,7 +62249,8 @@
             44.85278
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Aktobe",
@@ -62084,7 +62409,8 @@
             54.87343
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Aktobe",
@@ -62291,7 +62617,8 @@
             51.1801
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Magnitogorsk",
@@ -62474,7 +62801,8 @@
             55.1611
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Magnitogorsk",
@@ -62673,7 +63001,8 @@
             54.87343
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Magnitogorsk",
@@ -62848,7 +63177,8 @@
             51.1801
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Magnitogorsk",
@@ -63015,7 +63345,8 @@
             54.99244
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Magnitogorsk",
@@ -63226,7 +63557,8 @@
             49.80187
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Urgench",
@@ -63369,7 +63701,8 @@
             35.27401
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Urgench",
@@ -63532,7 +63865,8 @@
             34.52813
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Urgench",
@@ -63807,7 +64141,8 @@
             44.85278
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Urgench",
@@ -64014,7 +64349,8 @@
             43.25249
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Urgench",
@@ -64177,7 +64513,8 @@
             49.80187
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Cheliabinsk",
@@ -64320,7 +64657,8 @@
             54.87343
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Cheliabinsk",
@@ -64443,7 +64781,8 @@
             54.99244
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Cheliabinsk",
@@ -64586,7 +64925,8 @@
             51.1801
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Cheliabinsk",
@@ -64765,7 +65105,8 @@
             49.80187
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Cheliabinsk",
@@ -64916,7 +65257,8 @@
             44.85278
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Serhetabat",
@@ -65115,7 +65457,8 @@
             34.52813
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Serhetabat",
@@ -65314,7 +65657,8 @@
             44.85278
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Serhetabat",
@@ -65545,7 +65889,8 @@
             43.25249
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Serhetabat",
@@ -65780,7 +66125,8 @@
             28.62137
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Serhetabat",
@@ -66031,7 +66377,8 @@
             26.91962
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kyzylorda",
@@ -66154,7 +66501,8 @@
             49.80187
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kyzylorda",
@@ -66281,7 +66629,8 @@
             43.25249
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kyzylorda",
@@ -66428,7 +66777,8 @@
             51.1801
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kyzylorda",
@@ -66623,7 +66973,8 @@
             34.52813
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kyzylorda",
@@ -66754,7 +67105,8 @@
             54.87343
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Petropavi",
@@ -66877,7 +67229,8 @@
             54.99244
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Petropavi",
@@ -67020,7 +67373,8 @@
             51.1801
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Petropavi",
@@ -67143,7 +67497,8 @@
             49.80187
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Petropavi",
@@ -67270,7 +67625,8 @@
             55.02259
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Petropavi",
@@ -67409,7 +67765,8 @@
             50.42064
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kabul",
@@ -67564,7 +67921,8 @@
             28.62137
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kabul",
@@ -67735,7 +68093,8 @@
             26.91962
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kabul",
@@ -67914,7 +68273,8 @@
             26.83928
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kabul",
@@ -68129,7 +68489,8 @@
             43.25249
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kabul",
@@ -68296,7 +68657,8 @@
             49.80187
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Astana",
@@ -68399,7 +68761,8 @@
             49.80187
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Astana",
@@ -68534,7 +68897,8 @@
             50.42064
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Astana",
@@ -68737,7 +69101,8 @@
             54.99244
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Astana",
@@ -68868,7 +69233,8 @@
             55.02259
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Astana",
@@ -69011,7 +69377,8 @@
             43.25249
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Sabetta",
@@ -69178,7 +69545,8 @@
             54.99244
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Sabetta",
@@ -69533,7 +69901,8 @@
             71.96495
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Bombay",
@@ -69744,7 +70113,8 @@
             17.38405
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Bombay",
@@ -69899,7 +70269,8 @@
             12.97194
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Bombay",
@@ -70026,7 +70397,8 @@
             26.91962
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Bombay",
@@ -70157,7 +70529,8 @@
             28.62137
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Bombay",
@@ -70316,7 +70689,8 @@
             26.83928
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Karaganda",
@@ -70499,7 +70873,8 @@
             50.42064
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Karaganda",
@@ -70610,7 +70985,8 @@
             43.25249
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Karaganda",
@@ -70765,7 +71141,8 @@
             54.99244
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Karaganda",
@@ -70924,7 +71301,8 @@
             55.02259
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Karaganda",
@@ -71119,7 +71497,8 @@
             43.80096
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Omsk",
@@ -71306,7 +71685,8 @@
             55.02259
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Omsk",
@@ -71417,7 +71797,8 @@
             50.42064
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Omsk",
@@ -71620,7 +72001,8 @@
             56.03742
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Omsk",
@@ -71767,7 +72149,8 @@
             43.25249
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Jaipur",
@@ -71886,7 +72269,8 @@
             28.62137
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Jaipur",
@@ -72073,7 +72457,8 @@
             26.83928
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Jaipur",
@@ -72216,7 +72601,8 @@
             17.38405
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Jaipur",
@@ -72315,7 +72701,8 @@
             12.97194
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Jaipur",
@@ -72562,7 +72949,8 @@
             29.65
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Almaty",
@@ -72805,7 +73193,8 @@
             43.80096
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Almaty",
@@ -72968,7 +73357,8 @@
             50.42064
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Almaty",
@@ -73143,7 +73533,8 @@
             42.83393
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Almaty",
@@ -73294,7 +73685,8 @@
             55.02259
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Almaty",
@@ -73489,7 +73881,8 @@
             28.62137
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "nueva delhi",
@@ -73684,7 +74077,8 @@
             26.83928
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "nueva delhi",
@@ -73831,7 +74225,8 @@
             17.38405
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "nueva delhi",
@@ -74022,7 +74417,8 @@
             23.77508
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "nueva delhi",
@@ -74237,7 +74633,8 @@
             29.65
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "nueva delhi",
@@ -74456,7 +74853,8 @@
             31.47678
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Bangalore",
@@ -74563,7 +74961,8 @@
             17.38405
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Bangalore",
@@ -74682,7 +75081,8 @@
             26.83928
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Bangalore",
@@ -74937,7 +75337,8 @@
             23.77508
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Bangalore",
@@ -75100,7 +75501,8 @@
             29.65
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Hyderabad",
@@ -75255,7 +75657,8 @@
             26.83928
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Hyderabad",
@@ -75438,7 +75841,8 @@
             23.77508
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Hyderabad",
@@ -75721,7 +76125,8 @@
             29.65
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Hyderabad",
@@ -75896,7 +76301,8 @@
             31.47678
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Semey",
@@ -76031,7 +76437,8 @@
             55.02259
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Semey",
@@ -76178,7 +76585,8 @@
             43.80096
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Semey",
@@ -76413,7 +76821,8 @@
             56.03742
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Semey",
@@ -76612,7 +77021,8 @@
             42.83393
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lucknow",
@@ -76819,7 +77229,8 @@
             23.77508
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lucknow",
@@ -77162,7 +77573,8 @@
             29.65
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lucknow",
@@ -77537,7 +77949,8 @@
             31.47678
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lucknow",
@@ -77804,7 +78217,8 @@
             31.1304
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lucknow",
@@ -78091,7 +78505,8 @@
             33.00118
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Novosibirsk",
@@ -78342,7 +78757,8 @@
             56.03742
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Novosibirsk",
@@ -78577,7 +78993,8 @@
             56.1325
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Novosibirsk",
@@ -78856,7 +79273,8 @@
             52.29566
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Novosibirsk",
@@ -79015,7 +79433,8 @@
             43.80096
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Urumchi",
@@ -79142,7 +79561,8 @@
             42.83393
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Urumchi",
@@ -79337,7 +79757,8 @@
             36.62554
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Urumchi",
@@ -79524,7 +79945,8 @@
             56.03742
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Urumchi",
@@ -79767,7 +80189,8 @@
             33.00118
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Urumchi",
@@ -79926,7 +80349,8 @@
             31.47678
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lhasa",
@@ -80037,7 +80461,8 @@
             31.47678
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lhasa",
@@ -80300,7 +80725,8 @@
             31.1304
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lhasa",
@@ -80555,7 +80981,8 @@
             33.00118
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lhasa",
@@ -80854,7 +81281,8 @@
             23.77508
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lhasa",
@@ -81105,7 +81533,8 @@
             30.66667
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tripura",
@@ -81284,7 +81713,8 @@
             31.47678
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tripura",
@@ -81691,7 +82121,8 @@
             25.03889
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tripura",
@@ -81954,7 +82385,8 @@
             31.1304
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tripura",
@@ -82217,7 +82649,8 @@
             33.00118
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tripura",
@@ -82504,7 +82937,8 @@
             30.66667
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Nagqu",
@@ -82803,7 +83237,8 @@
             31.1304
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Nagqu",
@@ -83182,7 +83617,8 @@
             33.00118
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Nagqu",
@@ -83489,7 +83925,8 @@
             36.62554
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Nagqu",
@@ -83708,7 +84145,8 @@
             36.05701
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Nagqu",
@@ -83935,7 +84373,8 @@
             30.66667
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Krasnoyarsk",
@@ -84194,7 +84633,8 @@
             56.1325
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Krasnoyarsk",
@@ -84381,7 +84821,8 @@
             52.29566
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Krasnoyarsk",
@@ -84716,7 +85157,8 @@
             47.90771
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Krasnoyarsk",
@@ -85135,7 +85577,8 @@
             62.53528
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Krasnoyarsk",
@@ -85474,7 +85917,8 @@
             52.04311
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kumul",
@@ -85617,7 +86061,8 @@
             36.62554
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kumul",
@@ -85760,7 +86205,8 @@
             36.05701
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kumul",
@@ -85915,7 +86361,8 @@
             38.46806
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kumul",
@@ -86090,7 +86537,8 @@
             47.90771
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kumul",
@@ -86293,7 +86741,8 @@
             33.00118
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Yushu",
@@ -86448,7 +86897,8 @@
             31.1304
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Yushu",
@@ -86643,7 +87093,8 @@
             36.62554
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Yushu",
@@ -86886,7 +87337,8 @@
             36.05701
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Yushu",
@@ -87117,7 +87569,8 @@
             30.66667
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Yushu",
@@ -87400,7 +87853,8 @@
             29.56026
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Chamdo",
@@ -87679,7 +88133,8 @@
             36.62554
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Chamdo",
@@ -87962,7 +88417,8 @@
             30.66667
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Chamdo",
@@ -88221,7 +88677,8 @@
             25.03889
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Chamdo",
@@ -88548,7 +89005,8 @@
             36.05701
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Chamdo",
@@ -88879,7 +89337,8 @@
             29.56026
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Bratsk",
@@ -89074,7 +89533,8 @@
             52.29566
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Bratsk",
@@ -89385,7 +89845,8 @@
             62.53528
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Bratsk",
@@ -89636,7 +90097,8 @@
             47.90771
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Bratsk",
@@ -89895,7 +90357,8 @@
             52.04311
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Bratsk",
@@ -90234,7 +90697,8 @@
             49.21141
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Xining",
@@ -90441,7 +90905,8 @@
             36.05701
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Xining",
@@ -90672,7 +91137,8 @@
             38.46806
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Xining",
@@ -90867,7 +91333,8 @@
             34.25833
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Xining",
@@ -91030,7 +91497,8 @@
             30.66667
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Xining",
@@ -91197,7 +91665,8 @@
             29.56026
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kunming",
@@ -91328,7 +91797,8 @@
             21.0245
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kunming",
@@ -91503,7 +91973,8 @@
             30.66667
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kunming",
@@ -91710,7 +92181,8 @@
             29.56026
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kunming",
@@ -91973,7 +92445,8 @@
             22.20056
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kunming",
@@ -92132,7 +92605,8 @@
             16.06778
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lanzhou",
@@ -92315,7 +92789,8 @@
             38.46806
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lanzhou",
@@ -92554,7 +93029,8 @@
             34.25833
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lanzhou",
@@ -92749,7 +93225,8 @@
             30.66667
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lanzhou",
@@ -92892,7 +93369,8 @@
             29.56026
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lanzhou",
@@ -93099,7 +93577,8 @@
             37.86944
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Chengdu",
@@ -93278,7 +93757,8 @@
             29.56026
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Chengdu",
@@ -93437,7 +93917,8 @@
             34.25833
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Chengdu",
@@ -93644,7 +94125,8 @@
             30.58333
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Chengdu",
@@ -93779,7 +94261,8 @@
             38.46806
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Chengdu",
@@ -93954,7 +94437,8 @@
             21.0245
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Irkutsk",
@@ -94233,7 +94717,8 @@
             47.90771
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Irkutsk",
@@ -94512,7 +94997,8 @@
             52.04311
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Irkutsk",
@@ -94783,7 +95269,8 @@
             49.21141
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Irkutsk",
@@ -95010,7 +95497,8 @@
             62.53528
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Irkutsk",
@@ -95189,7 +95677,8 @@
             38.46806
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Hanoi",
@@ -95348,7 +95837,8 @@
             16.06778
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Hanoi",
@@ -95527,7 +96017,8 @@
             22.20056
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Hanoi",
@@ -95722,7 +96213,8 @@
             22.54554
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Hanoi",
@@ -95873,7 +96365,8 @@
             29.56026
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Hanoi",
@@ -96008,7 +96501,8 @@
             30.58333
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Yinchuan",
@@ -96155,7 +96649,8 @@
             34.25833
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Yinchuan",
@@ -96322,7 +96817,8 @@
             37.86944
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Yinchuan",
@@ -96545,7 +97041,8 @@
             39.9075
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Yinchuan",
@@ -96776,7 +97273,8 @@
             36.66833
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Yinchuan",
@@ -97023,7 +97521,8 @@
             39.14222
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Chongqing",
@@ -97178,7 +97677,8 @@
             34.25833
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Chongqing",
@@ -97353,7 +97853,8 @@
             30.58333
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Chongqing",
@@ -97520,7 +98021,8 @@
             37.86944
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Chongqing",
@@ -97687,7 +98189,8 @@
             22.54554
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Chongqing",
@@ -97854,7 +98357,8 @@
             22.20056
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Jakarta",
@@ -98097,7 +98601,8 @@
             5.8402
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Jakarta",
@@ -98396,7 +98901,8 @@
             9.73917
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Ulan Bator",
@@ -98691,7 +99197,8 @@
             52.04311
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Ulan Bator",
@@ -98846,7 +99353,8 @@
             49.21141
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Ulan Bator",
@@ -99005,7 +99513,8 @@
             39.9075
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Ulan Bator",
@@ -99164,7 +99673,8 @@
             37.86944
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Ulan Bator",
@@ -99343,7 +99853,8 @@
             39.14222
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Da Nang",
@@ -99650,7 +100161,8 @@
             22.20056
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Da Nang",
@@ -99973,7 +100485,8 @@
             22.54554
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Xi'an",
@@ -100116,7 +100629,8 @@
             37.86944
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Xi'an",
@@ -100259,7 +100773,8 @@
             30.58333
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Xi'an",
@@ -100426,7 +100941,8 @@
             36.66833
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Xi'an",
@@ -100577,7 +101093,8 @@
             39.9075
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Xi'an",
@@ -100828,7 +101345,8 @@
             39.14222
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Shanxi",
@@ -101063,7 +101581,8 @@
             39.9075
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Shanxi",
@@ -101266,7 +101785,8 @@
             36.66833
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Shanxi",
@@ -101493,7 +102013,8 @@
             39.14222
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Shanxi",
@@ -101652,7 +102173,8 @@
             36.06488
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Shanxi",
@@ -101891,7 +102413,8 @@
             38.91222
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Chita",
@@ -102118,7 +102641,8 @@
             49.21141
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Chita",
@@ -102293,7 +102817,8 @@
             39.9075
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Chita",
@@ -102480,7 +103005,8 @@
             39.14222
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Chita",
@@ -102771,7 +103297,8 @@
             62.53528
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Macau",
@@ -103018,7 +103545,8 @@
             22.54554
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Macau",
@@ -103157,7 +103685,8 @@
             30.58333
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Macau",
@@ -103308,7 +103837,8 @@
             30.29365
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Macau",
@@ -103471,7 +104001,8 @@
             32.06167
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Mirni",
@@ -103710,7 +104241,8 @@
             62.03114
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Mirni",
@@ -103885,7 +104417,8 @@
             71.96495
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Mirni",
@@ -104088,7 +104621,8 @@
             71.62353
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Mirni",
@@ -104391,7 +104925,8 @@
             71.44044
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Shenzhen",
@@ -104534,7 +105069,8 @@
             30.58333
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Shenzhen",
@@ -104665,7 +105201,8 @@
             30.29365
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Shenzhen",
@@ -104820,7 +105357,8 @@
             32.06167
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Shenzhen",
@@ -104963,7 +105501,8 @@
             31.22222
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Saskylakh",
@@ -105222,7 +105761,8 @@
             62.03114
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Saskylakh",
@@ -105549,7 +106089,8 @@
             71.62353
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Saskylakh",
@@ -105968,7 +106509,8 @@
             71.44044
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Saskylakh",
@@ -106343,7 +106885,8 @@
             69.70282
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Wuhan",
@@ -106530,7 +107073,8 @@
             32.06167
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Wuhan",
@@ -106693,7 +107237,8 @@
             30.29365
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Wuhan",
@@ -106852,7 +107397,8 @@
             31.22222
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Wuhan",
@@ -106955,7 +107501,8 @@
             36.66833
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Wuhan",
@@ -107142,7 +107689,8 @@
             36.06488
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Perth",
@@ -107273,7 +107821,8 @@
             -32.1985
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Perth",
@@ -107444,7 +107993,8 @@
             -20.31215
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Perth",
@@ -107655,7 +108205,8 @@
             -32.49088
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Perth",
@@ -107874,7 +108425,8 @@
             -29.01337
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Perth",
@@ -108141,7 +108693,8 @@
             -23.69748
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Pekin",
@@ -108236,7 +108789,8 @@
             39.14222
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Pekin",
@@ -108335,7 +108889,8 @@
             36.66833
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Pekin",
@@ -108466,7 +109021,8 @@
             36.06488
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Pekin",
@@ -108601,7 +109157,8 @@
             38.91222
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Pekin",
@@ -108780,7 +109337,8 @@
             38.7375
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Jinan",
@@ -108931,7 +109489,8 @@
             39.14222
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Jinan",
@@ -109058,7 +109617,8 @@
             36.06488
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Jinan",
@@ -109201,7 +109761,8 @@
             32.06167
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Jinan",
@@ -109328,7 +109889,8 @@
             31.22222
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Jinan",
@@ -109535,7 +110097,8 @@
             38.91222
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tianjin",
@@ -109658,7 +110221,8 @@
             36.06488
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tianjin",
@@ -109889,7 +110453,8 @@
             38.91222
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tianjin",
@@ -109984,7 +110549,8 @@
             32.06167
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tianjin",
@@ -110167,7 +110733,8 @@
             39.03385
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tianjin",
@@ -110362,7 +110929,8 @@
             38.7375
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Sandakan",
@@ -110661,7 +111229,8 @@
             9.73917
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Sandakan",
@@ -111076,7 +111645,8 @@
             -0.86291
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Port Hedland",
@@ -111235,7 +111805,8 @@
             -32.1985
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Port Hedland",
@@ -111442,7 +112013,8 @@
             -14.46462
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Port Hedland",
@@ -111713,7 +112285,8 @@
             -23.69748
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Port Hedland",
@@ -112008,7 +112581,8 @@
             -20.72523
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Port Hedland",
@@ -112207,7 +112781,8 @@
             -29.01337
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Puerto Princesa",
@@ -112582,7 +113157,8 @@
             -0.86291
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Nakin",
@@ -112713,7 +113289,8 @@
             30.29365
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Nakin",
@@ -112888,7 +113465,8 @@
             31.22222
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Nakin",
@@ -113015,7 +113593,8 @@
             36.06488
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Nakin",
@@ -113202,7 +113781,8 @@
             38.91222
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Hulun Buir",
@@ -113329,7 +113909,8 @@
             38.91222
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Hulun Buir",
@@ -113464,7 +114045,8 @@
             39.03385
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Hulun Buir",
@@ -113603,7 +114185,8 @@
             38.7375
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Hulun Buir",
@@ -113742,7 +114325,8 @@
             39.15278
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Hangzhou",
@@ -113869,7 +114453,8 @@
             31.22222
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Hangzhou",
@@ -114024,7 +114609,8 @@
             36.06488
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Hangzhou",
@@ -114203,7 +114789,8 @@
             38.91222
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Qingdao",
@@ -114338,7 +114925,8 @@
             31.22222
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Qingdao",
@@ -114549,7 +115137,8 @@
             38.91222
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Qingdao",
@@ -114776,7 +115365,8 @@
             39.03385
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Qingdao",
@@ -115015,7 +115605,8 @@
             38.7375
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Qingdao",
@@ -115294,7 +115885,8 @@
             37.97083
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Shangai",
@@ -115489,7 +116081,8 @@
             38.91222
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Shangai",
@@ -115728,7 +116321,8 @@
             38.7375
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Shangai",
@@ -115967,7 +116561,8 @@
             37.97083
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Dalian",
@@ -116222,7 +116817,8 @@
             39.03385
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Dalian",
@@ -116493,7 +117089,8 @@
             38.7375
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Dalian",
@@ -116788,7 +117385,8 @@
             37.97083
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Dalian",
@@ -116959,7 +117557,8 @@
             39.15278
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Norseman",
@@ -117118,7 +117717,8 @@
             -32.49088
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Norseman",
@@ -117285,7 +117885,8 @@
             -29.01337
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Norseman",
@@ -117476,7 +118077,8 @@
             -34.92866
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Norseman",
@@ -117691,7 +118293,8 @@
             -23.69748
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Norseman",
@@ -117862,7 +118465,8 @@
             -20.72523
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Nampo",
@@ -117993,7 +118597,8 @@
             39.03385
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Nampo",
@@ -118132,7 +118737,8 @@
             37.97083
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Nampo",
@@ -118355,7 +118961,8 @@
             39.15278
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Pionyang",
@@ -118462,7 +119069,8 @@
             37.97083
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Pionyang",
@@ -118657,7 +119265,8 @@
             39.15278
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kaesŏng",
@@ -118872,7 +119481,8 @@
             39.15278
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tiksi",
@@ -119335,7 +119945,8 @@
             71.44044
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tiksi",
@@ -119542,7 +120153,8 @@
             62.03114
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tiksi",
@@ -119705,7 +120317,8 @@
             59.56274
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tiksi",
@@ -120168,7 +120781,8 @@
             69.70282
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Yakutsk",
@@ -120423,7 +121037,8 @@
             71.44044
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Yakutsk",
@@ -120782,7 +121397,8 @@
             59.56274
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Yakutsk",
@@ -121069,7 +121685,8 @@
             61.91921
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Fukuoka",
@@ -121356,7 +121973,8 @@
             34.69379
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Fukuoka",
@@ -121627,7 +122245,8 @@
             35.6895
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Fukuoka",
@@ -121858,7 +122477,8 @@
             41.77583
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Fukuoka",
@@ -122121,7 +122741,8 @@
             43.06667
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Katherine",
@@ -122220,7 +122841,8 @@
             -23.69748
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Katherine",
@@ -122411,7 +123033,8 @@
             -20.72523
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Katherine",
@@ -122586,7 +123209,8 @@
             -20.07141
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Katherine",
@@ -122769,7 +123393,8 @@
             -19.26639
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Alice Springs",
@@ -122880,7 +123505,8 @@
             -29.01337
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Alice Springs",
@@ -123067,7 +123693,8 @@
             -20.72523
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Alice Springs",
@@ -123190,7 +123817,8 @@
             -32.49088
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Alice Springs",
@@ -123329,7 +123957,8 @@
             -34.92866
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Alice Springs",
@@ -123500,7 +124129,8 @@
             -20.07141
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Coober Pedy",
@@ -123623,7 +124253,8 @@
             -32.49088
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Coober Pedy",
@@ -123806,7 +124437,8 @@
             -34.92866
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Coober Pedy",
@@ -123961,7 +124593,8 @@
             -37.814
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Coober Pedy",
@@ -124100,7 +124733,8 @@
             -32.24295
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Coober Pedy",
@@ -124267,7 +124901,8 @@
             -20.72523
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Osaka",
@@ -124490,7 +125125,8 @@
             35.6895
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Osaka",
@@ -124657,7 +125293,8 @@
             41.77583
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Osaka",
@@ -124856,7 +125493,8 @@
             43.06667
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Nizhneyansk",
@@ -125027,7 +125665,8 @@
             59.56274
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Nizhneyansk",
@@ -125382,7 +126021,8 @@
             61.91921
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Nizhneyansk",
@@ -125861,7 +126501,8 @@
             69.70282
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Nizhneyansk",
@@ -126376,7 +127017,8 @@
             69.35922
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Port Augusta",
@@ -126499,7 +127141,8 @@
             -34.92866
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Port Augusta",
@@ -126706,7 +127349,8 @@
             -37.814
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Port Augusta",
@@ -126885,7 +127529,8 @@
             -32.24295
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Port Augusta",
@@ -127048,7 +127693,8 @@
             -33.86785
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Port Augusta",
@@ -127215,7 +127861,8 @@
             -20.72523
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Adelaida",
@@ -127366,7 +128013,8 @@
             -37.814
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Adelaida",
@@ -127581,7 +128229,8 @@
             -32.24295
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Adelaida",
@@ -127724,7 +128373,8 @@
             -33.86785
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Adelaida",
@@ -127875,7 +128525,8 @@
             -42.87936
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Adelaida",
@@ -128050,7 +128701,8 @@
             -23.52631
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Mount Isa",
@@ -128169,7 +128821,8 @@
             -20.07141
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Mount Isa",
@@ -128308,7 +128961,8 @@
             -19.26639
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Mount Isa",
@@ -128463,7 +129117,8 @@
             -23.52631
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Mount Isa",
@@ -128646,7 +129301,8 @@
             -32.24295
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tokio",
@@ -128761,7 +129417,8 @@
             41.77583
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tokio",
@@ -128916,7 +129573,8 @@
             43.06667
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Hakodate",
@@ -129171,7 +129829,8 @@
             43.06667
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Melbourne",
@@ -129322,7 +129981,8 @@
             -42.87936
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Melbourne",
@@ -129465,7 +130125,8 @@
             -32.24295
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Melbourne",
@@ -129676,7 +130337,8 @@
             -33.86785
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Melbourne",
@@ -129815,7 +130477,8 @@
             -23.52631
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Melbourne",
@@ -129950,7 +130613,8 @@
             -20.07141
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Charters Towers",
@@ -130125,7 +130789,8 @@
             -19.26639
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Charters Towers",
@@ -130240,7 +130905,8 @@
             -23.52631
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Charters Towers",
@@ -130395,7 +131061,8 @@
             -32.24295
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Charters Towers",
@@ -130518,7 +131185,8 @@
             -33.86785
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Townsville",
@@ -130649,7 +131317,8 @@
             -23.52631
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Townsville",
@@ -130768,7 +131437,8 @@
             -32.24295
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Townsville",
@@ -130899,7 +131569,8 @@
             -33.86785
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Hobart",
@@ -131070,7 +131741,8 @@
             -32.24295
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Hobart",
@@ -131257,7 +131929,8 @@
             -33.86785
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Hobart",
@@ -131436,7 +132109,8 @@
             -23.52631
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Emerald",
@@ -131567,7 +132241,8 @@
             -32.24295
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Emerald",
@@ -131726,7 +132401,8 @@
             -33.86785
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Dubbo",
@@ -131929,7 +132605,8 @@
             -33.86785
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Magadan",
@@ -132208,7 +132885,8 @@
             61.91921
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Magadan",
@@ -132487,7 +133165,8 @@
             69.70282
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Magadan",
@@ -132834,7 +133513,8 @@
             64.7421
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Evensk",
@@ -133077,7 +133757,8 @@
             69.70282
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Evensk",
@@ -133360,7 +134041,8 @@
             69.35922
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Evensk",
@@ -133675,7 +134357,8 @@
             64.7421
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Pevek",
@@ -133870,7 +134553,8 @@
             69.35922
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Pevek",
@@ -134093,7 +134777,8 @@
             64.7421
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Ugolnye Kopi",
@@ -134352,7 +135037,8 @@
             69.35922
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Apia",
@@ -134395,7 +135081,8 @@
             -9.37356
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kodiak",
@@ -134450,7 +135137,8 @@
             60.07275
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kodiak",
@@ -134645,7 +135333,8 @@
             61.21631
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kodiak",
@@ -134788,7 +135477,8 @@
             59.57273
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kodiak",
@@ -134927,7 +135617,8 @@
             64.83778
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Kodiak",
@@ -135222,7 +135913,8 @@
             69.44402
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Anchorage",
@@ -135373,7 +136065,8 @@
             60.07275
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Anchorage",
@@ -135496,7 +136189,8 @@
             64.83778
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Anchorage",
@@ -135615,7 +136309,8 @@
             59.57273
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Anchorage",
@@ -135854,7 +136549,8 @@
             69.44402
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Anchorage",
@@ -136229,7 +136925,8 @@
             52.14781
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Chenega",
@@ -136352,7 +137049,8 @@
             59.57273
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Chenega",
@@ -136519,7 +137217,8 @@
             64.83778
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Chenega",
@@ -136786,7 +137485,8 @@
             69.44402
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Chenega",
@@ -137189,7 +137889,8 @@
             52.14781
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Fairbanks",
@@ -137360,7 +138061,8 @@
             59.57273
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Fairbanks",
@@ -137571,7 +138273,8 @@
             69.44402
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Fairbanks",
@@ -137854,7 +138557,8 @@
             62.45411
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Fairbanks",
@@ -138201,7 +138905,8 @@
             52.14781
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Yakutat",
@@ -138464,7 +139169,8 @@
             69.44402
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Yakutat",
@@ -138731,7 +139437,8 @@
             62.45411
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Yakutat",
@@ -139042,7 +139749,8 @@
             49.24966
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Yakutat",
@@ -139373,7 +140081,8 @@
             52.14781
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tuktoyaktuk",
@@ -139728,7 +140437,8 @@
             62.45411
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Shearwater",
@@ -140111,7 +140821,8 @@
             49.24966
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Shearwater",
@@ -140350,7 +141061,8 @@
             51.05011
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Shearwater",
@@ -140585,7 +141297,8 @@
             53.55014
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Shearwater",
@@ -140860,7 +141573,8 @@
             52.13238
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Shearwater",
@@ -141075,7 +141789,8 @@
             62.45411
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Vancouver",
@@ -141370,7 +142085,8 @@
             51.05011
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Vancouver",
@@ -141553,7 +142269,8 @@
             53.55014
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Vancouver",
@@ -141668,7 +142385,8 @@
             37.77493
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Vancouver",
@@ -141787,7 +142505,8 @@
             37.33939
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Vancouver",
@@ -142014,7 +142733,8 @@
             52.13238
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "San Francisco",
@@ -142117,7 +142837,8 @@
             37.33939
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "San Francisco",
@@ -142248,7 +142969,8 @@
             34.06334
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "San Francisco",
@@ -142383,7 +143105,8 @@
             32.71571
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "San Francisco",
@@ -142554,7 +143277,8 @@
             36.17497
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "San Francisco",
@@ -142733,7 +143457,8 @@
             33.44838
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "San Jose",
@@ -142876,7 +143601,8 @@
             34.06334
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "San Jose",
@@ -143019,7 +143745,8 @@
             32.71571
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "San Jose",
@@ -143190,7 +143917,8 @@
             36.17497
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "San Jose",
@@ -143377,7 +144105,8 @@
             33.44838
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "San Jose",
@@ -143592,7 +144321,8 @@
             32.22174
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Ontario",
@@ -143735,7 +144465,8 @@
             32.71571
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Ontario",
@@ -143882,7 +144613,8 @@
             36.17497
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Ontario",
@@ -143997,7 +144729,8 @@
             33.44838
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Ontario",
@@ -144112,7 +144845,8 @@
             32.22174
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Ontario",
@@ -144291,7 +145025,8 @@
             31.72024
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "San Diego",
@@ -144422,7 +145157,8 @@
             36.17497
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "San Diego",
@@ -144605,7 +145341,8 @@
             33.44838
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "San Diego",
@@ -144732,7 +145469,8 @@
             32.22174
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "San Diego",
@@ -144923,7 +145661,8 @@
             31.72024
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "San Diego",
@@ -145150,7 +145889,8 @@
             28.63528
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Las Vegas",
@@ -145305,7 +146045,8 @@
             33.44838
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Las Vegas",
@@ -145444,7 +146185,8 @@
             32.22174
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Las Vegas",
@@ -145647,7 +146389,8 @@
             31.72024
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Las Vegas",
@@ -145906,7 +146649,8 @@
             39.73915
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Las Vegas",
@@ -146041,7 +146785,8 @@
             28.63528
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Yellowknife",
@@ -146188,7 +146933,8 @@
             53.55014
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Calgary",
@@ -146267,7 +147013,8 @@
             53.55014
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Calgary",
@@ -146398,7 +147145,8 @@
             52.13238
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Calgary",
@@ -146569,7 +147317,8 @@
             50.45008
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Calgary",
@@ -146696,7 +147445,8 @@
             49.8844
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Calgary",
@@ -146819,7 +147569,8 @@
             39.73915
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Edmonton",
@@ -146938,7 +147689,8 @@
             52.13238
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Edmonton",
@@ -147113,7 +147865,8 @@
             50.45008
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Edmonton",
@@ -147256,7 +148009,8 @@
             49.8844
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Phoenix",
@@ -147351,7 +148105,8 @@
             32.22174
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Phoenix",
@@ -147522,7 +148277,8 @@
             31.72024
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Phoenix",
@@ -147685,7 +148441,8 @@
             28.63528
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Phoenix",
@@ -147852,7 +148609,8 @@
             39.73915
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Phoenix",
@@ -148007,7 +148765,8 @@
             29.42412
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tucson",
@@ -148142,7 +148901,8 @@
             31.72024
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tucson",
@@ -148285,7 +149045,8 @@
             28.63528
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tucson",
@@ -148424,7 +149185,8 @@
             29.42412
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tucson",
@@ -148579,7 +149341,8 @@
             39.73915
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tucson",
@@ -148738,7 +149501,8 @@
             25.68435
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Saskatoon",
@@ -148841,7 +149605,8 @@
             50.45008
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Saskatoon",
@@ -149008,7 +149773,8 @@
             49.8844
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Saskatoon",
@@ -149123,7 +149889,8 @@
             39.73915
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Saskatoon",
@@ -149238,7 +150005,8 @@
             40.8
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Juarez",
@@ -149321,7 +150089,8 @@
             28.63528
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Juarez",
@@ -149452,7 +150221,8 @@
             29.42412
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Juarez",
@@ -149599,7 +150369,8 @@
             32.78306
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Juarez",
@@ -149718,7 +150489,8 @@
             39.73915
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Juarez",
@@ -149901,7 +150673,8 @@
             25.68435
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Chihuahua",
@@ -150056,7 +150829,8 @@
             25.68435
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Chihuahua",
@@ -150235,7 +151009,8 @@
             29.42412
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Chihuahua",
@@ -150350,7 +151125,8 @@
             22.15234
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Chihuahua",
@@ -150481,7 +151257,8 @@
             21.53814
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Chihuahua",
@@ -150636,7 +151413,8 @@
             20.617
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Puerto Vallarta",
@@ -150811,7 +151589,8 @@
             21.53814
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Puerto Vallarta",
@@ -151050,7 +151829,8 @@
             22.15234
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Puerto Vallarta",
@@ -151213,7 +151993,8 @@
             19.42847
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Puerto Vallarta",
@@ -151416,7 +152197,8 @@
             22.28519
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Puerto Vallarta",
@@ -151611,7 +152393,8 @@
             25.68435
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "San Blas",
@@ -151834,7 +152617,8 @@
             22.15234
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "San Blas",
@@ -151989,7 +152773,8 @@
             19.42847
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "San Blas",
@@ -152184,7 +152969,8 @@
             22.28519
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "San Blas",
@@ -152375,7 +153161,8 @@
             25.68435
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "San Blas",
@@ -152562,7 +153349,8 @@
             18.46422
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Dener",
@@ -152677,7 +153465,8 @@
             40.8
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Dener",
@@ -152820,7 +153609,8 @@
             39.09973
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Dener",
@@ -152967,7 +153757,8 @@
             32.78306
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Dener",
@@ -153062,7 +153853,8 @@
             50.45008
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Dener",
@@ -153197,7 +153989,8 @@
             49.8844
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Regina",
@@ -153320,7 +154113,8 @@
             49.8844
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Regina",
@@ -153471,7 +154265,8 @@
             40.8
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Regina",
@@ -153594,7 +154389,8 @@
             39.09973
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "San Luis Potosí",
@@ -153773,7 +154569,8 @@
             22.28519
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "San Luis Potosí",
@@ -153928,7 +154725,8 @@
             19.42847
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "San Luis Potosí",
@@ -154035,7 +154833,8 @@
             25.68435
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "San Luis Potosí",
@@ -154166,7 +154965,8 @@
             18.46422
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "San Luis Potosí",
@@ -154261,7 +155061,8 @@
             29.42412
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Monterey",
@@ -154328,7 +155129,8 @@
             29.42412
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Monterey",
@@ -154423,7 +155225,8 @@
             22.28519
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Monterey",
@@ -154498,7 +155301,8 @@
             29.76328
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Monterey",
@@ -154653,7 +155457,8 @@
             19.42847
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Monterey",
@@ -154784,7 +155589,8 @@
             18.46422
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Ciudad de Mexico",
@@ -154931,7 +155737,8 @@
             18.46422
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Ciudad de Mexico",
@@ -155058,7 +155865,8 @@
             22.28519
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Ciudad de Mexico",
@@ -155205,7 +156013,8 @@
             16.75357
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Ciudad de Mexico",
@@ -155340,7 +156149,8 @@
             29.42412
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Ciudad de Mexico",
@@ -155583,7 +156393,8 @@
             15.72724
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "San Antonio",
@@ -155674,7 +156485,8 @@
             29.76328
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "San Antonio",
@@ -155777,7 +156589,8 @@
             32.78306
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "San Antonio",
@@ -155876,7 +156689,8 @@
             22.28519
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "San Antonio",
@@ -156067,7 +156881,8 @@
             35.14953
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "San Antonio",
@@ -156182,7 +156997,8 @@
             39.09973
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tampico",
@@ -156305,7 +157121,8 @@
             18.46422
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tampico",
@@ -156468,7 +157285,8 @@
             16.75357
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tampico",
@@ -156583,7 +157401,8 @@
             29.76328
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tampico",
@@ -156714,7 +157533,8 @@
             32.78306
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tampico",
@@ -156957,7 +157777,8 @@
             21.17429
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tehuacán",
@@ -157144,7 +157965,8 @@
             16.75357
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tehuacán",
@@ -157359,7 +158181,8 @@
             15.72724
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tehuacán",
@@ -157618,7 +158441,8 @@
             13.68935
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tehuacán",
@@ -157817,7 +158641,8 @@
             21.17429
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tehuacán",
@@ -158092,7 +158917,8 @@
             15.75971
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Winnipeg",
@@ -158203,7 +159029,8 @@
             40.8
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Winnipeg",
@@ -158298,7 +159125,8 @@
             39.09973
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Winnipeg",
@@ -158501,7 +159329,8 @@
             42.33143
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Dallas",
@@ -158584,7 +159413,8 @@
             29.76328
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Dallas",
@@ -158715,7 +159545,8 @@
             35.14953
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Dallas",
@@ -158794,7 +159625,8 @@
             39.09973
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Dallas",
@@ -158873,7 +159705,8 @@
             40.8
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Dallas",
@@ -159016,7 +159849,8 @@
             27.94752
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lincoln",
@@ -159143,7 +159977,8 @@
             39.09973
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lincoln",
@@ -159282,7 +160117,8 @@
             35.14953
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lincoln",
@@ -159405,7 +160241,8 @@
             42.33143
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lincoln",
@@ -159516,7 +160353,8 @@
             29.76328
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lincoln",
@@ -159699,7 +160537,8 @@
             45.41117
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Houston",
@@ -159854,7 +160693,8 @@
             35.14953
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Houston",
@@ -159961,7 +160801,8 @@
             39.09973
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Houston",
@@ -160076,7 +160917,8 @@
             27.94752
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Houston",
@@ -160187,7 +161029,8 @@
             16.75357
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Houston",
@@ -160422,7 +161265,8 @@
             21.17429
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Westport",
@@ -160593,7 +161437,8 @@
             35.14953
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Westport",
@@ -160716,7 +161561,8 @@
             42.33143
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Westport",
@@ -160871,7 +161717,8 @@
             40.91677
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Westport",
@@ -161050,7 +161897,8 @@
             27.94752
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Westport",
@@ -161233,7 +162081,8 @@
             45.41117
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tuxtla Gutierrez",
@@ -161472,7 +162321,8 @@
             15.72724
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tuxtla Gutierrez",
@@ -161771,7 +162621,8 @@
             13.68935
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tuxtla Gutierrez",
@@ -161978,7 +162829,8 @@
             15.75971
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tuxtla Gutierrez",
@@ -162157,7 +163009,8 @@
             21.17429
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tuxtla Gutierrez",
@@ -162408,7 +163261,8 @@
             14.0818
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Memphis",
@@ -162555,7 +163409,8 @@
             42.33143
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Memphis",
@@ -162678,7 +163533,8 @@
             27.94752
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Memphis",
@@ -162825,7 +163681,8 @@
             25.77427
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Memphis",
@@ -162996,7 +163853,8 @@
             40.91677
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Memphis",
@@ -163151,7 +164009,8 @@
             40.71427
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "San Salvador",
@@ -163406,7 +164265,8 @@
             14.0818
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "San Salvador",
@@ -163569,7 +164429,8 @@
             15.72724
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "San Salvador",
@@ -163768,7 +164629,8 @@
             12.13282
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "San Salvador",
@@ -163999,7 +164861,8 @@
             15.75971
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "San Salvador",
@@ -164230,7 +165093,8 @@
             14.03507
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Puerto Barrios",
@@ -164473,7 +165337,8 @@
             15.75971
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Puerto Barrios",
@@ -164656,7 +165521,8 @@
             14.0818
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Puerto Barrios",
@@ -164823,7 +165689,8 @@
             12.13282
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Puerto Barrios",
@@ -165022,7 +165889,8 @@
             21.17429
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Puerto Barrios",
@@ -165453,7 +166321,8 @@
             14.03507
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tegucigalpa",
@@ -165612,7 +166481,8 @@
             12.13282
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tegucigalpa",
@@ -165807,7 +166677,8 @@
             15.75971
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tegucigalpa",
@@ -166098,7 +166969,8 @@
             14.03507
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tegucigalpa",
@@ -166317,7 +167189,8 @@
             8.27256
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tegucigalpa",
@@ -166468,7 +167341,8 @@
             21.17429
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Cancún",
@@ -166711,7 +167585,8 @@
             15.75971
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Cancún",
@@ -166894,7 +167769,8 @@
             12.13282
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Cancún",
@@ -167113,7 +167989,8 @@
             14.03507
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Cancún",
@@ -167304,7 +168181,8 @@
             27.94752
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Cancún",
@@ -167507,7 +168385,8 @@
             25.77427
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "La Celba",
@@ -167678,7 +168557,8 @@
             12.13282
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "La Celba",
@@ -168069,7 +168949,8 @@
             14.03507
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "La Celba",
@@ -168232,7 +169113,8 @@
             8.27256
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "La Celba",
@@ -168439,7 +169321,8 @@
             8.9936
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "La Celba",
@@ -168658,7 +169541,8 @@
             9.36025
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Managua",
@@ -168885,7 +169769,8 @@
             14.03507
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Managua",
@@ -169032,7 +169917,8 @@
             8.27256
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Managua",
@@ -169247,7 +170133,8 @@
             8.9936
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Managua",
@@ -169462,7 +170349,8 @@
             9.36025
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Bilwi",
@@ -169673,7 +170561,8 @@
             8.27256
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Bilwi",
@@ -169948,7 +170837,8 @@
             8.9936
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Bilwi",
@@ -170231,7 +171121,8 @@
             9.36025
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Detroit",
@@ -170374,7 +171265,8 @@
             45.41117
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Detroit",
@@ -170577,7 +171469,8 @@
             40.91677
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Detroit",
@@ -170780,7 +171673,8 @@
             40.71427
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Detroit",
@@ -170895,7 +171789,8 @@
             27.94752
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Detroit",
@@ -171026,7 +171921,8 @@
             25.77427
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Puerto Armuelles",
@@ -171265,7 +172161,8 @@
             8.9936
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Puerto Armuelles",
@@ -171516,7 +172413,8 @@
             9.36025
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tampa",
@@ -171639,7 +172537,8 @@
             25.77427
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tampa",
@@ -171750,7 +172649,8 @@
             40.71427
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Colón",
@@ -171957,7 +172857,8 @@
             8.9936
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Quito",
@@ -172196,7 +173097,8 @@
             4.60971
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Quito",
@@ -172435,7 +173337,8 @@
             6.245
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Quito",
@@ -172594,7 +173497,8 @@
             -12.04318
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Quito",
@@ -172721,7 +173625,8 @@
             -13.53188
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lima",
@@ -173112,7 +174017,8 @@
             -13.53188
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lima",
@@ -173295,7 +174201,8 @@
             -19.58361
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lima",
@@ -173494,7 +174401,8 @@
             -14.83494
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lima",
@@ -173621,7 +174529,8 @@
             4.60971
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lima",
@@ -173760,7 +174669,8 @@
             6.245
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Ottawa",
@@ -173943,7 +174853,8 @@
             40.91677
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Ottawa",
@@ -174126,7 +175037,8 @@
             40.71427
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Ottawa",
@@ -174453,7 +175365,8 @@
             53.70625
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Ottawa",
@@ -174936,7 +175849,8 @@
             47.69358
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Medellín",
@@ -175275,7 +176189,8 @@
             4.60971
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Great Falls",
@@ -175410,7 +176325,8 @@
             40.71427
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Great Falls",
@@ -175613,7 +176529,8 @@
             53.70625
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Great Falls",
@@ -175896,7 +176813,8 @@
             47.69358
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Bogotá",
@@ -176187,7 +177105,8 @@
             6.80448
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Nueva York",
@@ -176390,7 +177309,8 @@
             53.70625
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Nueva York",
@@ -176673,7 +177593,8 @@
             47.69358
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Cuzco",
@@ -176916,7 +177837,8 @@
             -19.58361
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Cuzco",
@@ -177191,7 +178113,8 @@
             -14.83494
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Cuzco",
@@ -177342,7 +178265,8 @@
             -31.64881
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Cuzco",
@@ -177525,7 +178449,8 @@
             6.80448
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Cuzco",
@@ -177684,7 +178609,8 @@
             -6.0675
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Potosí",
@@ -177943,7 +178869,8 @@
             -14.83494
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Potosí",
@@ -178118,7 +179045,8 @@
             -31.64881
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Potosí",
@@ -178365,7 +179293,8 @@
             -16.735
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Potosí",
@@ -178596,7 +179525,8 @@
             -6.0675
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Potosí",
@@ -178827,7 +179757,8 @@
             -5.08917
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Trinidad",
@@ -178958,7 +179889,8 @@
             -31.64881
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Trinidad",
@@ -179189,7 +180121,8 @@
             -16.735
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Trinidad",
@@ -179492,7 +180425,8 @@
             -6.0675
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Trinidad",
@@ -179663,7 +180597,8 @@
             6.80448
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Trinidad",
@@ -179874,7 +180809,8 @@
             -5.08917
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Santa Fe",
@@ -180029,7 +180965,8 @@
             -16.735
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Santa Fe",
@@ -180224,7 +181161,8 @@
             -12.97563
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Santa Fe",
@@ -180439,7 +181377,8 @@
             -6.0675
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Santa Fe",
@@ -180570,7 +181509,8 @@
             -5.08917
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Santa Fe",
@@ -180721,7 +181661,8 @@
             6.80448
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Georgetown",
@@ -181056,7 +181997,8 @@
             -6.0675
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Georgetown",
@@ -181439,7 +182381,8 @@
             -5.08917
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Georgetown",
@@ -181686,7 +182629,8 @@
             -12.97563
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Georgetown",
@@ -181937,7 +182881,8 @@
             -16.735
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Cartwright",
@@ -182160,7 +183105,8 @@
             47.69358
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Parauapebas",
@@ -182339,7 +183285,8 @@
             -5.08917
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Parauapebas",
@@ -182538,7 +183485,8 @@
             -16.735
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Parauapebas",
@@ -182737,7 +183685,8 @@
             -12.97563
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Montes Claros",
@@ -182912,7 +183861,8 @@
             -12.97563
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Dakar",
@@ -183043,7 +183993,8 @@
             18.08581
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Dakar",
@@ -183250,7 +184201,8 @@
             12.60915
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Dakar",
@@ -183449,7 +184401,8 @@
             6.30054
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Dakar",
@@ -183644,7 +184597,8 @@
             16.77348
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Nuakchot",
@@ -183867,7 +184821,8 @@
             12.60915
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Nuakchot",
@@ -184026,7 +184981,8 @@
             16.77348
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Nuakchot",
@@ -184277,7 +185233,8 @@
             6.30054
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Nuakchot",
@@ -184488,7 +185445,8 @@
             5.35444
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Nuakchot",
@@ -184707,7 +185665,8 @@
             13.51366
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Monrovia",
@@ -184898,7 +185857,8 @@
             5.35444
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Monrovia",
@@ -185129,7 +186089,8 @@
             12.60915
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Monrovia",
@@ -185324,7 +186285,8 @@
             16.77348
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Monrovia",
@@ -185523,7 +186485,8 @@
             13.51366
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lisboa",
@@ -185754,7 +186717,8 @@
             45.74906
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lisboa",
@@ -185881,7 +186845,8 @@
             48.85341
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lisboa",
@@ -186028,7 +186993,8 @@
             50.79899
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lisboa",
@@ -186175,7 +187141,8 @@
             51.50853
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Lisboa",
@@ -186322,7 +187289,8 @@
             51.5107
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Bamako",
@@ -186489,7 +187457,8 @@
             16.77348
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Bamako",
@@ -186608,7 +187577,8 @@
             5.35444
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Bamako",
@@ -186827,7 +187797,8 @@
             13.51366
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Bamako",
@@ -187054,7 +188025,8 @@
             12.00012
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Bamako",
@@ -187325,7 +188297,8 @@
             22.785
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tórshavn",
@@ -187432,7 +188405,8 @@
             52.37403
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tórshavn",
@@ -187631,7 +188605,8 @@
             59.91273
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tórshavn",
@@ -187754,7 +188729,8 @@
             51.50853
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tórshavn",
@@ -187877,7 +188853,8 @@
             51.5107
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Tórshavn",
@@ -188064,7 +189041,8 @@
             57.47908
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Inverness",
@@ -188207,7 +189185,8 @@
             51.5107
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Inverness",
@@ -188350,7 +189329,8 @@
             51.50853
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Inverness",
@@ -188509,7 +189489,8 @@
             50.79899
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Inverness",
@@ -188736,7 +189717,8 @@
             52.37403
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Inverness",
@@ -188951,7 +189933,8 @@
             59.91273
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Abiyan",
@@ -189114,7 +190097,8 @@
             13.51366
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Abiyan",
@@ -189277,7 +190261,8 @@
             16.77348
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Abiyan",
@@ -189460,7 +190445,8 @@
             12.00012
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Abiyan",
@@ -189771,7 +190757,8 @@
             0.39241
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "tombuctu",
@@ -189950,7 +190937,8 @@
             13.51366
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "tombuctu",
@@ -190145,7 +191133,8 @@
             22.785
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "tombuctu",
@@ -190332,7 +191321,8 @@
             24.07152
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "tombuctu",
@@ -190515,7 +191505,8 @@
             12.00012
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Portsmouth",
@@ -190682,7 +191673,8 @@
             51.50853
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Portsmouth",
@@ -190853,7 +191845,8 @@
             51.5107
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Portsmouth",
@@ -191072,7 +192065,8 @@
             50.85045
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Portsmouth",
@@ -191299,7 +192293,8 @@
             48.85341
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Portsmouth",
@@ -191490,7 +192485,8 @@
             52.37403
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Savile Row",
@@ -191609,7 +192605,8 @@
             51.50853
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Savile Row",
@@ -191792,7 +192789,8 @@
             50.85045
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Savile Row",
@@ -192063,7 +193061,8 @@
             52.37403
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Savile Row",
@@ -192226,7 +193225,8 @@
             48.85341
           ]
         ]
-      }
+      },
+      "heading": "east"
     },
     {
       "origin": "Savile Row",
@@ -192479,6 +193479,299 @@
           [
             9.99302,
             53.55073
+          ]
+        ]
+      },
+      "heading": "east"
+    },
+    {
+      "origin": "Teresina",
+      "originLat": -5.08917,
+      "originLng": -42.80194,
+      "destination": "Parauapebas",
+      "destinationLat": -6.0675,
+      "destinationLng": -49.90222,
+      "distanceKm": 956.5,
+      "durationHours": 13.3,
+      "heading": "west",
+      "roadOrigin": {
+        "name": "Rua São Pedro",
+        "lat": -5.089,
+        "lng": -42.80203,
+        "snapKm": 0.0
+      },
+      "roadDest": {
+        "name": "Rua C",
+        "lat": -6.06761,
+        "lng": -49.90227,
+        "snapKm": 0.0
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -42.80194,
+            -5.08917
+          ],
+          [
+            -42.80203,
+            -5.089
+          ],
+          [
+            -42.79594,
+            -5.12312
+          ],
+          [
+            -42.8589,
+            -5.14161
+          ],
+          [
+            -43.01719,
+            -5.09103
+          ],
+          [
+            -43.26663,
+            -5.20658
+          ],
+          [
+            -43.56725,
+            -5.23145
+          ],
+          [
+            -43.71732,
+            -5.30547
+          ],
+          [
+            -43.83307,
+            -5.26613
+          ],
+          [
+            -43.91496,
+            -5.32433
+          ],
+          [
+            -44.04067,
+            -5.31696
+          ],
+          [
+            -44.18057,
+            -5.37701
+          ],
+          [
+            -44.49634,
+            -5.28144
+          ],
+          [
+            -44.84566,
+            -5.41186
+          ],
+          [
+            -45.14715,
+            -5.45021
+          ],
+          [
+            -45.2302,
+            -5.50551
+          ],
+          [
+            -45.37329,
+            -5.40557
+          ],
+          [
+            -46.53772,
+            -6.03302
+          ],
+          [
+            -46.73708,
+            -6.06396
+          ],
+          [
+            -47.34682,
+            -6.32247
+          ],
+          [
+            -47.39798,
+            -6.52889
+          ],
+          [
+            -47.72109,
+            -6.65469
+          ],
+          [
+            -47.81943,
+            -6.8227
+          ],
+          [
+            -47.9641,
+            -6.84916
+          ],
+          [
+            -47.99033,
+            -6.80536
+          ],
+          [
+            -48.20558,
+            -6.78895
+          ],
+          [
+            -48.6182,
+            -6.34621
+          ],
+          [
+            -48.74225,
+            -6.3809
+          ],
+          [
+            -48.8935,
+            -6.30209
+          ],
+          [
+            -49.00248,
+            -6.31359
+          ],
+          [
+            -49.05862,
+            -6.2021
+          ],
+          [
+            -49.27454,
+            -6.13666
+          ],
+          [
+            -49.31879,
+            -6.08623
+          ],
+          [
+            -49.40803,
+            -6.10549
+          ],
+          [
+            -49.53753,
+            -6.05095
+          ],
+          [
+            -49.60842,
+            -6.10869
+          ],
+          [
+            -49.90227,
+            -6.06761
+          ],
+          [
+            -49.90222,
+            -6.0675
+          ]
+        ]
+      }
+    },
+    {
+      "origin": "Teresina",
+      "originLat": -5.08917,
+      "originLng": -42.80194,
+      "destination": "Salvador",
+      "destinationLat": -12.97563,
+      "destinationLng": -38.49096,
+      "distanceKm": 1146.5,
+      "durationHours": 15.9,
+      "heading": "east",
+      "roadOrigin": {
+        "name": "Rua São Pedro",
+        "lat": -5.089,
+        "lng": -42.80203,
+        "snapKm": 0.0
+      },
+      "roadDest": {
+        "name": "Rua Metropolitana",
+        "lat": -12.97589,
+        "lng": -38.49075,
+        "snapKm": 0.0
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -42.80194,
+            -5.08917
+          ],
+          [
+            -42.80203,
+            -5.089
+          ],
+          [
+            -42.63499,
+            -5.43324
+          ],
+          [
+            -42.61841,
+            -5.75648
+          ],
+          [
+            -42.10766,
+            -6.20414
+          ],
+          [
+            -41.76638,
+            -6.38052
+          ],
+          [
+            -41.74316,
+            -6.9401
+          ],
+          [
+            -41.43349,
+            -7.07932
+          ],
+          [
+            -41.14407,
+            -7.34795
+          ],
+          [
+            -41.30319,
+            -7.58636
+          ],
+          [
+            -41.0645,
+            -8.23981
+          ],
+          [
+            -41.09986,
+            -8.43145
+          ],
+          [
+            -40.76386,
+            -8.86997
+          ],
+          [
+            -40.25072,
+            -9.94584
+          ],
+          [
+            -40.01294,
+            -11.37326
+          ],
+          [
+            -38.97012,
+            -12.06258
+          ],
+          [
+            -38.93658,
+            -12.27252
+          ],
+          [
+            -38.48477,
+            -12.61735
+          ],
+          [
+            -38.40334,
+            -12.80674
+          ],
+          [
+            -38.49075,
+            -12.97589
+          ],
+          [
+            -38.49096,
+            -12.97563
           ]
         ]
       }

@@ -159,6 +159,15 @@ body {
 .route-button:hover { background: #1565C0; border-color: #1565C0; }
 .route-button:focus-visible { outline: 3px solid rgba(30,136,229,0.28); outline-offset: 2px; }
 
+.route-button--land {
+  background: #F9A825;
+  border-color: #E6A817;
+  color: #1A1A1A;
+}
+
+.route-button--land:hover { background: #E6A817; border-color: #E6A817; }
+.route-button--land:focus-visible { outline: 3px solid rgba(249,168,37,0.35); outline-offset: 2px; }
+
 .route-status {
   color: var(--muted);
   font-size: 11px;
@@ -207,13 +216,23 @@ body {
   animation: seaRouteFlow 1.2s linear infinite;
 }
 
+.land-route-line {
+  animation: landRouteFlow 1.2s linear infinite;
+}
+
 @keyframes seaRouteFlow {
   from { stroke-dashoffset: 0; }
   to { stroke-dashoffset: -20; }
 }
 
+@keyframes landRouteFlow {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: -20; }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .sea-route-line {
+  .sea-route-line,
+  .land-route-line {
     animation: none;
     stroke-dashoffset: 0;
   }

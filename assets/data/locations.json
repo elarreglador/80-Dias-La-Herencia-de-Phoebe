@@ -2096,11 +2096,25 @@
       "timezone": "Atlantic/Faroe"
     },
     {
+      "name": "Tánger",
+      "asciiname": "Tangier",
+      "lat": 35.75946,
+      "lng": -5.83395,
+      "timezone": "Africa/Casablanca"
+    },
+    {
       "name": "Jamestown",
       "asciiname": "Jamestown",
       "lat": -15.9277296,
       "lng": -5.7160872,
       "timezone": "Atlantic/St_Helena"
+    },
+    {
+      "name": "Tarifa",
+      "asciiname": "Tarifa",
+      "lat": 36.01434,
+      "lng": -5.60443,
+      "timezone": "Europe/Madrid"
     },
     {
       "name": "Inverness",
@@ -2115,6 +2129,13 @@
       "lat": 5.35444,
       "lng": -4.00167,
       "timezone": "Africa/Abidjan"
+    },
+    {
+      "name": "Madrid",
+      "asciiname": "Madrid",
+      "lat": 40.4165,
+      "lng": -3.70256,
+      "timezone": "Europe/Madrid"
     },
     {
       "name": "tombuctu",

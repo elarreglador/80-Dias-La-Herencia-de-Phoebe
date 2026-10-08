@@ -22,9 +22,9 @@
     "forcedOrigins": "ciudades costeras reales (km a la costa, Natural Earth 1:50m) admitidas pese a superar thresholdKm porque la malla está poco resuelta en su costa: Fakaofo (5.6 km), Harbour Grace (3.5 km), Leningradsky (10.2 km), Manokwari (4.0 km), Mascate (4.1 km), Miami (1.0 km), Salvador (1.9 km), Sapporo (15.4 km), Wonsan (4.4 km)",
     "gapClosedRoutes": 0,
     "coverage": {
-      "cities": 307,
-      "withoutOutbound": 50,
-      "withoutInbound": 50,
+      "cities": 257,
+      "withoutOutbound": 0,
+      "withoutInbound": 0,
       "exceptions": 0
     }
   },

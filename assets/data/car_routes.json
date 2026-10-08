@@ -28,9 +28,9 @@
     "westFallbackNote": "8 rutas con heading west; destinos hacia el Oeste porque el origen no alcanzó minRoutesPerOrigin rutas al Este",
     "gapClosedRoutes": 12,
     "coverage": {
-      "cities": 307,
-      "withoutOutbound": 50,
-      "withoutInbound": 50,
+      "cities": 257,
+      "withoutOutbound": 0,
+      "withoutInbound": 0,
       "exceptions": 0
     }
   },

@@ -170,13 +170,6 @@
       "timezone": "Africa/Ndjamena"
     },
     {
-      "name": "Longyearbyen",
-      "asciiname": "Longyearbyen",
-      "lat": 78.22334,
-      "lng": 15.64689,
-      "timezone": "Arctic/Longyearbyen"
-    },
-    {
       "name": "Alima",
       "asciiname": "Alima",
       "lat": -1.076472,
@@ -429,13 +422,6 @@
       "timezone": "Europe/Moscow"
     },
     {
-      "name": "Toliara",
-      "asciiname": "Toliara",
-      "lat": -23.35,
-      "lng": 43.66667,
-      "timezone": "Indian/Antananarivo"
-    },
-    {
       "name": "Sana",
       "asciiname": "Sanaa",
       "lat": 15.35452,
@@ -619,13 +605,6 @@
       "timezone": "Asia/Omsk"
     },
     {
-      "name": "Hithadhoo",
-      "asciiname": "Hithadhoo",
-      "lat": 1.7964498,
-      "lng": 73.3883387,
-      "timezone": "Indian/Maldives"
-    },
-    {
       "name": "Jaipur",
       "asciiname": "Jaipur",
       "lat": 26.91962,
@@ -687,20 +666,6 @@
       "lat": 43.80096,
       "lng": 87.60046,
       "timezone": "Asia/Urumqi"
-    },
-    {
-      "name": "Verkhneimbatsk",
-      "asciiname": "Verkhneimbatsk",
-      "lat": 63.1569728,
-      "lng": 87.9639337,
-      "timezone": "Asia/Krasnoyarsk"
-    },
-    {
-      "name": "Norilsk",
-      "asciiname": "Norilsk",
-      "lat": 69.3535,
-      "lng": 88.2027,
-      "timezone": "Asia/Krasnoyarsk"
     },
     {
       "name": "Lhasa",
@@ -799,13 +764,6 @@
       "lat": 30.66667,
       "lng": 104.06667,
       "timezone": "Asia/Shanghai"
-    },
-    {
-      "name": "Khatanga",
-      "asciiname": "Khatanga",
-      "lat": 72.5720585,
-      "lng": 104.2904408,
-      "timezone": "Asia/Krasnoyarsk"
     },
     {
       "name": "Irkutsk",
@@ -997,13 +955,6 @@
       "timezone": "Asia/Shanghai"
     },
     {
-      "name": "Taipei",
-      "asciiname": "Taipei",
-      "lat": 25.05306,
-      "lng": 121.52639,
-      "timezone": "Asia/Taipei"
-    },
-    {
       "name": "Dalian",
       "asciiname": "Dalian",
       "lat": 38.91222,
@@ -1088,13 +1039,6 @@
       "timezone": "Asia/Jayapura"
     },
     {
-      "name": "Udskoye",
-      "asciiname": "Udskoye",
-      "lat": 54.508785,
-      "lng": 134.406265,
-      "timezone": "Asia/Vladivostok"
-    },
-    {
       "name": "Coober Pedy",
       "asciiname": "Coober Pedy",
       "lat": -29.0133682,
@@ -1158,13 +1102,6 @@
       "timezone": "Asia/Tokyo"
     },
     {
-      "name": "Ojotsk",
-      "asciiname": "Okhotsk",
-      "lat": 59.3619947,
-      "lng": 143.2146511,
-      "timezone": "Asia/Vladivostok"
-    },
-    {
       "name": "Melbourne",
       "asciiname": "Melbourne",
       "lat": -37.814,
@@ -1184,13 +1121,6 @@
       "lat": -19.26639,
       "lng": 146.80569,
       "timezone": "Australia/Brisbane"
-    },
-    {
-      "name": "Port Moresby",
-      "asciiname": "Port Moresby",
-      "lat": -9.47723,
-      "lng": 147.15089,
-      "timezone": "Pacific/Port_Moresby"
     },
     {
       "name": "Hobart",
@@ -1228,20 +1158,6 @@
       "timezone": "Australia/Sydney"
     },
     {
-      "name": "Severo-kunisk",
-      "asciiname": "Severo-Kurilsk",
-      "lat": 50.6683048,
-      "lng": 156.1154399,
-      "timezone": "Asia/Srednekolymsk"
-    },
-    {
-      "name": "Petropavlovsk-Kamchatsky",
-      "asciiname": "Petropavlovsk-Kamchatsky",
-      "lat": 53.06393,
-      "lng": 158.62751,
-      "timezone": "Asia/Kamchatka"
-    },
-    {
       "name": "Evensk",
       "asciiname": "Evensk",
       "lat": 61.919209,
@@ -1249,32 +1165,11 @@
       "timezone": "Asia/Magadan"
     },
     {
-      "name": "Numea",
-      "asciiname": "Noumea",
-      "lat": -22.27407,
-      "lng": 166.44884,
-      "timezone": "Pacific/Noumea"
-    },
-    {
       "name": "Pevek",
       "asciiname": "Pevek",
       "lat": 69.7028171,
       "lng": 170.2746851,
       "timezone": "Asia/Anadyr"
-    },
-    {
-      "name": "Tarawa",
-      "asciiname": "Tarawa",
-      "lat": 1.4845542,
-      "lng": 172.9689648,
-      "timezone": "Pacific/Tarawa"
-    },
-    {
-      "name": "Auckland",
-      "asciiname": "Auckland",
-      "lat": -36.84853,
-      "lng": 174.76349,
-      "timezone": "Pacific/Auckland"
     },
     {
       "name": "Ugolnye Kopi",
@@ -1291,48 +1186,6 @@
       "timezone": "Asia/Anadyr"
     },
     {
-      "name": "Suva",
-      "asciiname": "Suva",
-      "lat": -18.13683,
-      "lng": 178.42531,
-      "timezone": "Pacific/Fiji"
-    },
-    {
-      "name": "Beringovsky",
-      "asciiname": "Beringovsky",
-      "lat": 63.0625643,
-      "lng": 179.2558111,
-      "timezone": "Asia/Anadyr"
-    },
-    {
-      "name": "Egvekinot",
-      "asciiname": "Эгвекинот",
-      "lat": 66.3227382,
-      "lng": -179.120131,
-      "timezone": "Asia/Anadyr"
-    },
-    {
-      "name": "Adak",
-      "asciiname": "Adak",
-      "lat": 51.8736127,
-      "lng": -176.639032,
-      "timezone": "America/Adak"
-    },
-    {
-      "name": "Atka",
-      "asciiname": "Atka",
-      "lat": 52.1984514,
-      "lng": -174.1983056,
-      "timezone": "America/Adak"
-    },
-    {
-      "name": "Provideniya",
-      "asciiname": "Provideniya",
-      "lat": 64.4237364,
-      "lng": -173.2273726,
-      "timezone": "Asia/Anadyr"
-    },
-    {
       "name": "Apia",
       "asciiname": "Apia",
       "lat": -13.8345235,
@@ -1345,27 +1198,6 @@
       "lat": -9.3735594,
       "lng": -171.2414826,
       "timezone": "Pacific/Fakaofo"
-    },
-    {
-      "name": "Alofi",
-      "asciiname": "Alofi",
-      "lat": -19.0534159,
-      "lng": -169.919199,
-      "timezone": "Pacific/Niue"
-    },
-    {
-      "name": "Avarua",
-      "asciiname": "Avarua",
-      "lat": -21.2074736,
-      "lng": -159.7708145,
-      "timezone": "Pacific/Rarotonga"
-    },
-    {
-      "name": "Honolulu",
-      "asciiname": "Honolulu",
-      "lat": 21.304547,
-      "lng": -157.855676,
-      "timezone": "Pacific/Honolulu"
     },
     {
       "name": "Kodiak",
@@ -1403,13 +1235,6 @@
       "timezone": "America/Anchorage"
     },
     {
-      "name": "Taiohae",
-      "asciiname": "Taiohae",
-      "lat": -8.899131,
-      "lng": -140.1559204,
-      "timezone": "Pacific/Marquesas"
-    },
-    {
       "name": "Yakutat",
       "asciiname": "Yakutat",
       "lat": 59.5727345,
@@ -1417,25 +1242,11 @@
       "timezone": "America/Yakutat"
     },
     {
-      "name": "Tahuata",
-      "asciiname": "Tahuata",
-      "lat": -9.9575033,
-      "lng": -139.0996742,
-      "timezone": "Pacific/Marquesas"
-    },
-    {
       "name": "Tuktoyaktuk",
       "asciiname": "Tuktoyaktuk",
       "lat": 69.4440189,
       "lng": -133.031904,
       "timezone": "America/Inuvik"
-    },
-    {
-      "name": "Adamstown",
-      "asciiname": "Adamstown",
-      "lat": -25.066667,
-      "lng": -130.100205,
-      "timezone": "Pacific/Pitcairn"
     },
     {
       "name": "Shearwater",
@@ -1485,13 +1296,6 @@
       "lat": 36.17497,
       "lng": -115.13722,
       "timezone": "America/Los_Angeles"
-    },
-    {
-      "name": "Kugluktuk",
-      "asciiname": "Kugluktuk",
-      "lat": 67.8260952,
-      "lng": -115.1073221,
-      "timezone": "America/Cambridge_Bay"
     },
     {
       "name": "Yellowknife",
@@ -1571,13 +1375,6 @@
       "timezone": "America/Mazatlan"
     },
     {
-      "name": "Cambridge Bay",
-      "asciiname": "Cambridge Bay",
-      "lat": 69.1178442,
-      "lng": -105.0603881,
-      "timezone": "America/Cambridge_Bay"
-    },
-    {
       "name": "Dener",
       "asciiname": "Denver",
       "lat": 39.73915,
@@ -1655,13 +1452,6 @@
       "timezone": "America/Chicago"
     },
     {
-      "name": "Baker Lake",
-      "asciiname": "Baker Lake",
-      "lat": 64.3188583,
-      "lng": -96.0214238,
-      "timezone": "America/Rankin_Inlet"
-    },
-    {
       "name": "Houston",
       "asciiname": "Houston",
       "lat": 29.76328,
@@ -1676,39 +1466,11 @@
       "timezone": "America/Chicago"
     },
     {
-      "name": "Arviat",
-      "asciiname": "Arviat",
-      "lat": 61.1073458,
-      "lng": -94.0564315,
-      "timezone": "America/Rankin_Inlet"
-    },
-    {
-      "name": "Taloyoak",
-      "asciiname": "Taloyoak",
-      "lat": 69.5350501,
-      "lng": -93.5355054,
-      "timezone": "America/Cambridge_Bay"
-    },
-    {
       "name": "Tuxtla Gutierrez",
       "asciiname": "Tuxtla",
       "lat": 16.75357,
       "lng": -93.11578,
       "timezone": "America/Merida"
-    },
-    {
-      "name": "Chesterfield Inlet",
-      "asciiname": "Chesterfield Inlet",
-      "lat": 63.3399322,
-      "lng": -90.7101455,
-      "timezone": "America/Rankin_Inlet"
-    },
-    {
-      "name": "Puerto Ayora",
-      "asciiname": "Puerto Ayora",
-      "lat": -0.7471674,
-      "lng": -90.3134198,
-      "timezone": "Pacific/Galapagos"
     },
     {
       "name": "Memphis",
@@ -1788,13 +1550,6 @@
       "timezone": "America/New_York"
     },
     {
-      "name": "Igloolik",
-      "asciiname": "Igloolik",
-      "lat": 69.3788839,
-      "lng": -81.7947989,
-      "timezone": "America/Iqaluit"
-    },
-    {
       "name": "Miami",
       "asciiname": "Miami",
       "lat": 25.77427,
@@ -1828,27 +1583,6 @@
       "lat": -12.04318,
       "lng": -77.02824,
       "timezone": "America/Lima"
-    },
-    {
-      "name": "Kingston",
-      "asciiname": "Kingston",
-      "lat": 17.99702,
-      "lng": -76.79358,
-      "timezone": "America/Jamaica"
-    },
-    {
-      "name": "Kinngait",
-      "asciiname": "Kinngait",
-      "lat": 64.2322773,
-      "lng": -76.5432179,
-      "timezone": "America/Iqaluit"
-    },
-    {
-      "name": "Santiago de Cuba",
-      "asciiname": "Santiago de Cuba",
-      "lat": 20.02287,
-      "lng": -75.82171,
-      "timezone": "America/Havana"
     },
     {
       "name": "Ottawa",
@@ -1886,25 +1620,11 @@
       "timezone": "America/New_York"
     },
     {
-      "name": "Pirates Well",
-      "asciiname": "Pirates Well Settlement",
-      "lat": 22.4313036,
-      "lng": -73.0978422,
-      "timezone": "America/Nassau"
-    },
-    {
       "name": "Cuzco",
       "asciiname": "Cusco",
       "lat": -13.53188,
       "lng": -71.96701,
       "timezone": "America/Lima"
-    },
-    {
-      "name": "Punta Cana",
-      "asciiname": "Punta Cana",
-      "lat": 18.58182,
-      "lng": -68.40431,
-      "timezone": "America/Santo_Domingo"
     },
     {
       "name": "San Juan",
@@ -1928,25 +1648,11 @@
       "timezone": "America/La_Paz"
     },
     {
-      "name": "Roseau",
-      "asciiname": "Roseau",
-      "lat": 15.30174,
-      "lng": -61.38808,
-      "timezone": "America/Dominica"
-    },
-    {
       "name": "Santa Fe",
       "asciiname": "Santa Fe",
       "lat": -31.64881,
       "lng": -60.70868,
       "timezone": "America/Argentina/Cordoba"
-    },
-    {
-      "name": "Bridgetown",
-      "asciiname": "Bridgetown",
-      "lat": 13.0977832,
-      "lng": -59.6184184,
-      "timezone": "America/Barbados"
     },
     {
       "name": "Georgetown",
@@ -1998,34 +1704,6 @@
       "timezone": "America/Bahia"
     },
     {
-      "name": "Horta",
-      "asciiname": "Horta",
-      "lat": 38.5795831,
-      "lng": -28.7096295,
-      "timezone": "Atlantic/Azores"
-    },
-    {
-      "name": "Porta Delgada",
-      "asciiname": "Ponta Delgada",
-      "lat": 37.73952,
-      "lng": -25.66874,
-      "timezone": "Atlantic/Azores"
-    },
-    {
-      "name": "Mindelo",
-      "asciiname": "Mindelo",
-      "lat": 16.89014,
-      "lng": -24.98042,
-      "timezone": "Atlantic/Cape_Verde"
-    },
-    {
-      "name": "Vestmannaeyjar",
-      "asciiname": "Westman Islands",
-      "lat": 63.4266646,
-      "lng": -20.2698816,
-      "timezone": "Atlantic/Reykjavik"
-    },
-    {
       "name": "Dakar",
       "asciiname": "Dakar",
       "lat": 14.6937,
@@ -2033,39 +1711,11 @@
       "timezone": "Africa/Dakar"
     },
     {
-      "name": "Funchal",
-      "asciiname": "Funchal",
-      "lat": 32.66568,
-      "lng": -16.92547,
-      "timezone": "Atlantic/Madeira"
-    },
-    {
-      "name": "Santa Cruz de Tenerife",
-      "asciiname": "Santa Cruz de Tenerife",
-      "lat": 28.46824,
-      "lng": -16.25462,
-      "timezone": "Atlantic/Canary"
-    },
-    {
       "name": "Nuakchot",
       "asciiname": "Nouakchott",
       "lat": 18.08581,
       "lng": -15.9785,
       "timezone": "Africa/Nouakchott"
-    },
-    {
-      "name": "Two Boats",
-      "asciiname": "Two Boats Village",
-      "lat": -7.9350927,
-      "lng": -14.3654066,
-      "timezone": "Atlantic/St_Helena"
-    },
-    {
-      "name": "Edinburgh of the Seven Seas",
-      "asciiname": "Edinburgh of the Seven Seas",
-      "lat": -37.0675708,
-      "lng": -12.3110702,
-      "timezone": "Atlantic/St_Helena"
     },
     {
       "name": "Monrovia",

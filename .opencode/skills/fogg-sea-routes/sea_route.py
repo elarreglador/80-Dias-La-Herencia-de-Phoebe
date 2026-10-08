@@ -46,6 +46,9 @@ PROJECT_ROOT = Path(__file__).resolve().parents[3]  # PF/
 JSON_PATH = PROJECT_ROOT / "assets" / "data" / "locations.json"
 SEA_ROUTES_PATH = PROJECT_ROOT / "assets" / "data" / "sea_routes.json"
 
+sys.path.insert(0, str(PROJECT_ROOT / "tools"))
+import route_coverage  # noqa: E402  # type: ignore[import-not-found]
+
 PROJECT = "eu.elarreglador.pf"
 TOOL_NAME = "fogg-sea-routes"
 SCHEMA_VERSION = "3.1.0"
@@ -394,6 +397,9 @@ def validate_dataset(routes, limit) -> list[str]:
         if route["origin"] == route["destination"]:
             problems.append(f"origen == destino {key}")
         by_origin.setdefault(route["origin"], []).append(route)
+        if "gapClosed" in route and not isinstance(route["gapClosed"], bool):
+            problems.append(f"gapClosed no booleano en {key}: "
+                            f"{route['gapClosed']!r}")
 
         distance = route["distanceKm"]
         if not isinstance(distance, (int, float)) or not (0 < distance < MAX_DISTANCE_KM):
@@ -437,11 +443,19 @@ def validate_dataset(routes, limit) -> list[str]:
             )
 
     for origin, group in by_origin.items():
-        if len(group) > limit:
-            problems.append(f"{origin} tiene {len(group)} rutas, máximo {limit}")
+        # limitPerOrigin acota las rutas normales; las gapClosed (SPEC 008
+        # §3.1) no cuentan para el límite, pero sí para la cobertura.
+        normal = [r for r in group if not r.get("gapClosed")]
+        if len(normal) > limit:
+            problems.append(f"{origin} tiene {len(normal)} rutas, máximo {limit}")
         distances = [r["distanceKm"] for r in group]
         if distances != sorted(distances):
             problems.append(f"{origin} no ordenado por distanceKm ascendente")
+
+    # SPEC 008 paso 7: la unión mar ∪ tierra debe cubrir el catálogo entero;
+    # las ciudades con `excepción` en el informe se aceptan.
+    car = route_coverage.load_routes(route_coverage.CAR_ROUTES_PATH)
+    problems += route_coverage.coverage_problems(routes, car)
     return problems
 
 
@@ -568,6 +582,181 @@ def resolve_ports(sr, M, P, cities, indices, verbose=False):
     return ports, rejected
 
 
+# ---------------------------------------------------------------------------
+# Cierre de huecos (SPEC 008)
+# ---------------------------------------------------------------------------
+
+MAX_GAP_ROUTE_TRIES = 5  # candidatas origen por hueco de entrada: la primera
+                         # suele ser isla o malla desconectada
+
+
+def gap_uncovered(cities, routes) -> list[dict]:
+    """Ciudades sin salida o sin entrada en la unión mar ∪ tierra."""
+    car = route_coverage.load_routes(route_coverage.CAR_ROUTES_PATH)
+    return route_coverage.compute_coverage(cities, routes, car)
+
+
+def insert_gap_route(routes: list, route: dict) -> bool:
+    """Inserta una ruta `gapClosed` sin tocar las existentes.
+
+    Mantiene el grupo de origen contiguo y ordenado por distanceKm
+    ascendente (invariante de validate_dataset).
+    """
+    if any(r["origin"] == route["origin"] and r["destination"] == route["destination"]
+           for r in routes):
+        print(f'[WARN] {route["origin"]} → {route["destination"]}: ya existe, '
+              f'se omite el cierre', file=sys.stderr)
+        return False
+    group = [i for i, r in enumerate(routes) if r["origin"] == route["origin"]]
+    if not group:
+        routes.append(route)
+        return True
+    pos = group[-1] + 1
+    for i in group:
+        if routes[i]["distanceKm"] > route["distanceKm"]:
+            pos = i
+            break
+    routes.insert(pos, route)
+    return True
+
+
+def coverage_meta(cities, routes) -> dict:
+    """meta.coverage de SPEC 008 §3.1 (recuento real sobre ambos ficheros)."""
+    uncovered = gap_uncovered(cities, routes)
+    return {
+        "cities": len(cities),
+        "withoutOutbound": sum(1 for item in uncovered if item["outbound"] == 0),
+        "withoutInbound": sum(1 for item in uncovered if item["inbound"] == 0),
+        "exceptions": sum(1 for item in uncovered
+                          if route_coverage.is_exception(item["decision"])),
+    }
+
+
+def close_gaps(args, sr, M, P, cities, all_ports, rejected) -> None:
+    """Pasada de cierre de huecos de cobertura (SPEC 008, `--close-gaps`).
+
+    Posterior al lote normal, no lo sustituye: para cada ciudad de la unión
+    mar ∪ tierra sin ruta de salida se traza una hacia el Este (y hacia el
+    Oeste si el Este no tiene candidatas); para cada ciudad sin entrada se
+    itera la ciudad origen con puerto más cercana (primero con capacidad,
+    < limitPerOrigin rutas normales) hasta que searoute encuentre camino.
+    Las ciudades sin puerto emiten [WARN] y quedan pendientes.
+    """
+    routes, _ = load_existing(args.out)
+    if not routes:
+        print(f"[ERROR] No hay rutas previas en {args.out}: ejecuta primero el "
+              f"lote normal (un cierre sobre un fichero vacío no tiene sentido)",
+              file=sys.stderr)
+        sys.exit(1)
+    if args.city:
+        print("[WARN] --close-gaps ignora --city: la cobertura es global",
+              file=sys.stderr)
+    print(f"[INFO] --close-gaps: {len(routes)} rutas previas en {args.out}")
+
+    ports_by_name = {p["city"]: p for p in all_ports}
+
+    uncovered = gap_uncovered(cities, routes)
+    out_gaps = [item for item in uncovered if item["outbound"] == 0]
+    print(f"[INFO] {len(out_gaps)} ciudades sin salida por mar ni tierra")
+    added = 0
+    for item in out_gaps:
+        origin = ports_by_name.get(item["name"])
+        if origin is None:
+            print(f'[WARN] {item["name"]}: sin puerto, hueco de salida pendiente',
+                  file=sys.stderr)
+            continue
+        selected = select_routes(sr, M, P, origin, all_ports, 1, "east")
+        if not selected:
+            selected = select_routes(sr, M, P, origin, all_ports, 1, "west")
+        if not selected:
+            print(f'[SKIP] {item["name"]}: sin ruta marítima ni al Este ni '
+                  f'el Oeste (hueco de salida pendiente)', file=sys.stderr)
+            continue
+        distance, dest, coordinates = selected[0]
+        route = build_route(origin, dest, distance, coordinates)
+        route["gapClosed"] = True
+        if insert_gap_route(routes, route):
+            added += 1
+            print(f'[INFO] {item["name"]} → {route["destination"]} '
+                  f'({route["heading"]}, {route["distanceKm"]} km): '
+                  f'hueco de salida cerrado')
+    print(f"[INFO] {added} rutas de salida añadidas "
+          f"({len(out_gaps) - added} huecos sin cerrar)")
+
+    # Una ruta de salida puede haber dado entrada a otra ciudad: se recalcula.
+    uncovered = gap_uncovered(cities, routes)
+    in_gaps = [item for item in uncovered if item["inbound"] == 0]
+    print(f"[INFO] {len(in_gaps)} ciudades sin entrada por mar ni tierra")
+    normal_by_origin: dict[str, int] = {}
+    for r in routes:
+        if not r.get("gapClosed"):
+            normal_by_origin[r["origin"]] = normal_by_origin.get(r["origin"], 0) + 1
+    added_in = 0
+    for item in in_gaps:
+        target = ports_by_name.get(item["name"])
+        if target is None:
+            print(f'[WARN] {item["name"]}: sin puerto, hueco de entrada pendiente',
+                  file=sys.stderr)
+            continue
+        t_lat, t_lng = target["lat"], target["lng"]
+        others = sorted(
+            (p for p in all_ports if p["city"] != target["city"]),
+            key=lambda p: haversine(t_lat, t_lng, p["lat"], p["lng"]),
+        )
+        ordered = ([p for p in others
+                    if normal_by_origin.get(p["city"], 0) < args.limit]
+                   + [p for p in others
+                      if normal_by_origin.get(p["city"], 0) >= args.limit])
+        closed = False
+        tries = 0
+        for origin in ordered:
+            if tries >= MAX_GAP_ROUTE_TRIES:
+                break
+            delta = eastward_delta(origin["port"]["lng"], target["port"]["lng"])
+            if delta == 0:
+                continue  # misma longitud: ni Este ni Oeste
+            direction = "east" if delta > 0 else "west"
+            tries += 1
+            selected = select_routes(sr, M, P, origin, [target], 1, direction)
+            if not selected:
+                continue  # select_routes ya registra el error de searoute
+            distance, dest, coordinates = selected[0]
+            route = build_route(origin, dest, distance, coordinates)
+            route["gapClosed"] = True
+            if insert_gap_route(routes, route):
+                added_in += 1
+                closed = True
+                print(f'[INFO] {route["origin"]} → {item["name"]} '
+                      f'({route["heading"]}, {route["distanceKm"]} km): '
+                      f'hueco de entrada cerrado (intento {tries})')
+                break
+        if not closed:
+            print(f'[SKIP] {item["name"]}: {tries} candidatas de entrada sin '
+                  f'ruta válida (hueco de entrada pendiente)', file=sys.stderr)
+    print(f"[INFO] {added_in} rutas de entrada añadidas "
+          f"({len(in_gaps) - added_in} huecos sin cerrar)")
+
+    problems = validate_dataset(routes, args.limit)
+    for p in problems:
+        print(f"[ERROR] {p}", file=sys.stderr)
+    if problems:
+        print(f"[ERROR] {len(problems)} problemas de validación, no se escribe",
+              file=sys.stderr)
+        sys.exit(1)
+
+    crossings = [r for r in routes if crosses_antimeridian(r["geometry"]["coordinates"])]
+    origins_meta = len({r["origin"] for r in routes})
+    meta = build_meta(origins_meta, routes, len(rejected), len(crossings), args.limit)
+    meta["gapClosedRoutes"] = sum(1 for r in routes if r.get("gapClosed"))
+    meta["coverage"] = coverage_meta(cities, routes)
+    if args.dry_run:
+        print(f"[INFO] dry-run: no se escribe {args.out}")
+        return
+    write_output(args.out, meta, routes)
+    print(f'[INFO] Guardadas {len(routes)} rutas '
+          f'({meta["gapClosedRoutes"]} gapClosed) en {args.out}')
+
+
 def main():
     parser = argparse.ArgumentParser(
         description=(
@@ -585,6 +774,10 @@ def main():
                              "los orígenes que falten (merge, no reescritura)")
     parser.add_argument("--dry-run", action="store_true",
                         help="Detalla el resultado sin escribir disco")
+    parser.add_argument("--close-gaps", action="store_true",
+                        help="Pasada de cierre de huecos de cobertura (SPEC 008):\n"
+                             "salida y entrada para toda ciudad de la unión mar ∪\n"
+                             "tierra que las falte; posterior al lote normal")
     parser.add_argument("--out", type=Path, default=SEA_ROUTES_PATH,
                         help=f"Ruta de salida (default {SEA_ROUTES_PATH})")
     args = parser.parse_args()
@@ -617,6 +810,10 @@ def main():
         rejected.sort(key=lambda item: item[1])
         preview = ", ".join(f"{name}({km:.0f} km)" for name, km in rejected[:12])
         print(f"[INFO] Descartadas, muestra: {preview}{' …' if len(rejected) > 12 else ''}")
+
+    if args.close_gaps:
+        close_gaps(args, sr, M, P, cities, all_ports, rejected)
+        return
 
     routes: list = []
     done_origins: set = set()

@@ -3,7 +3,7 @@
     "project": "eu.elarreglador.pf",
     "name": "Fogg Sea Routes — Herencia de Phoebe",
     "version": "3.1.0",
-    "generated": "2026-10-07",
+    "generated": "2026-10-08",
     "tool": "fogg-sea-routes",
     "searoute": "1.6.0",
     "units": "km",
@@ -13,13 +13,20 @@
     "minRoutesPerOrigin": 2,
     "origins": 42,
     "routes": 210,
-    "citiesWithoutPort": 262,
+    "citiesWithoutPort": 265,
     "crossesAntimeridian": 29,
     "eastRule": "heading east: 0 < deltaLng(portDest - portOrigin) <= 180 (desenrollado); heading west: -180 <= deltaLng < 0, solo como fallback cuando un origen tiene menos de minRoutesPerOrigin rutas al Este",
     "geometry": "LineString [lng,lat] de ciudad a ciudad: el primer y el último vértice son las coordenadas de la ciudad de locations.json y entre medias va la malla marítima de searoute. Siempre en [-180,180]; al cruzar el antimeridiano los vértices saltan de 179 a -179 y el consumidor debe segmentar (splitAntimeridian / polylineSegments)",
     "distanceNote": "distanceKm es properties.length de searoute (nodo de malla a nodo de malla) y NO incluye los tramos ciudad-puerto de los extremos, de hasta ~15.7 km (Portsmouth-Cowes, Isla de Wight)",
     "source": "searoute (avoid land) + GeoNames cities15000",
-    "forcedOrigins": "ciudades costeras reales (km a la costa, Natural Earth 1:50m) admitidas pese a superar thresholdKm porque la malla está poco resuelta en su costa: Fakaofo (5.6 km), Harbour Grace (3.5 km), Leningradsky (10.2 km), Manokwari (4.0 km), Mascate (4.1 km), Miami (1.0 km), Salvador (1.9 km), Sapporo (15.4 km), Wonsan (4.4 km)"
+    "forcedOrigins": "ciudades costeras reales (km a la costa, Natural Earth 1:50m) admitidas pese a superar thresholdKm porque la malla está poco resuelta en su costa: Fakaofo (5.6 km), Harbour Grace (3.5 km), Leningradsky (10.2 km), Manokwari (4.0 km), Mascate (4.1 km), Miami (1.0 km), Salvador (1.9 km), Sapporo (15.4 km), Wonsan (4.4 km)",
+    "gapClosedRoutes": 0,
+    "coverage": {
+      "cities": 307,
+      "withoutOutbound": 50,
+      "withoutInbound": 50,
+      "exceptions": 0
+    }
   },
   "routes": [
     {

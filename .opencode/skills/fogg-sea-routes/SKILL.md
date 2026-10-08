@@ -20,6 +20,7 @@ sea_route.py --resume                 # merge: conserva lo escrito y solo calcul
 sea_route.py --city "Lisboa" --dry-run  # sólo un origen (el pool sigue siendo completo)
 sea_route.py --city "Miami" --resume  # añade rutas de una ciudad concreta sin tocar las demás
 sea_route.py --limit 3                # hasta 3 rutas por puerto
+sea_route.py --close-gaps             # cierre de huecos de cobertura (SPEC 008)
 sea_route.py --out /tmp/prueba.json   # no toca assets/
 ```
 
@@ -129,6 +130,17 @@ Sensibilidad medida con el mismo criterio (`orígenes` = ciudades a `<= t` km de
 Mediana de las 304 ciudades: 113,6 km al mar. A 10 km salen 33 puertos reales (Fukuoka→Hakata, Ciudad del Cabo→Cape Town, Hanga Roa→Isla de Pascua…); a 20–30 km entran Hamburgo, Dalian y Estocolmo, que no son puertos marítimos y sólo inflan el mapa.
 
 **Excepción `FORCED_COASTAL_KM` (v3.1):** 9 ciudades que el umbral descarta pero que están a 1,0–15,4 km de la costa real (Natural Earth 1:50m): Fakaofo, Harbour Grace, Leningradsky, Manokwari, Mascate, Miami, Salvador, Sapporo y Wŏnsan. El `seaKm` de malla les da 11,8–152,9 km porque la malla está poco resuelta en su costa — no porque estén en interior. Sin la lista no tendrían origen marítimo (y casi ninguna ruta de salida en general): 9 de las 10 ciudades "solo destino" del catálogo eran justamente estas. No subir `THRESHOLD_KM` para conseguir lo mismo: a 50 km ya entran 112 "puertos" y el mapa se llena de ríos y ciudades del interior.
+
+## Cierre de huecos (SPEC 008, `--close-gaps`)
+
+Pasada posterior al lote normal (no lo sustituye) sobre la unión mar ∪ tierra (`tools/route_coverage.py`); requiere `sea_routes.json` previo con rutas.
+
+- **Salidas:** para cada ciudad sin salida **y con puerto resuelto** (`THRESHOLD_KM` + `FORCED_COASTAL_KM`), `select_routes` con `limit=1` hacia el Este y, si no hay candidatas, hacia el Oeste. Sin puerto → `[WARN] … hueco de salida pendiente` (no aborta).
+- **Entradas:** para cada ciudad sin entrada y con puerto, itera las ciudades con puerto por Haversine — primero con capacidad (`< limitPerOrigin` rutas normales; las `gapClosed` no cuentan para el límite) — hasta `MAX_GAP_ROUTE_TRIES = 5`; `searoute` no tiene rate limit (offline), así que el coste es CPU, no red.
+- **Meta:** al escribir añade `meta.gapClosedRoutes` y `meta.coverage {cities, withoutOutbound, withoutInbound, exceptions}`.
+- **Validación:** `validate_dataset` termina con los problemas de `tools/route_coverage.py` (unión mar ∪ tierra): cualquier ciudad sin salida o sin entrada y sin `excepción` registrada produce `[ERROR]` y no se escribe.
+
+**Regla de excepciones:** `python3 tools/route_coverage.py --write-report` regenera `docs/ciudades-sin-rutas.md` conservando la columna `Decisión` a mano; una ciudad aceptada lleva `excepción — <motivo>`. `python3 tools/route_coverage.py` sale con código 0 cuando no queda ninguna pendiente (código 2 en tanto la haya).
 
 ## Límites y riesgos documentados
 

@@ -31,6 +31,22 @@ python3 -m http.server 8090 --directory tools/locations-map  # equivalente manua
 
 Capa día/noche: `SunTerminatorService` (NOAA + `apsl_sun_calc` 0.0.4) genera 1 polígono curvo 183 vértices paso 2° (solsticios) o 2 rectángulos 4 vértices split antimeridiano (equinoccio |subLat|<0.5°) cada 5 min vía `sunTerminatorProvider` (`Provider.autoDispose<List<List<LatLng>>>`). Clamp Mercator `85.051°` y `Epsg3857NoRepeat` evitan salto/replica. Fix completo 2026-09-22.
 
+### Cobertura de rutas (SPEC 008)
+
+Toda ciudad de `locations.json` debe tener ≥1 ruta de salida y ≥1 de entrada en la **unión** de `sea_routes.json` y `car_routes.json` (no importa si es por mar o por tierra):
+
+```bash
+python3 tools/route_coverage.py                 # recuentos; código 2 mientras haya pendientes
+python3 tools/route_coverage.py --write-report  # regenera docs/ciudades-sin-rutas.md conservando Decisión
+python3 .opencode/skills/fogg-land-routes/land_route.py --close-gaps    # cierra huecos por carretera
+python3 .opencode/skills/fogg-sea-routes/sea_route.py --close-gaps      # cierra huecos por mar
+```
+
+- Las rutas de cierre llevan `gapClosed: true`; no cuentan para `limitPerOrigin`. Ambos `meta` añaden `gapClosedRoutes` y `coverage`.
+- `validate_dataset` de las dos skills falla con `[ERROR]` si queda una ciudad descubierta sin excepción: no se escriben datasets con huecos.
+- **Excepciones:** el único fichero es `docs/ciudades-sin-rutas.md`; edítese solo la columna `Decisión` con `excepción — <motivo>`. Regenerar con `--write-report` conserva esa columna. `test/data/route_coverage_test.dart` aplica la misma regla en `flutter test`.
+- Presupuesto `--close-gaps` (OSRM demo, 1 petición/s): ≤1 `/table` + ≤1 `/route` por hueco de salida y ≤1 `/table` + ≤5 `/route` por hueco de entrada; la pasada marítima es offline (`searoute`).
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.

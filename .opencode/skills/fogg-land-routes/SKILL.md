@@ -18,6 +18,7 @@ python3 .opencode/skills/fogg-land-routes/land_route.py
 python3 .opencode/skills/fogg-land-routes/land_route.py --city "Lisboa" --dry-run
 python3 .opencode/skills/fogg-land-routes/land_route.py --only 20
 python3 .opencode/skills/fogg-land-routes/land_route.py --resume
+python3 .opencode/skills/fogg-land-routes/land_route.py --close-gaps
 python3 .opencode/skills/fogg-land-routes/land_route.py --out /tmp/prueba.json
 ```
 
@@ -55,6 +56,19 @@ python3 .opencode/skills/fogg-land-routes/land_route.py --out /tmp/prueba.json
 | Corte por horas | `--only N` escribe lo acumulado y sale con código 0 |
 
 La caché hace que la segunda corrida idéntica no toque la red: dos llamadas al mismo `url` devuelven la segunda desde disco sin esperar el intervalo.
+
+## Cierre de huecos (SPEC 008, `--close-gaps`)
+
+Pasada posterior al lote normal (no lo sustituye) que garantiza ≥1 salida y ≥1 entrada por ciudad en la **unión mar ∪ tierra**. Requiere que `assets/data/car_routes.json` ya exista (el cierre sobre un fichero vacío no tiene sentido).
+
+- **Salidas:** para cada ciudad sin salida, pool este primero y pool oeste después (`GAP_POOL` 25 candidatas por Haversine); 1 `/table` + como mucho 1 `/route` por hueco. Si el `/table` da nulos espurios, se verifica con `/route` la candidata más cercana.
+- **Entradas:** para cada ciudad sin entrada, candidatas origen por Haversine, primero con capacidad (`< limitPerOrigin` rutas **normales**; las `gapClosed` no cuentan para el límite); 1 `/table` compartida por hueco y hasta `MAX_GAP_ROUTE_TRIES = 5` intentos de `/route` (el primer candidato suele ser isla o par sin enganche rodado).
+- **Guardias antifantasma:** `SNAP_MAX_KM` (50 km de enganche) y `gap_route_ok` (±25 % entre `distanceKm` y la suma Haversine); medido: Tarifa↔Tánger devuelve `distanceKm 1,3` con geometría anclada de 35,3 km.
+- **Coste:** ≤ `huecos × (1 /table + 1 /route)` en salidas y ≤ `huecos × (1 /table + 5 /route)` en entradas, al ritmo de 1,2 s/petición (≈59 huecos ≈ 7 min).
+- **Meta:** al escribir añade `meta.gapClosedRoutes` y `meta.coverage {cities, withoutOutbound, withoutInbound, exceptions}`.
+- **Validación:** `validate_dataset` termina con los problemas de `tools/route_coverage.py` (unión mar ∪ tierra): cualquier ciudad sin salida o sin entrada y sin `excepción` registrada produce `[ERROR]` y no se escribe.
+
+**Regla de excepciones:** `python3 tools/route_coverage.py --write-report` regenera `docs/ciudades-sin-rutas.md` conservando la columna `Decisión` a mano; una ciudad aceptada lleva `excepción — <motivo>`. `python3 tools/route_coverage.py` imprime los recuentos y sale con código 0 cuando no queda ninguna pendiente (código 2 en tanto la haya).
 
 ## Perfiles medidos (2026-09-26, sondeo de la SPEC 006)
 

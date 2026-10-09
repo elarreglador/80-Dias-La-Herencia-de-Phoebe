@@ -27,6 +27,7 @@ Checklist vivo. Marque con `[x]` al completar.
 - [ ] Ampliar a 15 ciudades + 7 transportes
 - [ ] Trazado GeoJSON real (OpenRailwayMap + rutas marítimas)
 - [x] Overlay día/noche curvo preciso (terminador solar) — entregado en MVP vía spec 001 (ver item MVP overlay)
+- [ ] Consumir `sea_routes_fiction.json` (rutas ficticias bajo demanda) desde el motor de juego como alternativa a las rutas marítimas reales
 - [ ] Open-Meteo vivo por cada posición + caché
 - [ ] EventEngine completo (huelga, frontera, avería, viento, nieve)
 - [ ] Ledger con historial y gráfica
@@ -52,7 +53,8 @@ Checklist vivo. Marque con `[x]` al completar.
 
 ## Fix
 
-- [ ] (vacío — añada aquí bugs detectados)
+- [ ] `fogg-sea-routes-fiction` — ruta Tiksi → Nizhneyansk pendiente: ambas resuelven al puerto WPI RUIKS (Tiksi) y el delta 0 rompe la validación de heading; derivar el heading de las coordenadas de las ciudades cuando los puertos coinciden
+- [ ] `fogg-sea-routes-fiction` — ruta Pevek → Leningradsky pendiente: la única arista de malla que une la costa de Chukchi con el área de Bering ((176,21°E;70,17°N)→(180;70)) está etiquetada `passage: "northwest"` y la skill la anula con `inf`, forzando 31.262 km; re-etiquetar como `segment` las aristas de la aproximación de Bering/Chukchi (mar ruso, no Paso del Noroeste canadiense)
 
 ---
 
@@ -70,3 +72,4 @@ Checklist vivo. Marque con `[x]` al completar.
 - [x] Toda ciudad puede ser origen (2026-10-07, addenda §11 spec 004 y §12 spec 006): 9 costeras forzadas por `FORCED_COASTAL_KM`, Teresina resuelta por carretera, `heading east|west` + fallback al Oeste hasta `minRoutesPerOrigin = 2`, merge `--resume` en ambas skills, fix de nulos espurios del `/table` de OSRM. Las 10 ciudades antes "solo destino" tienen ≥2 rutas de salida. Actualizadas `SKILL.md` de ambas skills.
 - [x] Visor con rutas terrestres y marítimas simultáneas (spec 007 `docs/specs/007-visor-rutas-terrestres.md`): dos botones con estado propio, capa amarilla `#F9A825` sobre la azul (paneles 401/402), validador único `validateRoutes` con `durationHours` opcional, popup con horas, sin encuadre automático (`fitSeaRoutes` retirado), `serve_map.sh` abre en incognito y README actualizado. Verificado con Playwright headless + `flutter analyze`/`flutter test`.
 - [x] Cobertura de rutas (spec 008 `docs/specs/008-cobertura-rutas-ciudades.md`, pasos 1–7 y 9–10): verificador `tools/route_coverage.py` (con `--write-report`), cierre de huecos `--close-gaps` en ambas skills (`gapClosed: true`, `meta.coverage`/`meta.gapClosedRoutes`), cobertura integrada en `validate_dataset` de mar y tierra, `docs/ciudades-sin-rutas.md` regenerado (59 → 50 pendientes: 9 cerradas por tierra), `test/data/route_coverage_test.dart` y documentación en SKILL.md/README. **Pendiente (paso 8, del Señor):** pase manual de excepciones sobre las 50 ciudades restantes; hasta entonces `validate_dataset` y el test de cobertura quedan en rojo por diseño (la spec lo admite en sus riesgos).
+- [x] Skill `fogg-sea-routes-fiction`: ruta marítima ficticia bajo demanda entre dos ciudades indicadas (`--origin`/`--destination`), trazada con Dijkstra de pesos perturbados (`w·exp(beta·xi)` determinista por semilla) sobre la malla real de searoute (evita tierra, restringe Paso del Noroeste, distancias Haversine), anclada a la ciudad, con `--detour`/`--seed`/`--dry-run`/`--force` y merge en `assets/data/sea_routes_fiction.json` v1.0.0 (integra las 3 rutas de prueba preexistentes). Verificado: determinismo byte a byte, semilla distinta → trazado distinto, cruce de antimeridiano, duplicados y errores de entrada.

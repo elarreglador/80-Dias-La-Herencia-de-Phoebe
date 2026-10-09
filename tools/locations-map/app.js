@@ -20,6 +20,9 @@
   const landRoutesFileInput = document.getElementById('land-routes-file');
   const loadLandRoutesButton = document.getElementById('load-land-routes');
   const landRouteStatus = document.getElementById('land-route-status');
+  const fakeSeaRoutesFileInput = document.getElementById('fake-sea-routes-file');
+  const loadFakeSeaRoutesButton = document.getElementById('load-fake-sea-routes');
+  const fakeSeaRouteStatus = document.getElementById('fake-sea-route-status');
   const dropZone = document.getElementById('drop-zone');
   const metaVersion = document.getElementById('meta-version');
 
@@ -43,6 +46,7 @@
   // Paneles de rutas: deterministas, por debajo de markerPane (600) y sobre tilePane (200)
   map.createPane('seaRoutesPane').style.zIndex = 401;
   map.createPane('landRoutesPane').style.zIndex = 402;
+  map.createPane('fakeSeaRoutesPane').style.zIndex = 403;
 
   let allCities = [];
   let filteredCities = [];
@@ -50,6 +54,7 @@
   let selectedCity = null;
   const landRoutesLayer = L.layerGroup().addTo(map);
   const seaRoutesLayer = L.layerGroup().addTo(map);
+  const fakeSeaRoutesLayer = L.layerGroup().addTo(map);
   const markerLayer = L.layerGroup().addTo(map);
   const landRouteStyle = {
     pane: 'landRoutesPane',
@@ -71,12 +76,25 @@
     dashArray: '8 12',
     interactive: true,
   };
+  const fakeSeaRouteStyle = {
+    pane: 'fakeSeaRoutesPane',
+    renderer: L.svg({ pane: 'fakeSeaRoutesPane' }),
+    className: 'fake-sea-route-line',
+    color: '#2E7D32',
+    weight: 3,
+    opacity: 0.9,
+    dashArray: '8 12',
+    interactive: true,
+  };
   let loadedLandRoutes = [];
   let loadedLandRouteFileName = null;
   let landRouteLoadError = null;
   let loadedSeaRoutes = [];
   let loadedSeaRouteFileName = null;
   let seaRouteLoadError = null;
+  let loadedFakeSeaRoutes = [];
+  let loadedFakeSeaRouteFileName = null;
+  let fakeSeaRouteLoadError = null;
 
   // Configuración por capa: cada una tiene su layer, estilo, estado y textos
   const seaRouteConfig = {
@@ -106,6 +124,20 @@
     get fileName() { return loadedLandRouteFileName; },
     setLoaded(routes, fileName) { loadedLandRoutes = routes; loadedLandRouteFileName = fileName; },
     setError(error) { landRouteLoadError = error; },
+  };
+  const fakeSeaRouteConfig = {
+    layer: fakeSeaRoutesLayer,
+    style: fakeSeaRouteStyle,
+    label: 'rutas marítimas ficticias',
+    errorLabel: 'Rutas marítimas ficticias inválidas',
+    statusEl: fakeSeaRouteStatus,
+    buttonEl: loadFakeSeaRoutesButton,
+    loadText: 'Cargar rutas marítimas ficticias',
+    reloadText: 'Recargar rutas marítimas ficticias',
+    get routes() { return loadedFakeSeaRoutes; },
+    get fileName() { return loadedFakeSeaRouteFileName; },
+    setLoaded(routes, fileName) { loadedFakeSeaRoutes = routes; loadedFakeSeaRouteFileName = fileName; },
+    setError(error) { fakeSeaRouteLoadError = error; },
   };
 
   function clampLat(lat) {
@@ -509,6 +541,16 @@
     e.target.value = '';
   });
 
+  loadFakeSeaRoutesButton.addEventListener('click', () => {
+    fakeSeaRoutesFileInput.click();
+  });
+
+  fakeSeaRoutesFileInput.addEventListener('change', (e) => {
+    const f = e.target.files && e.target.files[0];
+    if (f) loadRoutes(f, fakeSeaRouteConfig);
+    e.target.value = '';
+  });
+
   const mapContainer = document.getElementById('map');
   ['dragenter', 'dragover'].forEach((ev) => {
     mapContainer.addEventListener(ev, (e) => { e.preventDefault(); e.stopPropagation(); dropZone.classList.remove('hidden'); });
@@ -532,6 +574,7 @@
 
   updateRouteStatus(seaRouteConfig);
   updateRouteStatus(landRouteConfig);
+  updateRouteStatus(fakeSeaRouteConfig);
 
   loadCities().then(renderAll).catch((err) => {
     console.error('[visor] no se pudo cargar locations.json', err);
@@ -550,8 +593,12 @@
     get landRoutes() { return loadedLandRoutes; },
     get landRouteFileName() { return loadedLandRouteFileName; },
     get landRouteError() { return landRouteLoadError; },
+    get fakeSeaRoutes() { return loadedFakeSeaRoutes; },
+    get fakeSeaRouteFileName() { return loadedFakeSeaRouteFileName; },
+    get fakeSeaRouteError() { return fakeSeaRouteLoadError; },
     seaRoutesLayer,
     landRoutesLayer,
+    fakeSeaRoutesLayer,
     reload: loadCities,
     renderAll,
     handleFile,

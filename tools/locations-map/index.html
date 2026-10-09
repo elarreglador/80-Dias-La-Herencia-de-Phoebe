@@ -28,7 +28,10 @@
         <button type="button" id="load-sea-routes" class="route-button" aria-controls="sea-routes-file">Cargar rutas marítimas</button>
         <input type="file" id="sea-routes-file" accept=".json,application/json" hidden />
         <div id="sea-route-status" class="route-status" aria-live="polite">0 rutas marítimas</div>
-        <p class="hint">Selecciona <code>car_routes.json</code> o <code>sea_routes.json</code> para superponer las rutas. No se escribe en disco.</p>
+        <button type="button" id="load-fake-sea-routes" class="route-button route-button--fake-sea" aria-controls="fake-sea-routes-file">Cargar rutas marítimas ficticias</button>
+        <input type="file" id="fake-sea-routes-file" accept=".json,application/json" hidden />
+        <div id="fake-sea-route-status" class="route-status" aria-live="polite">0 rutas marítimas ficticias</div>
+        <p class="hint">Selecciona <code>car_routes.json</code>, <code>sea_routes.json</code> o un fichero de rutas marítimas ficticias para superponerlas. No se escribe en disco.</p>
       </div>
     </div>
 

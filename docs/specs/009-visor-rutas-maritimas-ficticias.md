@@ -1,6 +1,6 @@
 # SPEC 009 — Añadir botón de rutas marítimas ficticias al visor de rutas y ciudades
 
-> **Estado:** Borrador
+> **Estado:** Implementado
 
 > **Depende de:** SPEC 003 (Visor locations.json), SPEC 005 (Visor de rutas marítimas animadas), SPEC 006 (Fogg Car Routes), SPEC 007 (Visor de rutas terrestres)
 

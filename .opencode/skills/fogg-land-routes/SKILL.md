@@ -19,8 +19,11 @@ python3 .opencode/skills/fogg-land-routes/land_route.py --city "Lisboa" --dry-ru
 python3 .opencode/skills/fogg-land-routes/land_route.py --only 20
 python3 .opencode/skills/fogg-land-routes/land_route.py --resume
 python3 .opencode/skills/fogg-land-routes/land_route.py --close-gaps
+python3 .opencode/skills/fogg-land-routes/land_route.py --pair "Tánger|Tripoli" --pair "Lisboa|Madrid"
 python3 .opencode/skills/fogg-land-routes/land_route.py --out /tmp/prueba.json
 ```
+
+`--pair "ORIGEN|DESTINO"` (repetible) fuerza un par curado a mano entre dos ciudades, aunque el origen ya tenga sus 5 rutas del lote. La ruta se marca `explicit: true`, **no cuenta para `limitPerOrigin`** (igual que las gapClosed) y hace merge sobre el fichero existente, así no desaparece en futuras regeneraciones. Deriva `heading` del delta entre ciudades (un par al Oeste se escribe con `heading: west`), reutiliza `build_route` y omite con aviso los pares ya presentes.
 
 **Por defecto reescribe el fichero entero.** `--resume` cambia a merge: carga las rutas existentes, rellena `heading` en las del esquema 1.0.0 (todas `east`), salta los orígenes ya presentes y solo calcula los que falten; siembra `unroutableCities` del meta previo y deriva `origins`/`originsWithoutRoute` del fichero para que los contadores no se reinicien. El volcado periódico cada 10 orígenes protege los lotes largos sin flags.
 

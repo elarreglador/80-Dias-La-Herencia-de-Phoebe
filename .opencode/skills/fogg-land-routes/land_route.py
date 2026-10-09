@@ -771,9 +771,10 @@ def validate_dataset(routes, limit) -> list[str]:
             )
 
     for origin, group in by_origin.items():
-        # limitPerOrigin acota las rutas normales; las gapClosed (SPEC 008
-        # §3.1) no cuentan para el límite, pero sí para la cobertura.
-        normal = [r for r in group if not r.get("gapClosed")]
+        # limitPerOrigin acota las rutas normales; ni las gapClosed (SPEC 008
+        # §3.1) ni las `explicit` (pares curados a mano) cuentan para el
+        # límite, pero sí para la cobertura.
+        normal = [r for r in group if not r.get("gapClosed") and not r.get("explicit")]
         if len(normal) > limit:
             problems.append(f"{origin} tiene {len(normal)} rutas, máximo {limit}")
         distances = [r["distanceKm"] for r in group]
@@ -790,7 +791,9 @@ def validate_dataset(routes, limit) -> list[str]:
 def build_meta(origins_total: int, routes: list, unroutable: int,
                without_route: int, limit: int, pool: int, profile: str) -> dict:
     crossings = sum(1 for r in routes if crosses_antimeridian(r["geometry"]["coordinates"]))
-    west = [r for r in routes if r.get("heading") == "west"]
+    # Las rutas `explicit` (pares curados a mano) no son fallback de
+    # jugabilidad: no cuentan para la nota del Oeste.
+    west = [r for r in routes if r.get("heading") == "west" and not r.get("explicit")]
     meta = {
         "project": PROJECT,
         "name": "Fogg Land Routes — Herencia de Phoebe",
@@ -953,6 +956,94 @@ def close_gaps(args) -> None:
           f'({meta["gapClosedRoutes"]} gapClosed) en {args.out}')
 
 
+def add_pairs(args) -> None:
+    """Pares curados a mano (`--pair ORIGEN|DESTINO`, repeatable).
+
+    Fuerza una ruta explícita entre ciudades aunque el origen ya tenga sus 5
+    rutas normales del lote: la ruta se marca `explicit: true` y no cuenta
+    para `limitPerOrigin` (igual que las gapClosed), así el dataset no pierde
+    estas parejas en futuras regeneraciones. Reutiliza `build_route` (OSRM,
+    rate limit, anclaje y guardias) y hace merge sobre el fichero existente.
+    """
+    _, cities, _ = load_locations()
+    routes, _, prev_meta = load_existing(args.out)
+    if not routes:
+        print(f"[ERROR] No hay rutas previas en {args.out}: los pares explícitos "
+              f"se añaden sobre el lote existente (la validación de cobertura "
+              f"exige el lote completo)", file=sys.stderr)
+        sys.exit(1)
+    print(f"[INFO] --pair: {len(routes)} rutas previas en {args.out}")
+    name_to_city = {}
+    for c in cities:
+        name_to_city.setdefault(normalize(c.get("name") or ""), c)
+        if c.get("asciiname"):
+            name_to_city.setdefault(normalize(c["asciiname"]), c)
+
+    added = 0
+    for raw in args.pair:
+        for sep in ("|", "->", "→", " - "):
+            if sep in raw:
+                origin_name, dest_name = (p.strip() for p in raw.split(sep, 1))
+                break
+        else:
+            print(f'[ERROR] --pair inválido {raw!r}: use "Origen|Destino"',
+                  file=sys.stderr)
+            sys.exit(1)
+        origin = name_to_city.get(normalize(origin_name))
+        dest = name_to_city.get(normalize(dest_name))
+        if origin is None or dest is None:
+            print(f'[WARN] --pair {raw}: ciudad no encontrada, se omite',
+                  file=sys.stderr)
+            continue
+        if origin["name"] == dest["name"]:
+            print(f'[WARN] --pair {raw}: origen == destino, se omite',
+                  file=sys.stderr)
+            continue
+        if any(r["origin"] == origin["name"] and r["destination"] == dest["name"]
+               for r in routes):
+            print(f'[WARN] {origin["name"]} → {dest["name"]}: ya existe, se omite',
+                  file=sys.stderr)
+            continue
+        delta = eastward_delta(float(origin["lng"]), float(dest["lng"]))
+        if delta == 0:
+            print(f'[WARN] {origin["name"]} → {dest["name"]}: misma longitud, se omite',
+                  file=sys.stderr)
+            continue
+        direction = "east" if 0 < delta <= MAX_EAST_DEG else "west"
+        route = build_route(args.profile, origin, dest, direction)
+        if route is None:
+            continue  # build_route ya registra el motivo ([SKIP])
+        if not gap_route_ok(route):
+            continue
+        route["explicit"] = True
+        if insert_gap_route(routes, route):
+            added += 1
+            print(f'[INFO] {origin["name"]} → {dest["name"]} '
+                  f'({direction}, {route["distanceKm"]} km): par explícito añadido')
+    print(f"[INFO] {added} pares explícitos añadidos de {len(args.pair)} solicitados")
+
+    problems = validate_dataset(routes, args.limit)
+    for p in problems:
+        print(f"[ERROR] {p}", file=sys.stderr)
+    if problems:
+        print(f"[ERROR] {len(problems)} problemas de validación, no se escribe",
+              file=sys.stderr)
+        sys.exit(1)
+
+    unique = len({r["origin"] for r in routes})
+    origins_total = max(len(cities), int(prev_meta.get("origins") or 0))
+    meta = build_meta(origins_total, routes,
+                      int(prev_meta.get("unroutableCities") or 0),
+                      origins_total - unique, args.limit, args.pool, args.profile)
+    meta["explicitRoutes"] = sum(1 for r in routes if r.get("explicit"))
+    if args.dry_run:
+        print(f"[INFO] dry-run: no se escribe {args.out}")
+        return
+    write_output(args.out, meta, routes)
+    print(f'[INFO] Guardadas {len(routes)} rutas '
+          f'({meta["explicitRoutes"]} explícitas) en {args.out}')
+
+
 def main():
     parser = argparse.ArgumentParser(
         description=(
@@ -976,6 +1067,9 @@ def main():
     parser.add_argument("--close-gaps", action="store_true",
                         help="Pasada de cierre de huecos (SPEC 008): ruta de salida "
                              "para toda ciudad sin ella, posterior al lote normal")
+    parser.add_argument("--pair", action="append", default=[], metavar='"ORIGEN|DESTINO"',
+                        help="Par explícito a forzar (repetible). Se marca `explicit: true` "
+                             "y no cuenta para el límite de 5 rutas por origen")
     parser.add_argument("--dry-run", action="store_true",
                         help="Detalla el resultado sin escribir disco")
     parser.add_argument("--out", type=Path, default=CAR_ROUTES_PATH,
@@ -997,6 +1091,10 @@ def main():
 
     if args.close_gaps:
         close_gaps(args)
+        return
+
+    if args.pair:
+        add_pairs(args)
         return
 
     _, cities, _ = load_locations()

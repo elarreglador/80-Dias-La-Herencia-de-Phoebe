@@ -3,9 +3,10 @@
 route_coverage — verificador de cobertura de rutas por ciudad (SPEC 008)
 
 Una ciudad está cubierta si aparece como `origin` de ≥1 ruta y como
-`destination` de ≥1 ruta en la unión mar ∪ tierra (sea_routes.json +
-car_routes.json). El verificador lista las ciudades descubiertas y sale con
-código 2 mientras quede alguna sin `excepción` en docs/ciudades-sin-rutas.md.
+`destination` de ≥1 ruta en la unión mar ∪ tierra ∪ raíl (sea_routes.json +
+car_routes.json + rail_routes.json, si existe). El verificador lista las
+ciudades descubiertas y sale con código 2 mientras quede alguna sin
+`excepción` en docs/ciudades-sin-rutas.md.
 
 Uso:
   python3 tools/route_coverage.py                # diagnóstico por stdout
@@ -28,6 +29,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 LOCATIONS_PATH = PROJECT_ROOT / "assets" / "data" / "locations.json"
 SEA_ROUTES_PATH = PROJECT_ROOT / "assets" / "data" / "sea_routes.json"
 CAR_ROUTES_PATH = PROJECT_ROOT / "assets" / "data" / "car_routes.json"
+RAIL_ROUTES_PATH = PROJECT_ROOT / "assets" / "data" / "rail_routes.json"
 REPORT_PATH = PROJECT_ROOT / "docs" / "ciudades-sin-rutas.md"
 
 REPORT_HEADERS = ["Ciudad", "Sin salida", "Sin entrada", "Rutas", "Decisión"]
@@ -79,17 +81,18 @@ def load_routes(path: Path) -> list[dict]:
 
 
 def compute_coverage(cities: list[dict], sea: list[dict],
-                     car: list[dict]) -> list[dict]:
-    """Cobertura por ciudad sobre la unión mar ∪ tierra.
+                     car: list[dict], rail: list[dict] | None = None) -> list[dict]:
+    """Cobertura por ciudad sobre la unión mar ∪ tierra ∪ raíl.
 
     Devuelve una lista con {"name", "outbound", "inbound", "total",
     "decision"} por cada ciudad descubierta (sin salida o sin entrada),
     con la `decision` leída del informe previo ('' si no había).
+    `rail` es opcional: las skills de mar y tierra lo omiten (SPEC 010 §3.3).
     """
     decisions = read_decisions()
     outbound: dict[str, int] = {}
     inbound: dict[str, int] = {}
-    for route in sea + car:
+    for route in sea + car + (rail or []):
         origin = route.get("origin")
         dest = route.get("destination")
         if origin:
@@ -178,7 +181,7 @@ def write_report(uncovered: list[dict], total_cities: int,
 # Integración con validate_dataset (SPEC 008 paso 7)
 # ---------------------------------------------------------------------------
 
-def coverage_problems(sea: list, car: list) -> list[str]:
+def coverage_problems(sea: list, car: list, rail: list | None = None) -> list[str]:
     """Problemas de cobertura para validate_dataset: ciudades descubiertas
     sin `excepción` en el informe. Lista vacía = cobertura completa.
 
@@ -187,7 +190,7 @@ def coverage_problems(sea: list, car: list) -> list[str]:
     mirar datos previos justo antes de escribir los nuevos.
     """
     cities = load_locations()
-    uncovered = compute_coverage(cities, sea, car)
+    uncovered = compute_coverage(cities, sea, car, rail)
     return [
         f"cobertura: {item['name']} "
         f"({'sin salida' if item['outbound'] == 0 else ''}"
@@ -215,7 +218,8 @@ def main() -> None:
     cities = load_locations()
     sea = load_routes(SEA_ROUTES_PATH)
     car = load_routes(CAR_ROUTES_PATH)
-    uncovered = compute_coverage(cities, sea, car)
+    rail = load_routes(RAIL_ROUTES_PATH)
+    uncovered = compute_coverage(cities, sea, car, rail)
 
     without_out = sum(1 for item in uncovered if item["outbound"] == 0)
     without_in = sum(1 for item in uncovered if item["inbound"] == 0)
@@ -227,7 +231,8 @@ def main() -> None:
     pending = [item for item in uncovered if not is_exception(item["decision"])]
 
     print(f"[INFO] {len(cities)} ciudades — {len(sea)} rutas marítimas + "
-          f"{len(car)} terrestres = {len(sea) + len(car)} (unión mar ∪ tierra)")
+          f"{len(car)} terrestres + {len(rail)} ferroviarias = "
+          f"{len(sea) + len(car) + len(rail)} (unión mar ∪ tierra ∪ raíl)")
     print(f"[INFO] Salida: {with_out} ciudades con ≥1 ruta de salida, "
           f"{without_out} sin salida")
     print(f"[INFO] Entrada: {with_in} ciudades con ≥1 ruta "

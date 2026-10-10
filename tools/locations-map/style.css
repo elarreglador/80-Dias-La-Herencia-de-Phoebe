@@ -177,6 +177,15 @@ body {
 .route-button--fake-sea:hover { background: #1B5E20; border-color: #0D3F12; }
 .route-button--fake-sea:focus-visible { outline: 3px solid rgba(46,125,50,0.35); outline-offset: 2px; }
 
+.route-button--rail {
+  background: #6A1B9A;
+  color: #fff;
+  border-color: #4A148C;
+}
+
+.route-button--rail:hover { background: #4A148C; border-color: #311B92; }
+.route-button--rail:focus-visible { outline: 3px solid rgba(106,27,154,0.35); outline-offset: 2px; }
+
 .route-status {
   color: var(--muted);
   font-size: 11px;
@@ -234,6 +243,11 @@ body {
   animation: fakeSeaRouteFlow 1.2s linear infinite;
 }
 
+.rail-route-line {
+  stroke-dashoffset: 0;
+  animation: railRouteFlow 1.2s linear infinite;
+}
+
 @keyframes seaRouteFlow {
   from { stroke-dashoffset: 0; }
   to { stroke-dashoffset: -20; }
@@ -249,10 +263,16 @@ body {
   to { stroke-dashoffset: -48; }
 }
 
+@keyframes railRouteFlow {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: -20; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .sea-route-line,
   .land-route-line,
-  .fake-sea-route-line {
+  .fake-sea-route-line,
+  .rail-route-line {
     animation: none;
     stroke-dashoffset: 0;
   }

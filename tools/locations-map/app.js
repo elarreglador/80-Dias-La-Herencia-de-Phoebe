@@ -23,6 +23,9 @@
   const fakeSeaRoutesFileInput = document.getElementById('fake-sea-routes-file');
   const loadFakeSeaRoutesButton = document.getElementById('load-fake-sea-routes');
   const fakeSeaRouteStatus = document.getElementById('fake-sea-route-status');
+  const railRoutesFileInput = document.getElementById('rail-routes-file');
+  const loadRailRoutesButton = document.getElementById('load-rail-routes');
+  const railRouteStatus = document.getElementById('rail-route-status');
   const dropZone = document.getElementById('drop-zone');
   const metaVersion = document.getElementById('meta-version');
 
@@ -47,6 +50,7 @@
   map.createPane('seaRoutesPane').style.zIndex = 401;
   map.createPane('landRoutesPane').style.zIndex = 402;
   map.createPane('fakeSeaRoutesPane').style.zIndex = 403;
+  map.createPane('railRoutesPane').style.zIndex = 404;
 
   let allCities = [];
   let filteredCities = [];
@@ -55,6 +59,7 @@
   const landRoutesLayer = L.layerGroup().addTo(map);
   const seaRoutesLayer = L.layerGroup().addTo(map);
   const fakeSeaRoutesLayer = L.layerGroup().addTo(map);
+  const railRoutesLayer = L.layerGroup().addTo(map);
   const markerLayer = L.layerGroup().addTo(map);
   const landRouteStyle = {
     pane: 'landRoutesPane',
@@ -86,6 +91,16 @@
     dashArray: '8 12',
     interactive: true,
   };
+  const railRouteStyle = {
+    pane: 'railRoutesPane',
+    renderer: L.svg({ pane: 'railRoutesPane' }),
+    className: 'rail-route-line',
+    color: '#6A1B9A',
+    weight: 3,
+    opacity: 0.9,
+    dashArray: '8 12',
+    interactive: true,
+  };
   let loadedLandRoutes = [];
   let loadedLandRouteFileName = null;
   let landRouteLoadError = null;
@@ -95,6 +110,9 @@
   let loadedFakeSeaRoutes = [];
   let loadedFakeSeaRouteFileName = null;
   let fakeSeaRouteLoadError = null;
+  let loadedRailRoutes = [];
+  let loadedRailRouteFileName = null;
+  let railRouteLoadError = null;
 
   // Configuración por capa: cada una tiene su layer, estilo, estado y textos
   const seaRouteConfig = {
@@ -138,6 +156,20 @@
     get fileName() { return loadedFakeSeaRouteFileName; },
     setLoaded(routes, fileName) { loadedFakeSeaRoutes = routes; loadedFakeSeaRouteFileName = fileName; },
     setError(error) { fakeSeaRouteLoadError = error; },
+  };
+  const railRouteConfig = {
+    layer: railRoutesLayer,
+    style: railRouteStyle,
+    label: 'rutas ferroviarias',
+    errorLabel: 'Rutas ferroviarias inválidas',
+    statusEl: railRouteStatus,
+    buttonEl: loadRailRoutesButton,
+    loadText: 'Cargar rutas ferroviarias',
+    reloadText: 'Recargar rutas ferroviarias',
+    get routes() { return loadedRailRoutes; },
+    get fileName() { return loadedRailRouteFileName; },
+    setLoaded(routes, fileName) { loadedRailRoutes = routes; loadedRailRouteFileName = fileName; },
+    setError(error) { railRouteLoadError = error; },
   };
 
   function clampLat(lat) {
@@ -551,6 +583,16 @@
     e.target.value = '';
   });
 
+  loadRailRoutesButton.addEventListener('click', () => {
+    railRoutesFileInput.click();
+  });
+
+  railRoutesFileInput.addEventListener('change', (e) => {
+    const f = e.target.files && e.target.files[0];
+    if (f) loadRoutes(f, railRouteConfig);
+    e.target.value = '';
+  });
+
   const mapContainer = document.getElementById('map');
   ['dragenter', 'dragover'].forEach((ev) => {
     mapContainer.addEventListener(ev, (e) => { e.preventDefault(); e.stopPropagation(); dropZone.classList.remove('hidden'); });
@@ -575,6 +617,7 @@
   updateRouteStatus(seaRouteConfig);
   updateRouteStatus(landRouteConfig);
   updateRouteStatus(fakeSeaRouteConfig);
+  updateRouteStatus(railRouteConfig);
 
   loadCities().then(renderAll).catch((err) => {
     console.error('[visor] no se pudo cargar locations.json', err);
@@ -596,9 +639,13 @@
     get fakeSeaRoutes() { return loadedFakeSeaRoutes; },
     get fakeSeaRouteFileName() { return loadedFakeSeaRouteFileName; },
     get fakeSeaRouteError() { return fakeSeaRouteLoadError; },
+    get railRoutes() { return loadedRailRoutes; },
+    get railRouteFileName() { return loadedRailRouteFileName; },
+    get railRouteError() { return railRouteLoadError; },
     seaRoutesLayer,
     landRoutesLayer,
     fakeSeaRoutesLayer,
+    railRoutesLayer,
     reload: loadCities,
     renderAll,
     handleFile,

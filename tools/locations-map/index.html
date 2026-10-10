@@ -31,7 +31,10 @@
         <button type="button" id="load-fake-sea-routes" class="route-button route-button--fake-sea" aria-controls="fake-sea-routes-file">Cargar rutas marítimas ficticias</button>
         <input type="file" id="fake-sea-routes-file" accept=".json,application/json" hidden />
         <div id="fake-sea-route-status" class="route-status" aria-live="polite">0 rutas marítimas ficticias</div>
-        <p class="hint">Selecciona <code>car_routes.json</code>, <code>sea_routes.json</code> o un fichero de rutas marítimas ficticias para superponerlas. No se escribe en disco.</p>
+        <button type="button" id="load-rail-routes" class="route-button route-button--rail" aria-controls="rail-routes-file">Cargar rutas ferroviarias</button>
+        <input type="file" id="rail-routes-file" accept=".json,application/json" hidden />
+        <div id="rail-route-status" class="route-status" aria-live="polite">0 rutas ferroviarias</div>
+        <p class="hint">Selecciona <code>car_routes.json</code>, <code>sea_routes.json</code>, un fichero de rutas marítimas ficticias o <code>rail_routes.json</code> para superponerlas. No se escribe en disco.</p>
       </div>
     </div>
 

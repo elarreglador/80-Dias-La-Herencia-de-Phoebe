@@ -5,6 +5,7 @@ import '../../domain/entities/fogg_city.dart';
 import '../../domain/entities/fogg_status.dart';
 import '../../services/budget_service.dart';
 import '../../services/game_session.dart';
+import 'route_catalog_provider.dart';
 import '../../services/time_engine.dart';
 
 final timeEngineProvider = Provider<TimeEngine>((ref) {
@@ -22,6 +23,7 @@ final gameSessionProvider = Provider<GameSession>((ref) {
   return GameSession(
     timeEngine: ref.watch(timeEngineProvider),
     budget: ref.watch(budgetServiceProvider),
+    transportSelector: ref.watch(transportSelectorProvider),
   );
 });
 

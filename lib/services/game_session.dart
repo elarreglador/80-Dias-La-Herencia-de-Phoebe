@@ -8,6 +8,7 @@ import '../domain/entities/transport_mode.dart';
 import '../domain/models/fatigue.dart';
 import 'budget_service.dart';
 import 'time_engine.dart';
+import 'transport_selector.dart';
 
 class SleepRequiredException implements Exception {
   const SleepRequiredException();
@@ -21,11 +22,14 @@ class GameSession {
     required this.timeEngine,
     required this.budget,
     List<FoggCity>? cities,
-  }) : _cities = cities ?? _defaultCities;
+    TransportSelector? transportSelector,
+  }) : _cities = cities ?? _defaultCities,
+       _transportSelector = transportSelector;
 
   final TimeEngine timeEngine;
   final BudgetService budget;
   final List<FoggCity> _cities;
+  final TransportSelector? _transportSelector;
 
   FoggStatus _status = FoggTraveling(
     leg: _defaultLeg(),
@@ -148,6 +152,15 @@ class GameSession {
   }
 
   List<DestinationOption> _buildOptions(FoggCity current) {
+    final selector = _transportSelector;
+    if (selector != null) {
+      try {
+        final selected = selector.optionsFor(current);
+        if (selected.isNotEmpty) return selected;
+      } catch (_) {
+        // fallback mock
+      }
+    }
     final candidates = _cities
         .where((c) => c != current && _isEast(current, c))
         .toList()

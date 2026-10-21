@@ -32,6 +32,7 @@ class GameSession {
   );
   FoggCity _currentCity = _defaultCities[0];
   Fatigue _fatigue = const Fatigue();
+  double _legStartFatigue = 100.0;
   FoggLeg? _currentLeg;
 
   FoggStatus get status => _status;
@@ -60,6 +61,8 @@ class GameSession {
     if (!budget.canAfford(vehicle.price)) {
       throw InsufficientBudgetException(vehicle.price, budget.balance);
     }
+
+    _legStartFatigue = _fatigue.value;
 
     budget.spend(vehicle.price, '${from.name}->${to.name} ${vehicle.mode.label}');
 
@@ -94,19 +97,16 @@ class GameSession {
     final leg = traveling.leg;
     final now = timeEngine.now();
     if (now.isBefore(leg.arrivalUtc)) {
-      // drenado incremental por horas transcurridas desde salida
       final elapsedHours = now.difference(leg.departureUtc).inMinutes / 60.0;
       final drain = (elapsedHours * 5.0).clamp(0.0, 100.0);
-      _fatigue = const Fatigue().drain(drain);
-      // mantener fatiga actual sin resetear: recalcular desde base 100 - drain
-      _fatigue = const Fatigue(value: 100.0).drain(drain);
+      _fatigue = Fatigue(value: (_legStartFatigue - drain).clamp(0.0, 100.0));
       _emit();
       return;
     }
 
-    // llegada
-    final totalHours = leg.totalDuration.inMinutes / 60.0;
-    _fatigue = const Fatigue(value: 100.0).drain((totalHours * 5.0).clamp(0.0, 100.0));
+    final totalHours = leg.arrivalUtc.difference(leg.departureUtc).inMinutes / 60.0;
+    final drain = (totalHours * 5.0).clamp(0.0, 100.0);
+    _fatigue = Fatigue(value: (_legStartFatigue - drain).clamp(0.0, 100.0));
     _currentCity = leg.to;
     _currentLeg = null;
     _status = FoggArrived(
@@ -117,26 +117,33 @@ class GameSession {
   }
 
   void sleep({Duration? duration}) {
-    _fatigue = const Fatigue(value: 100.0);
+    if (duration == null) {
+      _fatigue = const Fatigue(value: 100.0);
+    } else {
+      final recovered = (_fatigue.value + duration.inMinutes / 60.0 * 20.0)
+          .clamp(0.0, 100.0);
+      _fatigue = Fatigue(value: recovered);
+    }
     _emit();
   }
 
   void simulateArrival() {
     final traveling = _status;
-    if (traveling is FoggTraveling) {
-      _currentCity = traveling.leg.to;
-      _currentLeg = null;
-      _status = FoggArrived(
-        currentCity: traveling.leg.to,
-        options: _buildOptions(traveling.leg.to),
-      );
-      _emit();
-    }
+    if (traveling is! FoggTraveling) return;
+    _legStartFatigue = _fatigue.value;
+    _currentCity = traveling.leg.to;
+    _currentLeg = null;
+    _status = FoggArrived(
+      currentCity: traveling.leg.to,
+      options: _buildOptions(traveling.leg.to),
+    );
+    _emit();
   }
 
   void simulateDeparture() {
     _status = FoggTraveling(leg: _defaultLeg());
     _currentLeg = (_status as FoggTraveling).leg;
+    _legStartFatigue = _fatigue.value;
     _emit();
   }
 

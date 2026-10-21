@@ -89,10 +89,8 @@ class TimeEngine {
 
     if (candidateUtc.isBefore(earliest)) {
       candidateLocal = candidateLocal.add(const Duration(days: 1));
-      final offset2 = TimezoneService.offsetAt(
-        candidateLocal.subtract(offset),
-        originTimezone,
-      );
+      final approxUtc = candidateLocal.subtract(offset);
+      final offset2 = TimezoneService.offsetAt(approxUtc, originTimezone);
       candidateUtc = candidateLocal.subtract(offset2);
     }
 

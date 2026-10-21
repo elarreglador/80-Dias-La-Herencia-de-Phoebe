@@ -5,6 +5,9 @@ import '../domain/entities/fogg_city.dart';
 import '../domain/entities/fogg_leg.dart';
 import '../domain/entities/fogg_status.dart';
 import '../domain/entities/transport_mode.dart';
+import '../domain/models/travel_event.dart';
+import '../domain/models/weather_snapshot.dart';
+import 'event_engine.dart';
 import '../domain/models/fatigue.dart';
 import 'budget_service.dart';
 import 'time_engine.dart';
@@ -23,13 +26,19 @@ class GameSession {
     required this.budget,
     List<FoggCity>? cities,
     TransportSelector? transportSelector,
+    EventEngine? eventEngine,
+    WeatherSnapshot? weatherSnapshot,
   }) : _cities = cities ?? _defaultCities,
-       _transportSelector = transportSelector;
+       _transportSelector = transportSelector,
+       _eventEngine = eventEngine,
+       _weatherSnapshot = weatherSnapshot;
 
   final TimeEngine timeEngine;
   final BudgetService budget;
   final List<FoggCity> _cities;
   final TransportSelector? _transportSelector;
+  final EventEngine? _eventEngine;
+  final WeatherSnapshot? _weatherSnapshot;
 
   FoggStatus _status = FoggTraveling(
     leg: _defaultLeg(),
@@ -58,6 +67,7 @@ class GameSession {
     required FoggCity from,
     required FoggCity to,
     required VehicleOption vehicle,
+    WeatherSnapshot? weather,
   }) {
     if (_fatigue.mustSleep && !vehicle.sleeper) {
       throw const SleepRequiredException();
@@ -77,7 +87,37 @@ class GameSession {
       departureMinute: vehicle.departureMinute,
       sleeper: vehicle.sleeper,
     );
-    final arrival = departure.add(vehicle.duration);
+    var arrival = departure.add(vehicle.duration);
+
+    final engine = _eventEngine;
+    if (engine != null) {
+      try {
+        final snapshot = weather ?? _weatherSnapshot ?? WeatherSnapshot(timestampUtc: departure.toUtc());
+        final rollLeg = FoggLeg(
+          from: from,
+          to: to,
+          transport: vehicle.mode,
+          departureUtc: departure,
+          arrivalUtc: arrival,
+          price: vehicle.price,
+          sleeper: vehicle.sleeper,
+        );
+        final events = engine.roll(leg: rollLeg, weather: snapshot);
+        for (final event in events) {
+          if (event is DelayEvent) {
+            arrival = arrival.add(Duration(minutes: (event.hours * 60).round()));
+          }
+          if (event is StormEvent) {
+            _fatigue = _fatigue.drain(event.extraFatigue);
+          }
+        }
+        if (events.any((e) => e is StormEvent)) {
+          _legStartFatigue = _fatigue.value;
+        }
+      } catch (_) {
+        // fallback: comportamiento actual
+      }
+    }
 
     final leg = FoggLeg(
       from: from,

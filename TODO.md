@@ -15,7 +15,7 @@ Checklist vivo. Marque con `[x]` al completar.
 - [ ] Catálogo mock 3 transportes (train/ship/foot) con `price | departureTime | sleeper | availabilityRule`
 - [ ] `TransportSelector` + regla asíncrona auto-reserva más caro + filtro `lng > actual`
 - [x] `BudgetService` + `Ledger` (SPEC 012: 1.000.000 € inicial, stream de saldo e historial)
-- [ ] `EventEngine` mock (2 eventos: retraso + tormenta Open-Meteo)
+- [x] `EventEngine` mock (2 eventos: retraso + tormenta Open-Meteo) — spec 014
 - [ ] `DiaryService` + `StoryGenerator` plantillas (carta antes de dormir, publica al amanecer)
 - [ ] Integración Open-Meteo (sin key) + `WeatherSnapshot`
 - [ ] `InMemoryBackend` (implementa Timetable/Position/Diary) — mock basado en datos reales

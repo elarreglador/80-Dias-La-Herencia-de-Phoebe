@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/fogg_status.dart';
 import '../../utils/app_colors.dart';
 import '../providers/bottom_nav_provider.dart';
-import '../providers/fogg_status_provider.dart';
+import '../providers/game_notifier.dart';
 
 /// Botonera inferior Fogg — NavigationBar M3 con 5 destinos.
 /// Índice 2 (Fogg) es dinámico: tren si viaja, pin si está en destino.
@@ -17,7 +17,7 @@ class FoggBottomNav extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedIndex = ref.watch(bottomNavIndexProvider);
-    final foggStatus = ref.watch(foggStatusProvider);
+    final foggStatus = ref.watch(gameNotifierProvider);
     final isTraveling = foggStatus is FoggTraveling;
 
     return SafeArea(

@@ -9,6 +9,8 @@ class VehicleOption {
     required this.price,
     this.sleeper = false,
     this.note,
+    this.departureHour,
+    this.departureMinute,
   });
 
   final TransportMode mode;
@@ -16,6 +18,8 @@ class VehicleOption {
   final int price; // €
   final bool sleeper;
   final String? note;
+  final int? departureHour; // hora local del origen (0-23)
+  final int? departureMinute; // minuto local del origen (0-59)
 
   String get durationLabel {
     final h = duration.inHours;

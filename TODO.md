@@ -10,11 +10,11 @@ Checklist vivo. Marque con `[x]` al completar.
 - [ ] `shared_models` (Position, Leg, TransportMode, DiaryEntry, WeatherSnapshot)
 - [ ] PWA mínima (`web/manifest.json`, `service_worker`, iconos 192/512, prompt instalación móvil)
 - [x] `flutter_map` + OSM + marcador Fogg (`foggPosition`, Phoebe) + overlay día/noche simplificado → **curvo preciso** `SunTerminatorService` 2° `PolygonLayer` `#000511` 45% recálculo 5 min (spec 001 `docs/specs/001-terminador-solar.md`)
-- [ ] `TimeEngine` (START_DATE configurable, TIME_SCALE dev-only con guardarraíl prod, ciclo descanso 5–8 h, flag `sleeper`)
+- [x] `TimeEngine` (SPEC 012: START_DATE configurable, TIME_SCALE dev-only con guardarraíl prod, ciclo descanso 5–8 h, flag `sleeper`, horarios locales)
 - [ ] Ruta 5 ciudades este (Londres → París → Estambul → Bombay → Tokio) + interpolación minuto a minuto (GeoJSON recto)
 - [ ] Catálogo mock 3 transportes (train/ship/foot) con `price | departureTime | sleeper | availabilityRule`
 - [ ] `TransportSelector` + regla asíncrona auto-reserva más caro + filtro `lng > actual`
-- [ ] `BudgetService` + `Ledger` (1.000.000 € inicial)
+- [x] `BudgetService` + `Ledger` (SPEC 012: 1.000.000 € inicial, stream de saldo e historial)
 - [ ] `EventEngine` mock (2 eventos: retraso + tormenta Open-Meteo)
 - [ ] `DiaryService` + `StoryGenerator` plantillas (carta antes de dormir, publica al amanecer)
 - [ ] Integración Open-Meteo (sin key) + `WeatherSnapshot`

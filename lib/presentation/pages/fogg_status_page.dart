@@ -8,6 +8,7 @@ import '../../utils/app_colors.dart';
 import '../providers/bottom_nav_provider.dart';
 import '../providers/countdown_provider.dart';
 import '../providers/fogg_status_provider.dart';
+import '../providers/game_notifier.dart';
 import '../providers/map_focus_provider.dart';
 import '../widgets/countdown_widget.dart';
 import '../widgets/destination_card.dart';
@@ -22,7 +23,7 @@ class FoggStatusPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final status = ref.watch(foggStatusProvider);
+    final status = ref.watch(gameNotifierProvider);
 
     return switch (status) {
       FoggTraveling(:final leg) => _TravelingView(leg: leg),
@@ -248,17 +249,14 @@ class _ArrivedView extends ConsumerWidget {
                       final city = selectedCity!;
                       // ignore: unnecessary_non_null_assertion
                       final vehicle = selectedVehicle!;
-                      // Transición mock a viajando — estética ficticia
-                      ref.read(foggStatusProvider.notifier).goTravelingMock(
-                            from: options.firstWhere((o) => o.city.name == currentCityName,
-                                    orElse: () => options.first)
-                                .city,
-                            to: city.city,
-                            mode: vehicle.mode,
-                            duration: vehicle.duration,
-                            price: vehicle.price,
-                            sleeper: vehicle.sleeper,
-                          );
+                       // Transición real a viajando
+                       ref.read(gameNotifierProvider.notifier).startLeg(
+                             from: options.firstWhere((o) => o.city.name == currentCityName,
+                                     orElse: () => options.first)
+                                 .city,
+                             to: city.city,
+                             vehicle: vehicle,
+                           );
                       ref.read(selectedDestinationProvider.notifier).state = null;
                       ref.read(selectedVehicleProvider.notifier).state = null;
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -288,17 +286,17 @@ class _ArrivedView extends ConsumerWidget {
 class _DebugToggle extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final status = ref.watch(foggStatusProvider);
+    final status = ref.watch(gameNotifierProvider);
     final isTraveling = status is FoggTraveling;
     return OutlinedButton.icon(
       onPressed: () {
-        if (isTraveling) {
-          ref.read(foggStatusProvider.notifier).goArrivedMock();
-          ref.read(selectedDestinationProvider.notifier).state = null;
-          ref.read(selectedVehicleProvider.notifier).state = null;
-        } else {
-          ref.read(foggStatusProvider.notifier).goDefaultTraveling();
-        }
+         if (isTraveling) {
+           ref.read(gameNotifierProvider.notifier).simulateArrival();
+           ref.read(selectedDestinationProvider.notifier).state = null;
+           ref.read(selectedVehicleProvider.notifier).state = null;
+         } else {
+           ref.read(gameNotifierProvider.notifier).simulateDeparture();
+         }
       },
       icon: Icon(isTraveling ? Icons.location_on_outlined : Icons.train_outlined, size: 16),
       label: Text(isTraveling ? 'Simular llegada (debug)' : 'Simular salida (debug)', style: const TextStyle(fontSize: 12)),

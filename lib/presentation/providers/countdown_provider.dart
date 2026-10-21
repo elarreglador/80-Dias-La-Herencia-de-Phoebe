@@ -2,14 +2,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/fogg_status.dart';
 import 'bottom_nav_provider.dart';
-import 'fogg_status_provider.dart';
+import 'game_notifier.dart';
 
 /// Stream de cuenta atrás — emite Duration restante cada segundo cuando está viajando.
 /// Solo hace tick cuando la pestaña Fogg (índice 2) está visible; en otro caso
 /// emite una única vez para evitar Timers pendientes en tests con pumpAndSettle.
 /// Formato objetivo: Xd HH:MM:SS (ver formatCountdown).
 final countdownProvider = StreamProvider.autoDispose<Duration>((ref) async* {
-  final status = ref.watch(foggStatusProvider);
+  final status = ref.watch(gameNotifierProvider);
   if (status is! FoggTraveling) {
     yield Duration.zero;
     return;
@@ -24,7 +24,7 @@ final countdownProvider = StreamProvider.autoDispose<Duration>((ref) async* {
 
   await for (final _ in Stream.periodic(const Duration(seconds: 1))) {
     // Re-lee status por si cambió a Arrived externamente o se cambió de pestaña.
-    final current = ref.read(foggStatusProvider);
+    final current = ref.read(gameNotifierProvider);
     if (current is! FoggTraveling) {
       yield Duration.zero;
       break;

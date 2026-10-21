@@ -20,6 +20,15 @@ class SleepRequiredException implements Exception {
   String toString() => 'SleepRequiredException';
 }
 
+class WeatherCancellationException implements Exception {
+  const WeatherCancellationException(this.reason);
+
+  final String? reason;
+
+  @override
+  String toString() => 'WeatherCancellationException: $reason';
+}
+
 class GameSession {
   GameSession({
     required this.timeEngine,
@@ -74,6 +83,9 @@ class GameSession {
     }
     if (!budget.canAfford(vehicle.price)) {
       throw InsufficientBudgetException(vehicle.price, budget.balance);
+    }
+    if (vehicle.weatherImpact != null && vehicle.weatherImpact!.cancelled) {
+      throw WeatherCancellationException(vehicle.weatherImpact!.reason);
     }
 
     _legStartFatigue = _fatigue.value;

@@ -135,6 +135,10 @@ class DestinationCard extends StatelessWidget {
                         Text(v.mode.label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
                         const SizedBox(width: 6),
                         Text('${v.price}€', style: TextStyle(fontSize: 11, color: AppColors.labelColor.withValues(alpha: 0.6))),
+                        if (v.weatherImpact?.cancelled ?? false) ...[
+                          const SizedBox(width: 4),
+                          const Icon(Icons.block, size: 12, color: AppColors.foggRed),
+                        ],
                         if (v.sleeper) ...[
                           const SizedBox(width: 4),
                           Container(
@@ -171,20 +175,25 @@ class VehicleChoiceChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cancelled = vehicle.weatherImpact?.cancelled ?? false;
+    final reason = vehicle.weatherImpact?.reason;
+    final delay = vehicle.weatherImpact?.delay;
     return Material(
       color: selected ? AppColors.foggRed : AppColors.surface,
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
-        onTap: () {
-          HapticFeedback.lightImpact();
-          onTap();
-        },
+        onTap: cancelled
+            ? null
+            : () {
+                HapticFeedback.lightImpact();
+                onTap();
+              },
         borderRadius: BorderRadius.circular(14),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: selected ? AppColors.foggRed : AppColors.foggRed.withValues(alpha: 0.14), width: 1.2),
+            border: Border.all(color: cancelled ? AppColors.foggRed.withValues(alpha: 0.6) : (selected ? AppColors.foggRed : AppColors.foggRed.withValues(alpha: 0.14)), width: 1.2),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -210,6 +219,23 @@ class VehicleChoiceChip extends StatelessWidget {
                       color: selected ? Colors.white.withValues(alpha: 0.9) : AppColors.labelColor.withValues(alpha: 0.6),
                     ),
                   ),
+                  if (cancelled && reason != null)
+                    Text(
+                      reason,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: selected ? Colors.white : AppColors.foggRed,
+                      ),
+                    )
+                  else if (delay != null && delay > Duration.zero)
+                    Text(
+                      'Retraso ${delay.inMinutes} min',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: selected ? Colors.white.withValues(alpha: 0.9) : AppColors.labelColor.withValues(alpha: 0.6),
+                      ),
+                    ),
                 ],
               ),
               if (selected) ...[

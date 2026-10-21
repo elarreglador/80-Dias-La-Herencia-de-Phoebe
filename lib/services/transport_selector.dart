@@ -5,6 +5,8 @@ import '../domain/entities/fogg_city.dart';
 import '../domain/entities/transport_mode.dart';
 import '../domain/models/route_entry.dart';
 import 'route_catalog.dart';
+import 'weather_service.dart';
+import '../domain/models/weather_impact.dart';
 
 class Tariff {
   const Tariff({required this.pricePerKm, required this.speedKmh, required this.sleeper});
@@ -23,10 +25,17 @@ class TariffTable {
 }
 
 class TransportSelector {
-  TransportSelector({required this.catalog, this.tariffs = TariffTable.defaults});
+  TransportSelector({
+    required this.catalog,
+    this.tariffs = TariffTable.defaults,
+    this.weatherService,
+    this.now,
+  });
 
   final RouteCatalog catalog;
   final Map<TransportMode, Tariff> tariffs;
+  final WeatherService? weatherService;
+  final DateTime? now;
 
   List<DestinationOption> optionsFor(FoggCity current, {int limit = 3}) {
     final routes = catalog.routesFrom(current.name);
@@ -82,16 +91,33 @@ class TransportSelector {
     }
 
     final vehicles = <VehicleOption>[];
+    final baseNow = (now ?? DateTime.now()).toUtc();
     // Orden fijo de modos reales.
     for (final mode in [TransportMode.ship, TransportMode.train, TransportMode.car]) {
       final route = bestByMode[mode];
       if (route == null) continue;
       final tariff = tariffs[mode] ?? TariffTable.defaults[mode]!;
-      final duration = route.durationHours != null
+      final baseDuration = route.durationHours != null
           ? Duration(microseconds: (route.durationHours! * 3600000000).round())
           : Duration(microseconds: ((route.distanceKm / tariff.speedKmh) * 3600000000).round());
       final price = (route.distanceKm * tariff.pricePerKm).round();
       final dep = _departure(mode);
+      var duration = baseDuration;
+      WeatherImpact? impact;
+      final ws = weatherService;
+      if (ws != null) {
+        var departureUtc = DateTime.utc(baseNow.year, baseNow.month, baseNow.day, dep.$1, dep.$2);
+        if (departureUtc.isBefore(baseNow)) {
+          departureUtc = departureUtc.add(const Duration(days: 1));
+        }
+        final arrivalUtc = departureUtc.add(baseDuration);
+        final originSnap = ws.fetchSync(current.lat, current.lng, departureUtc);
+        final destSnap = ws.fetchSync(city.lat, city.lng, arrivalUtc);
+        impact = WeatherImpact.forMode(mode, originSnap, destSnap, departureUtc, arrivalUtc);
+        if (!impact.cancelled) {
+          duration = baseDuration + impact.delay;
+        }
+      }
       vehicles.add(VehicleOption(
         mode: mode,
         duration: duration,
@@ -99,15 +125,28 @@ class TransportSelector {
         sleeper: tariff.sleeper,
         departureHour: dep.$1,
         departureMinute: dep.$2,
+        weatherImpact: impact,
       ));
     }
 
     // Foot siempre.
     final footTariff = tariffs[TransportMode.foot] ?? TariffTable.defaults[TransportMode.foot]!;
     final footKm = _haversine(current.lat, current.lng, city.lat, city.lng);
-    final footDuration = Duration(
+    final footBaseDuration = Duration(
         microseconds: ((footKm / footTariff.speedKmh) * 3600000000).round());
     final footPrice = (footKm * footTariff.pricePerKm).round();
+    var footDuration = footBaseDuration;
+    WeatherImpact? footImpact;
+    final fws = weatherService;
+    if (fws != null) {
+      var depUtc = DateTime.utc(baseNow.year, baseNow.month, baseNow.day, 6, 0);
+      if (depUtc.isBefore(baseNow)) depUtc = depUtc.add(const Duration(days: 1));
+      final arrUtc = depUtc.add(footBaseDuration);
+      final o = fws.fetchSync(current.lat, current.lng, depUtc);
+      final d = fws.fetchSync(city.lat, city.lng, arrUtc);
+      footImpact = WeatherImpact.forMode(TransportMode.foot, o, d, depUtc, arrUtc);
+      if (!footImpact.cancelled) footDuration = footBaseDuration + footImpact.delay;
+    }
     vehicles.add(VehicleOption(
       mode: TransportMode.foot,
       duration: footDuration,
@@ -115,6 +154,7 @@ class TransportSelector {
       sleeper: false,
       departureHour: 6,
       departureMinute: 0,
+      weatherImpact: footImpact,
     ));
 
     return DestinationOption(city: city, vehicles: vehicles);

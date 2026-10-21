@@ -1,5 +1,6 @@
 import 'fogg_city.dart';
 import 'transport_mode.dart';
+import '../models/weather_impact.dart';
 
 /// Opción de vehículo para un destino concreto — precio y duración mock.
 class VehicleOption {
@@ -11,6 +12,7 @@ class VehicleOption {
     this.note,
     this.departureHour,
     this.departureMinute,
+    this.weatherImpact,
   });
 
   final TransportMode mode;
@@ -20,6 +22,7 @@ class VehicleOption {
   final String? note;
   final int? departureHour; // hora local del origen (0-23)
   final int? departureMinute; // minuto local del origen (0-59)
+  final WeatherImpact? weatherImpact;
 
   String get durationLabel {
     final h = duration.inHours;

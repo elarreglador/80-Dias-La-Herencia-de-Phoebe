@@ -19,7 +19,7 @@ class WeatherService {
       final uri = Uri.parse(
         'https://api.open-meteo.com/v1/forecast'
         '?latitude=$lat&longitude=$lng'
-        '&hourly=temperature_2m,wind_speed_10m,precipitation,weather_code'
+        '&hourly=temperature_2m,wind_speed_10m,wind_direction_10m,wind_gusts_10m,visibility,precipitation,snowfall,snow_depth,weather_code'
         '&timezone=UTC',
       );
       final request = await _client.getUrl(uri);
@@ -34,7 +34,12 @@ class WeatherService {
       final times = (hourly['time'] as List?)?.cast<String>() ?? const [];
       final temps = (hourly['temperature_2m'] as List?) ?? const [];
       final winds = (hourly['wind_speed_10m'] as List?) ?? const [];
+      final windDirs = (hourly['wind_direction_10m'] as List?) ?? const [];
+      final gusts = (hourly['wind_gusts_10m'] as List?) ?? const [];
+      final visibilities = (hourly['visibility'] as List?) ?? const [];
       final precips = (hourly['precipitation'] as List?) ?? const [];
+      final snowfalls = (hourly['snowfall'] as List?) ?? const [];
+      final snowDepths = (hourly['snow_depth'] as List?) ?? const [];
       final codes = (hourly['weather_code'] as List?) ?? const [];
 
       if (times.isEmpty) return _neutral(utc);
@@ -44,7 +49,8 @@ class WeatherService {
       for (var i = 0; i < times.length; i++) {
         DateTime parsed;
         try {
-          parsed = DateTime.parse(times[i]).toUtc();
+          final raw = times[i];
+          parsed = DateTime.parse(raw.endsWith('Z') ? raw : '${raw}Z').toUtc();
         } catch (_) {
           continue;
         }
@@ -63,9 +69,29 @@ class WeatherService {
       final rawWind = bestIndex < winds.length ? winds[bestIndex] : null;
       if (rawWind is num) wind = rawWind.toDouble();
 
+      double windDir = 0;
+      final rawWindDir = bestIndex < windDirs.length ? windDirs[bestIndex] : null;
+      if (rawWindDir is num) windDir = rawWindDir.toDouble();
+
+      double gust = 0;
+      final rawGust = bestIndex < gusts.length ? gusts[bestIndex] : null;
+      if (rawGust is num) gust = rawGust.toDouble();
+
+      double visibility = 10000;
+      final rawVis = bestIndex < visibilities.length ? visibilities[bestIndex] : null;
+      if (rawVis is num) visibility = rawVis.toDouble();
+
       double precip = 0;
       final rawPrecip = bestIndex < precips.length ? precips[bestIndex] : null;
       if (rawPrecip is num) precip = rawPrecip.toDouble();
+
+      double snowfall = 0;
+      final rawSnow = bestIndex < snowfalls.length ? snowfalls[bestIndex] : null;
+      if (rawSnow is num) snowfall = rawSnow.toDouble();
+
+      double snowDepth = 0;
+      final rawSnowDepth = bestIndex < snowDepths.length ? snowDepths[bestIndex] : null;
+      if (rawSnowDepth is num) snowDepth = rawSnowDepth.toDouble();
 
       int code = 0;
       final rawCode = bestIndex < codes.length ? codes[bestIndex] : null;
@@ -87,7 +113,12 @@ class WeatherService {
         temperatureC: temp,
         condition: condition,
         windSpeedKmh: wind,
+        windDirectionDeg: windDir,
+        windGustsKmh: gust,
+        visibilityM: visibility,
         precipitationMm: precip,
+        snowfallCm: snowfall,
+        snowDepthM: snowDepth,
         weatherCode: code,
       );
       _cache[key] = snapshot;
@@ -95,6 +126,16 @@ class WeatherService {
     } catch (_) {
       return _neutral(utc);
     }
+  }
+
+  WeatherSnapshot fetchSync(double lat, double lng, DateTime atUtc) {
+    final utc = atUtc.toUtc();
+    final key = '$lat|$lng|${utc.toIso8601String().substring(0, 13)}';
+    final cached = _cache[key];
+    if (cached != null) return cached;
+    // Dispara carga asíncrona para poblar caché sin bloquear.
+    fetch(lat, lng, atUtc);
+    return _neutral(utc);
   }
 
   WeatherSnapshot _neutral(DateTime utc) {

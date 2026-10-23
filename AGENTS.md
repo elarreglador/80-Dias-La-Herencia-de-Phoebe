@@ -15,20 +15,29 @@ Instrucciones repo-específicas para OpenCode. Complementa a `~/.config/opencode
 
 ```bash
 flutter analyze                 # lint + typecheck (analysis_options.yaml excluye tools/** y plataformas)
-flutter test                    # 85 tests, ~6s, todos verdes
+flutter test                    # 154 tests, ~12s, todos verdes
 flutter test test/services/sun_terminator_service_test.dart          # un archivo
 flutter test --plain-name "nombre exacto del test"                   # un solo test
-flutter run -d chrome
+
+# Teléfono Android (target que funciona). `flutter devices` da el serial exacto.
+flutter devices                                  # lista dispositivos/seriales
+flutter run -d 5lcqy54d4l4ltspz                  # build + instala + lanza en el Redmi
+flutter build apk --debug                        # solo APK: build/app/outputs/flutter-apk/app-debug.apk
+adb -s 5lcqy54d4l4ltspz install -r build/app/outputs/flutter-apk/app-debug.apk
+adb -s 5lcqy54d4l4ltspz shell am start -n eu.elarreglador.pf/.MainActivity
+
 ./tools/serve_map.sh            # visor dev en :8090
 ```
 
 - `flutter analyze` **ya sale con 1 lint `info` preexistente** (`prefer_const_constructors` en `test/services/sun_terminator_service_test.dart:291`). No lo introduzcas tú y no lo confundas con tu cambio.
 - `flutter test` imprime un aviso de política de tiles de OSM de `flutter_map` en casi todos los tests. Es ruido esperado, no un fallo.
+- **Lanzar en el teléfono**: `flutter run -d <serial>` (el serial sale de `flutter devices`; el Redmi de este proyecto es `5lcqy54d4l4ltspz`, cuidado de no omitir caracteres). Hace build, instala y arranca, y mantiene hot-reload **solo si se ejecuta en un terminal real**. Si se lanza en segundo plano (`nohup … &`), el proceso muere al acabar la instalación y se pierde el hot-reload; en ese caso: `flutter build apk --debug`, `adb install -r …`, `adb shell am start -n eu.elarreglador.pf/.MainActivity`.
+- **`flutter run -d chrome` NO funciona hoy**: `WeatherService` instancia `HttpClient` de `dart:io` (`lib/services/weather_service.dart:7`), que en web revienta con `Unsupported operation: Platform._version`. Para ver la app, use el teléfono (o `flutter run -d linux`).
 
 ## Invariantes de dominio — verificados en código
 
 - **Regla del Este**: se valida con `assert` en `FoggRoute.validated` (`lib/domain/entities/fogg_route.dart:12`) vía `_isEastward`. Usa **longitud desenrollada**, así que cruzar el antimeridiano hacia el este es legal (Tokio → San Francisco) y `order` debe ser consecutivo. **Usa siempre `FoggRoute.validated(...)`** para rutas nuevas; el constructor `const` no valida. Cubierto por `test/domain/fogg_route_test.dart`.
-- **Sin avión**: `TransportMode` tiene exactamente 8 valores (`train, ship, car, balloon, horse, camel, foot, motorcycle`). No añadas `flight`. Nota: `balloon` usa `Icons.air` y `camel` reutiliza `Icons.pets` (igual que `horse`); se distinguen por `label`. No lo "corrijas" sin consultar.
+- **Sin avión**: `TransportMode` tiene exactamente 7 valores (`train, ship, car, balloon, horse, camel, motorcycle`). No añadas `flight`. `foot`/«A pie» se eliminó y no debe volver. Nota: `balloon` usa `Icons.air` y `camel` reutiliza `Icons.pets` (igual que `horse`); se distinguen por `label`. No lo "corrijas" sin consultar.
 - **Naming**: `Fogg*` / `Phoebe` (`FoggRoute`, `FoggCity`, `FoggLeg`, `FoggStatus`, `foggPositionProvider`, `Ciclo Fogg`). Nunca `Traveler` genérico.
 - **Idioma**: identificadores y código en inglés; docstrings, comentarios y textos de UI en castellano.
 - **Hora civil**: `TimezoneService.init()` se llama una vez en `main()`; todo offset se **deriva** de IANA con `package:timezone` (DST-correcto), nunca se persiste.

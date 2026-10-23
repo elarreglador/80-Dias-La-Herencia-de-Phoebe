@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../utils/app_colors.dart';
+import '../providers/sun_terminator_provider.dart';
 
 /// Barra superior Fogg — AppBar M3 fija 64dp con título y fecha local.
 ///
+/// La fecha sigue el reloj de juego (`currentUtcProvider`), acelerado en debug.
 /// Sin acciones en MVP (trailing reservado para BudgetBadge futuro).
-class FoggAppBar extends StatelessWidget implements PreferredSizeWidget {
+class FoggAppBar extends ConsumerWidget implements PreferredSizeWidget {
   const FoggAppBar({super.key});
 
   static const _height = 64.0;
@@ -25,8 +28,11 @@ class FoggAppBar extends StatelessWidget implements PreferredSizeWidget {
   Size get preferredSize => const Size.fromHeight(_height);
 
   @override
-  Widget build(BuildContext context) {
-    final subtitle = _formatLocalDate(DateTime.now());
+  Widget build(BuildContext context, WidgetRef ref) {
+    final now =
+        (ref.watch(currentUtcProvider).value ?? DateTime.now().toUtc())
+            .toLocal();
+    final subtitle = _formatLocalDate(now);
 
     return AppBar(
       backgroundColor: AppColors.surface,

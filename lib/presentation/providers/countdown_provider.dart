@@ -14,8 +14,9 @@ final countdownProvider = StreamProvider.autoDispose<Duration>((ref) async* {
     yield Duration.zero;
     return;
   }
+  final engine = ref.watch(timeEngineProvider);
   // Emite inmediatamente.
-  Duration compute() => status.remainingAt(DateTime.now().toUtc());
+  Duration compute() => status.remainingAt(engine.now());
   yield compute();
 
   // Solo tick si Fogg está visible — evita pending Timer cuando IndexedStack está en Mapa.
@@ -30,7 +31,7 @@ final countdownProvider = StreamProvider.autoDispose<Duration>((ref) async* {
       break;
     }
     if (ref.read(bottomNavIndexProvider) != 2) break;
-    final remaining = current.remainingAt(DateTime.now().toUtc());
+    final remaining = current.remainingAt(engine.now());
     yield remaining;
     if (remaining == Duration.zero) break;
   }

@@ -47,9 +47,10 @@ class _TravelingView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final countdownAsync = ref.watch(countdownProvider);
+    final now = ref.watch(timeEngineProvider).now();
 
-    final remaining = countdownAsync.valueOrNull ?? leg.remainingAt(DateTime.now().toUtc());
-    final progress = leg.progressAt(DateTime.now().toUtc()).clamp(0.0, 1.0);
+    final remaining = countdownAsync.valueOrNull ?? leg.remainingAt(now);
+    final progress = leg.progressAt(now).clamp(0.0, 1.0);
     final totalLabel = _formatTotal(leg.totalDuration);
 
     return SingleChildScrollView(

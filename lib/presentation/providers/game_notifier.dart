@@ -6,14 +6,9 @@ import '../../domain/entities/fogg_status.dart';
 import '../../services/budget_service.dart';
 import '../../services/game_session.dart';
 import 'route_catalog_provider.dart';
-import '../../services/time_engine.dart';
+import 'time_engine_provider.dart';
 
-final timeEngineProvider = Provider<TimeEngine>((ref) {
-  return TimeEngine(
-    startUtc: DateTime.now().toUtc(),
-    timeScale: 60.0,
-  );
-});
+export 'time_engine_provider.dart';
 
 final budgetServiceProvider = Provider<BudgetService>((ref) {
   return BudgetService();

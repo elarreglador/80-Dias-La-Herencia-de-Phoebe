@@ -31,7 +31,17 @@ class GameNotifier extends Notifier<FoggStatus> {
   @override
   FoggStatus build() {
     final session = ref.watch(gameSessionProvider);
-    session.statusStream.listen((s) => state = s);
+    final statusSub = session.statusStream.listen((s) => state = s);
+    // El reloj de la partida: cada tick mueve a Phoebe y puede cerrar el
+    // tramo (llegada sola a FoggArrived, sin intervención manual).
+    final clockSub = session.timeEngine.clock().listen((_) {
+      session.tick();
+      state = session.status;
+    });
+    ref.onDispose(() {
+      statusSub.cancel();
+      clockSub.cancel();
+    });
     return session.status;
   }
 

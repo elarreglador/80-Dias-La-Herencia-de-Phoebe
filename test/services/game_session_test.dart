@@ -4,6 +4,7 @@ import 'package:pf/domain/entities/destination_option.dart';
 import 'package:pf/domain/entities/fogg_city.dart';
 import 'package:pf/domain/entities/fogg_status.dart';
 import 'package:pf/domain/entities/transport_mode.dart';
+import 'package:pf/domain/models/route_entry.dart';
 import 'package:pf/services/budget_service.dart';
 import 'package:pf/services/game_session.dart';
 import 'package:pf/services/time_engine.dart';
@@ -138,5 +139,95 @@ void main() {
       throwsA(isA<SleepRequiredException>()),
     );
     expect(bs.balance, 99000);
+  });
+
+  test('startLeg guarda la geometría real en el tramo', () {
+    var now = DateTime.utc(2026, 1, 1, 12);
+    final te = TimeEngine(startUtc: now, timeScale: 1.0, clock: () => now);
+    final bs = BudgetService(initial: 100000);
+    const from = FoggCity(name: 'Origen', lat: 0, lng: 0, order: 0, timezone: 'UTC');
+    const to = FoggCity(name: 'Destino', lat: 4, lng: 10, order: 1, timezone: 'UTC');
+    final session = GameSession(timeEngine: te, budget: bs, cities: [from, to]);
+
+    session.startLeg(
+      from: from,
+      to: to,
+      vehicle: const VehicleOption(
+        mode: TransportMode.ship,
+        duration: Duration(hours: 2),
+        price: 1000,
+        route: RouteEntry(
+          source: RouteSource.sea,
+          origin: 'Origen',
+          destination: 'Destino',
+          distanceKm: 1250,
+          durationHours: 10,
+          heading: 'east',
+          geometry: [
+            [0.0, 0.0],
+            [5.0, 2.0],
+            [10.0, 4.0],
+          ],
+        ),
+      ),
+    );
+
+    final path = session.currentLeg!.path;
+    expect(path, isNotNull);
+    expect(path!.points.length, 3);
+    expect(path.positionAt(0).longitude, closeTo(0, 1e-9));
+    expect(path.positionAt(1).longitude, closeTo(10, 1e-9));
+  });
+
+  test('sin ruta real el tramo dibuja una recta de origen a destino', () {
+    var now = DateTime.utc(2026, 1, 1, 12);
+    final te = TimeEngine(startUtc: now, timeScale: 1.0, clock: () => now);
+    final bs = BudgetService(initial: 100000);
+    const from = FoggCity(name: 'Origen', lat: 0, lng: 0, order: 0, timezone: 'UTC');
+    const to = FoggCity(name: 'Destino', lat: 4, lng: 10, order: 1, timezone: 'UTC');
+    final session = GameSession(timeEngine: te, budget: bs, cities: [from, to]);
+
+    session.startLeg(
+      from: from,
+      to: to,
+      vehicle: const VehicleOption(
+        mode: TransportMode.foot,
+        duration: Duration(hours: 2),
+        price: 1000,
+      ),
+    );
+
+    final path = session.currentLeg!.path;
+    expect(path, isNotNull);
+    expect(path!.points.length, 2);
+    expect(path.positionAt(0).longitude, closeTo(0, 1e-9));
+    expect(path.positionAt(1).longitude, closeTo(10, 1e-9));
+  });
+
+  test('el tramo recorrido pasa al historial', () {
+    var now = DateTime.utc(2026, 1, 1, 12);
+    final te = TimeEngine(startUtc: now, timeScale: 1.0, clock: () => now);
+    final bs = BudgetService(initial: 100000);
+    const from = FoggCity(name: 'Origen', lat: 0, lng: 0, order: 0, timezone: 'UTC');
+    const to = FoggCity(name: 'Destino', lat: 4, lng: 10, order: 1, timezone: 'UTC');
+    final session = GameSession(timeEngine: te, budget: bs, cities: [from, to]);
+
+    expect(session.completedLegs, isEmpty);
+
+    session.startLeg(
+      from: from,
+      to: to,
+      vehicle: const VehicleOption(
+        mode: TransportMode.train,
+        duration: Duration(hours: 2),
+        price: 1000,
+      ),
+    );
+    now = now.add(const Duration(hours: 12));
+    session.tick();
+
+    expect(session.completedLegs.length, 1);
+    expect(session.completedLegs.first.to.name, 'Destino');
+    expect(session.currentLeg, isNull);
   });
 }

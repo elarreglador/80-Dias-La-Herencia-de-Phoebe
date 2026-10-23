@@ -4,6 +4,7 @@ import '../domain/entities/destination_option.dart';
 import '../domain/entities/fogg_city.dart';
 import '../domain/entities/transport_mode.dart';
 import '../domain/models/route_entry.dart';
+import 'city_catalog.dart';
 import 'route_catalog.dart';
 import 'weather_service.dart';
 import '../domain/models/weather_impact.dart';
@@ -27,12 +28,19 @@ class TariffTable {
 class TransportSelector {
   TransportSelector({
     required this.catalog,
+    this.cityCatalog,
     this.tariffs = TariffTable.defaults,
     this.weatherService,
     this.now,
   });
 
   final RouteCatalog catalog;
+
+  /// Catálogo de ciudades — resuelve el destino con coordenadas y
+  /// `timezone` IANA reales. Si es `null`, el destino se deriva del último
+  /// vértice de la geometría.
+  final CityCatalog? cityCatalog;
+
   final Map<TransportMode, Tariff> tariffs;
   final WeatherService? weatherService;
   final DateTime? now;
@@ -49,21 +57,9 @@ class TransportSelector {
     for (final entry in byDestination.entries) {
       final destName = entry.key;
       final rs = entry.value;
-      // Ciudad destino desde geometría (último vértice).
-      FoggCity? city;
-      for (final r in rs) {
-        if (r.geometry.isNotEmpty && r.geometry.last.length >= 2) {
-          final pt = r.geometry.last;
-          city = FoggCity(
-            name: destName,
-            lat: pt[1],
-            lng: pt[0],
-            order: 0,
-            timezone: 'UTC',
-          );
-          break;
-        }
-      }
+      // Ciudad destino: el catálogo manda (coordenadas + timezone IANA);
+      // si la ciudad no está, se deriva del último vértice de la geometría.
+      final city = cityCatalog?.byName(destName) ?? _cityFromGeometry(destName, rs);
       if (city == null) continue;
 
       // Regla del Este: lng desenrollada > current.lng.
@@ -77,6 +73,25 @@ class TransportSelector {
 
     final top = candidates.take(limit).toList();
     return top.map((c) => _buildOption(current, c)).toList();
+  }
+
+  /// Ciudad destino derivada del último vértice de la geometría.
+  ///
+  /// Recurso de último término: sin catálogo, el `timezone` queda en 'UTC'.
+  static FoggCity? _cityFromGeometry(String destName, List<RouteEntry> routes) {
+    for (final r in routes) {
+      if (r.geometry.isNotEmpty && r.geometry.last.length >= 2) {
+        final pt = r.geometry.last;
+        return FoggCity(
+          name: destName,
+          lat: pt[1],
+          lng: pt[0],
+          order: 0,
+          timezone: 'UTC',
+        );
+      }
+    }
+    return null;
   }
 
   DestinationOption _buildOption(FoggCity current, _Candidate c) {
@@ -126,6 +141,7 @@ class TransportSelector {
         departureHour: dep.$1,
         departureMinute: dep.$2,
         weatherImpact: impact,
+        route: route,
       ));
     }
 

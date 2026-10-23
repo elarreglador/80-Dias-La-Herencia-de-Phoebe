@@ -1,3 +1,4 @@
+import '../models/route_path.dart';
 import 'fogg_city.dart';
 import 'transport_mode.dart';
 
@@ -11,6 +12,7 @@ class FoggLeg {
     required this.arrivalUtc,
     required this.price,
     this.sleeper = false,
+    this.path,
   });
 
   final FoggCity from;
@@ -20,6 +22,10 @@ class FoggLeg {
   final DateTime arrivalUtc;
   final int price; // € mock
   final bool sleeper; // permite avanzar de noche (Ciclo Fogg)
+
+  /// Geometría del tramo — la línea que recorre Phoebe.
+  /// `null` en los tramos mock sin ruta real.
+  final RoutePath? path;
 
   Duration get totalDuration => arrivalUtc.difference(departureUtc);
 

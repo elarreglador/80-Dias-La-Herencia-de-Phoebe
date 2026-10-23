@@ -4,15 +4,20 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 
-import '../../domain/entities/fogg_route.dart';
+import '../../domain/entities/fogg_city.dart';
+import '../../domain/entities/fogg_status.dart';
+import '../../domain/entities/transport_mode.dart';
+import '../../domain/models/route_path.dart';
+import '../../services/city_catalog.dart';
 import '../../utils/app_colors.dart';
 import '../providers/fogg_position_provider.dart';
+import '../providers/game_notifier.dart';
 import '../providers/map_focus_provider.dart';
+import '../providers/route_catalog_provider.dart';
 import '../providers/sun_terminator_provider.dart';
 import 'map_controls.dart';
 
 /// Colores según spec.
-const _foggRed = Color(0xFFC0392B);
 const _labelColor = Color(0xFF1A1A1A);
 const _offlineBg = Color(0xFFF5F0E8);
 const _offlineTextColor = Color(0xFF6B6B6B);
@@ -68,22 +73,22 @@ class Epsg3857NoRepeat extends Epsg3857 {
 }
 
 /// Widget reutilizable de mapamundi Fogg — Mercator EPSG:3857 con OSM.
-/// Acepta [route], [foggPosition] y constraints parametrizables.
+///
+/// Dibuja el trayecto real de Phoebe: el tramo activo (lo recorrido sólido,
+/// lo pendiente discontinuo, ambos en el color del modo), el historial de
+/// tramos ya recorridos y —solo cuando Phoebe está en una ciudad y aún no
+/// ha elegido trayecto— las rutas candidatas en gris.
 class WorldMapWidget extends ConsumerStatefulWidget {
   const WorldMapWidget({
     super.key,
-    this.route = mockFoggRoute,
     this.foggPosition,
     this.height,
     this.padding,
     this.initialZoom = 3.0,
   });
 
-  /// Ruta a dibujar. Por defecto [mockFoggRoute].
-  final FoggRoute route;
-
-  /// Posición de Phoebe — si es null se usa fallback primera ciudad.
-  /// Si se pasa explícitamente, tiene prioridad sobre provider.
+  /// Posición de Phoebe — si es null se usa la posición derivada de la partida.
+  /// Si se pasa explícitamente, tiene prioridad sobre el provider.
   final LatLng? foggPosition;
 
   /// Altura fija opcional. Si es null y no hay constraints padre, usa 400.
@@ -102,6 +107,24 @@ class WorldMapWidget extends ConsumerStatefulWidget {
 class _WorldMapWidgetState extends ConsumerState<WorldMapWidget>
     with TickerProviderStateMixin {
   late final MapController _mapController;
+
+  /// Callbacks estables — `MapOptions` compara por identidad los callbacks,
+  /// así que recrearlos en cada build invalidaría las opciones del mapa
+  /// (y con ellas la cámara).
+  late final void Function() _onMapReadyCallback;
+  late final void Function(MapCamera camera, bool hasGesture)
+      _onPositionChangedCallback;
+
+  /// Centro inicial del mapa — el centro del mundo (primo meridiano).
+  ///
+  /// Es el único centro que siempre satisface la constraint de contención
+  /// a cualquier zoom: con el viewport más ancho que el mundo, `contain`
+  /// devuelve `null` y entra el `containCenter` de reserva.
+  ///
+  /// El mapa **no** sigue a Phoebe (decisión de la SPEC 016); de eso se
+  /// encarga el botón «Centrar en Phoebe».
+  static const LatLng _worldCenter = LatLng(0, 0);
+
   bool _tileError = false;
   bool _mapReady = false;
   MapFocusRequest? _pendingFocus;
@@ -110,6 +133,8 @@ class _WorldMapWidgetState extends ConsumerState<WorldMapWidget>
   void initState() {
     super.initState();
     _mapController = MapController();
+    _onMapReadyCallback = _handleMapReady;
+    _onPositionChangedCallback = _handlePositionChanged;
   }
 
   @override
@@ -118,55 +143,34 @@ class _WorldMapWidgetState extends ConsumerState<WorldMapWidget>
     super.dispose();
   }
 
-  /// Calcula labels visibles según colisión.
-  /// Si zoom < 6 y distancia proyectada <40px, oculta mayor order.
-  Set<int> _visibleLabelOrders(double zoom) {
-    if (zoom >= 6) {
-      return widget.route.cities.map((c) => c.order).toSet();
-    }
-    // Aproximación Mercator: distancia en px = delta * scale
-    // scale = 256 * 2^zoom / 360  (grados lng -> px)
-    final scale = 256 * (1 << zoom.toInt()) / 360.0;
-    final visible = <int>{};
-    for (final city in widget.route.cities) {
-      bool collides = false;
-      for (final otherOrder in visible) {
-        final other = widget.route.cities.firstWhere((c) => c.order == otherOrder);
-        // Factor lat para corrección coseno
-        final avgLat = (city.lat + other.lat) / 2 * 3.14159 / 180;
-        final cosLat = avgLat.abs() < 1.5 ? 1 : 0.5; // fallback simple
-        // distancia aproximada
-        final dx = (city.lng - other.lng).abs() * scale * cosLat;
-        final dy = (city.lat - other.lat).abs() * scale;
-        final dist = (dx * dx + dy * dy);
-        // sqrt approximation: 40px threshold
-        final distance = (dx * dx + dy * dy) > 0 ? _sqrt(dist) : 0;
-        if (distance < 40) {
-          collides = true;
-          break;
-        }
-      }
-      if (!collides) {
-        visible.add(city.order);
-      }
-      // Si colisiona, no se añade → label oculto (mayor order)
-    }
-    return visible;
-  }
-
-  double _sqrt(double v) {
-    // Newton simple — evita importar dart:math para mantener pureza
-    if (v <= 0) return 0;
-    double x = v / 2;
-    for (var i = 0; i < 10; i++) {
-      x = (x + v / x) / 2;
-    }
-    return x;
-  }
-
   void _onZoomChanged(double newZoom) {
     ref.read(mapZoomProvider.notifier).state = newZoom;
     setState(() {});
+  }
+
+  /// El mapa ya está listo — sincroniza el zoom y aplica el foco pendiente.
+  void _handleMapReady() {
+    _mapReady = true;
+    // sincroniza zoom provider al iniciar
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(mapZoomProvider.notifier).state = _mapController.camera.zoom;
+      // Procesa foco pendiente (chincheta pulsada antes de que el mapa estuviera listo)
+      if (_pendingFocus != null) {
+        final req = _pendingFocus!;
+        _pendingFocus = null;
+        // PostFrame para asegurar que controller esté estable
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _animateTo(LatLng(req.city.lat, req.city.lng), req.zoom);
+        });
+      }
+    });
+  }
+
+  void _handlePositionChanged(MapCamera camera, bool hasGesture) {
+    if (hasGesture) {
+      _onZoomChanged(camera.zoom);
+    }
   }
 
   void _handleMapFocus(MapFocusRequest req) {
@@ -211,6 +215,148 @@ class _WorldMapWidgetState extends ConsumerState<WorldMapWidget>
     });
   }
 
+  /// Color del trazado según el modo de transporte.
+  static Color _routeColor(TransportMode mode) => switch (mode) {
+        TransportMode.ship => AppColors.routeShip,
+        TransportMode.train => AppColors.routeTrain,
+        TransportMode.car => AppColors.routeCar,
+        TransportMode.foot => AppColors.routeFoot,
+        _ => AppColors.routeFoot,
+      };
+
+  /// Polilíneas del mapa — historial, tramo activo y candidatas.
+  List<Polyline> _buildPolylines(FoggStatus status, DateTime now) {
+    final polylines = <Polyline>[];
+
+    // Historial — cada tramo ya recorrido en el color de su modo, 2 px.
+    for (final leg in ref.read(gameSessionProvider).completedLegs) {
+      final path = leg.path;
+      if (path == null) continue;
+      final color = _routeColor(leg.transport);
+      for (final segment in path.renderSegments()) {
+        polylines.add(Polyline(
+          points: segment,
+          color: color,
+          strokeWidth: 2.0,
+        ));
+      }
+    }
+
+    switch (status) {
+      case FoggTraveling(leg: final leg):
+        final path = leg.path;
+        if (path == null) break;
+        final color = _routeColor(leg.transport);
+        final parts = path.splitAt(leg.progressAt(now));
+        // Parte recorrida — sólida, 4 px.
+        for (final segment in RoutePath.splitAtAntimeridian(parts.traveled)) {
+          polylines.add(Polyline(
+            points: segment,
+            color: color,
+            strokeWidth: 4.0,
+          ));
+        }
+        // Parte pendiente — discontinua, 4 px.
+        for (final segment in RoutePath.splitAtAntimeridian(parts.pending)) {
+          polylines.add(Polyline(
+            points: segment,
+            color: color,
+            strokeWidth: 4.0,
+            pattern: StrokePattern.dashed(segments: const [12, 8]),
+          ));
+        }
+      case FoggArrived(options: final options):
+        // Candidatas — solo en ciudad y sin trayecto elegido.
+        for (final option in options) {
+          for (final vehicle in option.vehicles) {
+            final route = vehicle.route;
+            if (route == null) continue;
+            final path = RoutePath.fromGeometry(route.geometry);
+            if (path == null) continue;
+            for (final segment in path.renderSegments()) {
+              polylines.add(Polyline(
+                points: segment,
+                color: AppColors.routeCandidate.withValues(alpha: 0.35),
+                strokeWidth: 2.0,
+              ));
+            }
+          }
+        }
+    }
+
+    return polylines;
+  }
+
+  /// Marcadores del tramo activo — origen y destino.
+  List<Marker> _buildLegMarkers(FoggStatus status, CityCatalog? catalog) {
+    switch (status) {
+      case FoggTraveling(leg: final leg):
+        return [
+          _cityMarker(_canonical(leg.from, catalog)),
+          _cityMarker(_canonical(leg.to, catalog)),
+        ];
+      case FoggArrived():
+        return const [];
+    }
+  }
+
+  /// Ciudad canónica del catálogo — las coordenadas reales del city catalog
+  /// mandan sobre las de la partida, para que el marcador caiga exacto
+  /// sobre el vértice de la ruta.
+  static FoggCity _canonical(FoggCity city, CityCatalog? catalog) =>
+      catalog?.byName(city.name) ?? city;
+
+  /// Marcador de ciudad — punto rojo con etiqueta.
+  Marker _cityMarker(FoggCity city) {
+    return Marker(
+      point: LatLng(city.lat, city.lng),
+      width: 80,
+      height: 60,
+      alignment: Alignment.center,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Punto rojo centrado exactamente en LatLng — la polyline pasa por aquí
+          Container(
+            width: 12,
+            height: 12,
+            decoration: BoxDecoration(
+              color: AppColors.foggRed,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 2),
+            ),
+          ),
+          // Label 22px por encima del punto (dy -22) + halo blanco 0.6
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.6),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  city.name,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: _labelColor,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // Escucha peticiones de foco desde la pantalla de Fogg (chincheta → mapa).
@@ -219,23 +365,21 @@ class _WorldMapWidgetState extends ConsumerState<WorldMapWidget>
       if (next != null) _handleMapFocus(next);
     });
 
+    final status = ref.watch(gameNotifierProvider);
+    final now = ref.watch(timeEngineProvider).now();
     final providerPos = ref.watch(foggPositionProvider);
     final effectiveFoggPos = widget.foggPosition ?? providerPos;
-    final currentZoom = ref.watch(mapZoomProvider);
     final nightPolygons = ref.watch(sunTerminatorProvider);
-    final center = effectiveFoggPos ??
-        (widget.route.cities.isNotEmpty
-            ? LatLng(widget.route.cities.first.lat, widget.route.cities.first.lng)
-            : const LatLng(51.5072, -0.1276));
-
-    final visibleOrders = _visibleLabelOrders(currentZoom);
+    final cityCatalog = ref.watch(cityCatalogProvider).valueOrNull;
+    final polylines = _buildPolylines(status, now);
+    final legMarkers = _buildLegMarkers(status, cityCatalog);
 
     // Si TileLayer reporta error, mostrar overlay offline sin bloquear UI
     final mapContent = FlutterMap(
       mapController: _mapController,
       options: MapOptions(
         crs: const Epsg3857NoRepeat(),
-        initialCenter: center,
+        initialCenter: _worldCenter,
         initialZoom: widget.initialZoom,
         initialRotation: 0.0,
         interactionOptions: const InteractionOptions(
@@ -245,29 +389,8 @@ class _WorldMapWidgetState extends ConsumerState<WorldMapWidget>
         minZoom: 2.0,
         maxZoom: 18.0,
         backgroundColor: _offlineBg,
-        onMapReady: () {
-          _mapReady = true;
-          // sincroniza zoom provider al iniciar
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              ref.read(mapZoomProvider.notifier).state = _mapController.camera.zoom;
-              // Procesa foco pendiente (chincheta pulsada antes de que el mapa estuviera listo)
-              if (_pendingFocus != null) {
-                final req = _pendingFocus!;
-                _pendingFocus = null;
-                // PostFrame para asegurar que controller esté estable
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (mounted) _animateTo(LatLng(req.city.lat, req.city.lng), req.zoom);
-                });
-              }
-            }
-          });
-        },
-        onPositionChanged: (pos, hasGesture) {
-          if (hasGesture) {
-            _onZoomChanged(pos.zoom);
-          }
-        },
+        onMapReady: _onMapReadyCallback,
+        onPositionChanged: _onPositionChangedCallback,
         // Crs por defecto es EPSG3857 Mercator — no necesita configuración.
       ),
       children: [
@@ -299,70 +422,10 @@ class _WorldMapWidgetState extends ConsumerState<WorldMapWidget>
                 .toList(),
           ),
         PolylineLayer(
-          polylines: widget.route.polylineSegments
-              .map(
-                (segment) => Polyline(
-                  points: segment,
-                  color: _foggRed.withValues(alpha: 0.95),
-                  strokeWidth: 4.0,
-                ),
-              )
-              .toList(),
+          polylines: polylines,
           drawInSingleWorld: true,
         ),
-        MarkerLayer(
-          markers: widget.route.cities.map((city) {
-            final showLabel = visibleOrders.contains(city.order);
-            return Marker(
-              point: LatLng(city.lat, city.lng),
-              width: 80,
-              height: 60,
-              alignment: Alignment.center,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  // Punto rojo centrado exactamente en LatLng — la polyline pasa por aquí
-                  Container(
-                    width: 12,
-                    height: 12,
-                    decoration: BoxDecoration(
-                      color: _foggRed,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2),
-                    ),
-                  ),
-                  // Label 22px por encima del punto (dy -22) + halo blanco 0.6
-                  if (showLabel)
-                    Positioned(
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      child: Center(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.6),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            city.name,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: _labelColor,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            );
-          }).toList(),
-        ),
+        MarkerLayer(markers: legMarkers),
         // Marcador distintivo de Phoebe Fogg (sobre la ciudad actual) — aclara el centrado
         if (effectiveFoggPos != null)
           MarkerLayer(
@@ -378,7 +441,7 @@ class _WorldMapWidgetState extends ConsumerState<WorldMapWidget>
                   decoration: BoxDecoration(
                     color: Colors.white,
                     shape: BoxShape.circle,
-                    border: Border.all(color: _foggRed, width: 3),
+                    border: Border.all(color: AppColors.foggRed, width: 3),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.2),
@@ -392,7 +455,7 @@ class _WorldMapWidgetState extends ConsumerState<WorldMapWidget>
                       width: 8,
                       height: 8,
                       decoration: const BoxDecoration(
-                        color: _foggRed,
+                        color: AppColors.foggRed,
                         shape: BoxShape.circle,
                       ),
                     ),

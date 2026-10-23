@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../domain/entities/fogg_route.dart';
 import '../widgets/world_map_widget.dart';
 
 /// Pestaña Mapa — wrapper que embebe WorldMapWidget existente.
@@ -10,13 +9,15 @@ import '../widgets/world_map_widget.dart';
 /// `WorldMapWidget` con `Positioned(right:16,bottom:16)+SafeArea` queda visible
 /// sin padding adicional. `SafeArea(top:false,bottom:true)` interno + externo
 /// maneja ◻ ○ △ y notch.
+///
+/// El mapa dibuja el trayecto real de Phoebe: lo que la partida ha hecho, no un
+/// itinerario fijo.
 class MapTab extends StatelessWidget {
   const MapTab({super.key});
 
   @override
   Widget build(BuildContext context) {
     return const WorldMapWidget(
-      route: mockFoggRoute,
       initialZoom: 2.0,
     );
   }

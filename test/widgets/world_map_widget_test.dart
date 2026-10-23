@@ -3,12 +3,88 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:pf/domain/entities/fogg_route.dart';
+import 'package:pf/domain/entities/destination_option.dart';
+import 'package:pf/domain/entities/fogg_city.dart';
+import 'package:pf/domain/entities/fogg_status.dart';
+import 'package:pf/domain/entities/transport_mode.dart';
+import 'package:pf/domain/models/route_entry.dart';
+import 'package:pf/domain/models/route_path.dart';
 import 'package:pf/presentation/providers/fogg_position_provider.dart';
+import 'package:pf/presentation/providers/game_notifier.dart';
 import 'package:pf/presentation/widgets/world_map_widget.dart';
+import 'package:pf/services/budget_service.dart';
+import 'package:pf/services/game_session.dart';
+import 'package:pf/services/time_engine.dart';
+import 'package:pf/utils/app_colors.dart';
 
 // Mock url_launcher: no necesita mock explícito — canLaunchUrl devuelve false en test
 // y no lanza excepción. Verificamos que el botón existe y el tap no crashea.
+
+/// Geometría de prueba — tres vértices con el punto medio en [5, 2].
+final _geometry = <List<double>>[
+  [0.0, 0.0],
+  [5.0, 2.0],
+  [10.0, 4.0],
+];
+
+RouteEntry _routeEntry({RouteSource source = RouteSource.sea}) => RouteEntry(
+      source: source,
+      origin: 'Origen',
+      destination: 'Destino',
+      distanceKm: 1250,
+      durationHours: 10,
+      heading: 'east',
+      geometry: _geometry,
+    );
+
+const _from = FoggCity(name: 'Origen', lat: 0, lng: 0, order: 0, timezone: 'UTC');
+const _to = FoggCity(name: 'Destino', lat: 4, lng: 10, order: 1, timezone: 'UTC');
+
+/// Notificador con estado fijo — para estados que la sesión no produce sola.
+class _FixedStatusNotifier extends GameNotifier {
+  _FixedStatusNotifier(this.fixedStatus);
+  final FoggStatus fixedStatus;
+
+  @override
+  FoggStatus build() => fixedStatus;
+}
+
+/// Sesión con un tramo en curso y reloj controlable.
+class _Harness {
+  _Harness({TransportMode mode = TransportMode.ship}) {
+    session = GameSession(timeEngine: engine, budget: BudgetService(initial: 100000));
+    session.startLeg(
+      from: _from,
+      to: _to,
+      vehicle: VehicleOption(
+        mode: mode,
+        duration: const Duration(hours: 10),
+        price: 100,
+        sleeper: true,
+        route: _routeEntry(source: mode == TransportMode.ship ? RouteSource.sea : RouteSource.rail),
+      ),
+    );
+  }
+
+  final DateTime start = DateTime.utc(2026, 1, 1, 12);
+  DateTime clockNow = DateTime.utc(2026, 1, 1, 12);
+  late final TimeEngine engine = TimeEngine(
+    startUtc: start,
+    timeScale: 1.0,
+    clock: () => clockNow,
+  );
+  late final GameSession session;
+
+  /// Avanza el reloj del juego.
+  void advance(Duration d) => clockNow = clockNow.add(d);
+
+  ProviderContainer container() => ProviderContainer(
+        overrides: [
+          gameSessionProvider.overrideWithValue(session),
+          timeEngineProvider.overrideWithValue(engine),
+        ],
+      );
+}
 
 void main() {
   group('WorldMapWidget', () {
@@ -20,7 +96,7 @@ void main() {
               body: SizedBox(
                 width: 800,
                 height: 600,
-                child: WorldMapWidget(route: mockFoggRoute),
+                child: WorldMapWidget(),
               ),
             ),
           ),
@@ -31,15 +107,23 @@ void main() {
       expect(find.textContaining('OpenStreetMap'), findsOneWidget);
     });
 
-    testWidgets('renderiza 2 polylines (quiebre antimeridiano sin salto parásito) y 6 markers', (tester) async {
+    testWidgets('dibuja el trayecto activo: recorrido sólido y pendiente discontinuo',
+        (tester) async {
+      final harness = _Harness();
+      final container = harness.container();
+      addTearDown(container.dispose);
+      // Mitad del trayecto: departure = start+5h (sleeper), arrival = start+15h.
+      harness.advance(const Duration(hours: 10));
+
       await tester.pumpWidget(
-        const ProviderScope(
-          child: MaterialApp(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
             home: Scaffold(
               body: SizedBox(
                 width: 800,
                 height: 600,
-                child: WorldMapWidget(route: mockFoggRoute),
+                child: WorldMapWidget(),
               ),
             ),
           ),
@@ -47,47 +131,143 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Verifica PolylineLayer existe y tiene 2 segmentos (6 ciudades + quiebre 180/-180 dividido)
       final polyLayer = tester.widgetList<PolylineLayer>(find.byType(PolylineLayer));
       expect(polyLayer.length, 1);
       final polylines = polyLayer.first.polylines;
-      expect(polylines.length, 2, reason: 'Debe haber 2 polylines: Londres..180 y -180..Savile');
-      // Segmento 1: Londres, París, Estambul, Bombay, Tokio, 180 (6 puntos)
-      expect(polylines[0].points.length, 6);
-      expect(polylines[0].points.last.longitude, 180);
-      // Segmento 2: -180, Savile (2 puntos)
-      expect(polylines[1].points.length, 2);
-      expect(polylines[1].points.first.longitude, -180);
-      // Total aplanado 8 puntos, sin segmento 180→-180 dentro de un mismo polyline
-      final flat = polylines.expand((p) => p.points).toList();
-      expect(flat.length, 8);
-      expect(flat[5].longitude, 180);
-      expect(flat[6].longitude, -180);
-      // Verifica color #C0392B opacity 0.95 y stroke según spec
-      expect(polylines.first.color, const Color(0xFFC0392B).withValues(alpha: 0.95));
-      expect(polylines.first.strokeWidth, 4.0);
-      // Verifica que ningún polyline individual contiene 180 y -180 (evita línea parásita)
-      for (final pl in polylines) {
-        final hasBoth = pl.points.any((p) => p.longitude == 180) &&
-            pl.points.any((p) => p.longitude == -180);
-        expect(hasBoth, isFalse);
-      }
+      expect(polylines.length, 2, reason: 'tramo recorrido + tramo pendiente');
 
-      // Verifica MarkerLayer: 6 ciudades + 1 Phoebe = 2 capas, 6 en primera
-      final markerLayers = tester.widgetList<MarkerLayer>(find.byType(MarkerLayer)).toList();
-      expect(markerLayers.length, 2); // ciudades + Phoebe distintivo
-      expect(markerLayers.first.markers.length, 6); // 6 ciudades (incluye Savile Row)
-      final allMarkers = markerLayers.expand((l) => l.markers).toList();
-      expect(allMarkers.length, 7); // 6 ciudades + 1 Phoebe
-      // Verifica que la polyline pasa exactamente por los puntos (nuevo alignment center)
+      // Parte recorrida — sólida, 4 px, color del modo.
+      final traveled = polylines[0];
+      expect(traveled.pattern.segments, isNull, reason: 'la parte recorrida es sólida');
+      expect(traveled.color, AppColors.routeShip);
+      expect(traveled.strokeWidth, 4.0);
+      expect(traveled.points.first.latitude, closeTo(0, 1e-9));
+      expect(traveled.points.last.longitude, closeTo(5, 0.01),
+          reason: 'el corte cae en el punto medio de la geometría');
 
-      // Verifica que al menos un label visible (a zoom 3, colisión puede ocultar 1)
-      // Con zoom inicial 3, se espera al menos 4 labels
-      // Forzamos zoom 7 para verificar todos visibles
+      // Parte pendiente — discontinua, 4 px, color del modo.
+      final pending = polylines[1];
+      expect(pending.pattern.segments, isNotNull, reason: 'la parte pendiente es discontinua');
+      expect(pending.pattern.segments, [12, 8]);
+      expect(pending.color, AppColors.routeShip);
+      expect(pending.strokeWidth, 4.0);
+      expect(pending.points.last.latitude, closeTo(4, 1e-9));
+      expect(pending.points.last.longitude, closeTo(10, 1e-9));
+
+      // Las dos mitades se encuentran.
+      expect(traveled.points.last.longitude, closeTo(pending.points.first.longitude, 1e-9));
+      expect(traveled.points.last.latitude, closeTo(pending.points.first.latitude, 1e-9));
     });
 
-    testWidgets('colisión: zoom <6 oculta label, zoom >=7 muestra todos', (tester) async {
-      final container = ProviderContainer();
+    testWidgets('el marcador de Phoebe se sitúa sobre la geometría', (tester) async {
+      final harness = _Harness();
+      final container = harness.container();
+      addTearDown(container.dispose);
+      harness.advance(const Duration(hours: 10));
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: Scaffold(
+              body: SizedBox(
+                width: 800,
+                height: 600,
+                child: WorldMapWidget(),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final markerLayers = tester.widgetList<MarkerLayer>(find.byType(MarkerLayer)).toList();
+      // Capa 1: origen y destino del tramo. Capa 2: Phoebe.
+      expect(markerLayers.length, 2);
+      expect(markerLayers.first.markers.length, 2);
+      expect(markerLayers.first.markers.first.point, const LatLng(0, 0));
+      expect(markerLayers.first.markers.last.point, const LatLng(4, 10));
+
+      final phoebe = markerLayers.last.markers.single.point;
+      final expected = RoutePath.fromGeometry(_geometry)!.positionAt(0.5);
+      expect(phoebe.latitude, closeTo(expected.latitude, 1e-9));
+      expect(phoebe.longitude, closeTo(expected.longitude, 1e-9));
+      // Y coincide con el provider derivado.
+      expect(container.read(foggPositionProvider), phoebe);
+    });
+
+    testWidgets('el historial de tramos permanece en el color de su modo', (tester) async {
+      final harness = _Harness(mode: TransportMode.train);
+      final container = harness.container();
+      addTearDown(container.dispose);
+      // Tras la llegada, el tramo pasa al historial.
+      harness.advance(const Duration(hours: 20));
+      harness.session.tick();
+      expect(harness.session.completedLegs.length, 1);
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: Scaffold(
+              body: SizedBox(
+                width: 800,
+                height: 600,
+                child: WorldMapWidget(),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final polyLayer = tester.widget<PolylineLayer>(find.byType(PolylineLayer));
+      final polylines = polyLayer.polylines;
+      expect(polylines.length, 1, reason: 'solo el tramo ya recorrido');
+      expect(polylines.first.color, AppColors.routeTrain);
+      expect(polylines.first.strokeWidth, 2.0);
+      expect(polylines.first.pattern.segments, isNull);
+      expect(polylines.first.points.length, 3);
+    });
+
+    testWidgets('las rutas candidatas solo se dibujan en gris cuando está en ciudad',
+        (tester) async {
+      final container = ProviderContainer(
+        overrides: [
+          gameNotifierProvider.overrideWith(
+            () => _FixedStatusNotifier(
+              const FoggArrived(
+                currentCity: _to,
+                options: [
+                  DestinationOption(
+                    city: _to,
+                    vehicles: [
+                      VehicleOption(
+                        mode: TransportMode.ship,
+                        duration: Duration(hours: 10),
+                        price: 100,
+                        route: RouteEntry(
+                          source: RouteSource.sea,
+                          origin: 'Origen',
+                          destination: 'Destino',
+                          distanceKm: 1250,
+                          durationHours: 10,
+                          heading: 'east',
+                          geometry: [
+                            [0.0, 0.0],
+                            [5.0, 2.0],
+                            [10.0, 4.0],
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      );
       addTearDown(container.dispose);
 
       await tester.pumpWidget(
@@ -98,7 +278,7 @@ void main() {
               body: SizedBox(
                 width: 800,
                 height: 600,
-                child: WorldMapWidget(route: mockFoggRoute),
+                child: WorldMapWidget(),
               ),
             ),
           ),
@@ -106,35 +286,44 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Verifica colisión inspeccionando MarkerLayer fuente (evita culling offscreen)
-      int countLabelsFromMarkers() {
-        final layers = tester.widgetList<MarkerLayer>(find.byType(MarkerLayer)).toList();
-        // Primera capa = ciudades (6), segunda = Phoebe (1) si existe
-        final cityLayer = layers.firstWhere((l) => l.markers.length == 6, orElse: () => layers.first);
-        int count = 0;
-        for (final m in cityLayer.markers) {
-          final child = m.child;
-          if (child is Stack) {
-            // Stack con 2 hijos (punto + label) si visible, 1 si oculto
-            if (child.children.length == 2) count++;
-          } else if (child is Column) {
-            if (child.children.length == 3) count++;
-          }
-        }
-        return count;
-      }
+      final polyLayer = tester.widget<PolylineLayer>(find.byType(PolylineLayer));
+      final polylines = polyLayer.polylines;
+      expect(polylines.length, 1);
+      expect(polylines.first.color, AppColors.routeCandidate.withValues(alpha: 0.35));
+      expect(polylines.first.strokeWidth, 2.0);
+      expect(polylines.first.pattern.segments, isNull);
+      expect(polylines.first.points.length, 3);
+    });
 
-      final labelsZoom3 = countLabelsFromMarkers();
-      // A zoom 3 debe ocultar 2 (París por Londres y Savile Row por Londres) → 4 visibles
-      expect(labelsZoom3, 4);
+    testWidgets('mockFoggRoute no se dibuja en el mapa', (tester) async {
+      final harness = _Harness();
+      final container = harness.container();
+      addTearDown(container.dispose);
+      harness.advance(const Duration(hours: 10));
 
-      // Cambia a zoom 7 → todos visibles (zoom >=6 desactiva colisión) → 6
-      container.read(mapZoomProvider.notifier).state = 7.0;
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: Scaffold(
+              body: SizedBox(
+                width: 800,
+                height: 600,
+                child: WorldMapWidget(),
+              ),
+            ),
+          ),
+        ),
+      );
       await tester.pumpAndSettle();
-      final labelsZoom7 = countLabelsFromMarkers();
-      expect(labelsZoom7, 6);
+
+      final polyLayer = tester.widget<PolylineLayer>(find.byType(PolylineLayer));
+      final points = polyLayer.polylines.expand((p) => p.points).toList();
+      // Ninguna ciudad del mock (Londres, París, Estambul, Bombay, Tokio...).
+      expect(points.any((p) => p.latitude == 51.5072 && p.longitude == -0.1276), isFalse);
+      expect(points.any((p) => p.latitude == 48.8566 && p.longitude == 2.3522), isFalse);
+      // Solo la geometría real del tramo.
+      expect(points.every((p) => p.longitude >= 0 && p.longitude <= 10), isTrue);
     });
 
     testWidgets('controles zoom clamp 2..18', (tester) async {
@@ -145,7 +334,7 @@ void main() {
               body: SizedBox(
                 width: 800,
                 height: 600,
-                child: WorldMapWidget(route: mockFoggRoute),
+                child: WorldMapWidget(),
               ),
             ),
           ),
@@ -176,7 +365,7 @@ void main() {
               body: SizedBox(
                 width: 800,
                 height: 600,
-                child: WorldMapWidget(route: mockFoggRoute),
+                child: WorldMapWidget(),
               ),
             ),
           ),
@@ -199,7 +388,7 @@ void main() {
               body: SizedBox(
                 width: 800,
                 height: 600,
-                child: WorldMapWidget(route: mockFoggRoute),
+                child: WorldMapWidget(),
               ),
             ),
           ),
@@ -218,7 +407,7 @@ void main() {
         const ProviderScope(
           child: MaterialApp(
             home: Scaffold(
-              body: WorldMapWidget(route: mockFoggRoute, height: 300),
+              body: WorldMapWidget(height: 300),
             ),
           ),
         ),
@@ -234,21 +423,18 @@ void main() {
       final container = ProviderContainer();
       addTearDown(container.dispose);
       expect(container.read(foggPositionProvider), isA<LatLng?>());
-      // El archivo world_map_widget debe contener foggPosition y no Traveler
-      // Esto se verifica por construcción; test solo asegura que compila
       await tester.pumpWidget(
         const ProviderScope(
           child: MaterialApp(
             home: Scaffold(
               body: WorldMapWidget(
-                route: mockFoggRoute,
                 foggPosition: LatLng(48.8566, 2.3522),
               ),
             ),
           ),
         ),
       );
-      await tester.pump();
+      await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
     });
 
@@ -260,7 +446,7 @@ void main() {
               body: SizedBox(
                 width: 800,
                 height: 600,
-                child: WorldMapWidget(route: mockFoggRoute),
+                child: WorldMapWidget(),
               ),
             ),
           ),
@@ -287,7 +473,7 @@ void main() {
               body: SizedBox(
                 width: 800,
                 height: 600,
-                child: WorldMapWidget(route: mockFoggRoute),
+                child: WorldMapWidget(),
               ),
             ),
           ),
@@ -308,7 +494,7 @@ void main() {
       expect(polyLayer.drawInSingleWorld, isTrue);
     });
 
-    testWidgets('renderiza ruta extendida 8 ciudades vía SF y NY (10 puntos, 2 polylines)', (tester) async {
+    testWidgets('orden de capas: Tile → Polygon → Polyline → marcadores', (tester) async {
       await tester.pumpWidget(
         const ProviderScope(
           child: MaterialApp(
@@ -316,35 +502,19 @@ void main() {
               body: SizedBox(
                 width: 800,
                 height: 600,
-                child: WorldMapWidget(route: extendedFoggRoute),
+                child: WorldMapWidget(),
               ),
             ),
           ),
         ),
       );
       await tester.pumpAndSettle();
-
-      final polyLayer = tester.widgetList<PolylineLayer>(find.byType(PolylineLayer));
-      expect(polyLayer.length, 1);
-      final polylines = polyLayer.first.polylines;
-      // 8 ciudades + 1 cruce = 10 puntos aplanados en 2 segmentos
-      expect(polylines.length, 2);
-      expect(polylines[0].points.length, 6); // Londres..Tokio + 180
-      expect(polylines[1].points.length, 4); // -180 + SF + NY + Savile
-      final flat = polylines.expand((p) => p.points).toList();
-      expect(flat.length, 10);
-      expect(flat[5].longitude, 180);
-      expect(flat[6].longitude, -180);
-      // Markers: 8 ciudades + Phoebe
-      final markerLayers = tester.widgetList<MarkerLayer>(find.byType(MarkerLayer)).toList();
-      expect(markerLayers.first.markers.length, 8);
-      final allMarkers = markerLayers.expand((l) => l.markers).toList();
-      expect(allMarkers.length, 9); // 8 + Phoebe
-      for (final pl in polylines) {
-        final hasBoth = pl.points.any((p) => p.longitude == 180) &&
-            pl.points.any((p) => p.longitude == -180);
-        expect(hasBoth, isFalse);
-      }
+      final flutterMap = tester.widget<FlutterMap>(find.byType(FlutterMap));
+      final children = flutterMap.children;
+      expect(children[0], isA<TileLayer>());
+      expect(children[1], isA<PolygonLayer>());
+      expect(children[2], isA<PolylineLayer>());
+      expect(children[3], isA<MarkerLayer>());
     });
   });
 }

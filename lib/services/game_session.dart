@@ -1,10 +1,13 @@
 import 'dart:async';
 
+import 'package:latlong2/latlong.dart';
+
 import '../domain/entities/destination_option.dart';
 import '../domain/entities/fogg_city.dart';
 import '../domain/entities/fogg_leg.dart';
 import '../domain/entities/fogg_status.dart';
 import '../domain/entities/transport_mode.dart';
+import '../domain/models/route_path.dart';
 import '../domain/models/travel_event.dart';
 import '../domain/models/weather_snapshot.dart';
 import 'event_engine.dart';
@@ -56,11 +59,15 @@ class GameSession {
   Fatigue _fatigue = const Fatigue();
   double _legStartFatigue = 100.0;
   FoggLeg? _currentLeg;
+  final List<FoggLeg> _completedLegs = [];
 
   FoggStatus get status => _status;
   FoggLeg? get currentLeg => _currentLeg;
   FoggCity get currentCity => _currentCity;
   Fatigue get fatigue => _fatigue;
+
+  /// Tramos ya recorridos — el historial que se dibuja en el mapa.
+  List<FoggLeg> get completedLegs => List<FoggLeg>.unmodifiable(_completedLegs);
 
   List<DestinationOption> get options {
     if (_status is FoggArrived) return (_status as FoggArrived).options;
@@ -139,12 +146,27 @@ class GameSession {
       arrivalUtc: arrival,
       price: vehicle.price,
       sleeper: vehicle.sleeper,
+      path: _buildPath(from, to, vehicle),
     );
 
     _currentCity = from;
     _currentLeg = leg;
     _status = FoggTraveling(leg: leg);
     _emit();
+  }
+
+  /// Geometría del tramo: la real del catálogo si el vehículo la trae,
+  /// si no una recta de origen a destino (a pie, mocks).
+  static RoutePath _buildPath(FoggCity from, FoggCity to, VehicleOption vehicle) {
+    final route = vehicle.route;
+    if (route != null) {
+      final geometry = RoutePath.fromGeometry(route.geometry);
+      if (geometry != null) return geometry;
+    }
+    return RoutePath.straight(
+      LatLng(from.lat, from.lng),
+      LatLng(to.lat, to.lng),
+    );
   }
 
   void tick() {
@@ -156,6 +178,9 @@ class GameSession {
       final elapsedHours = now.difference(leg.departureUtc).inMinutes / 60.0;
       final drain = (elapsedHours * 5.0).clamp(0.0, 100.0);
       _fatigue = Fatigue(value: (_legStartFatigue - drain).clamp(0.0, 100.0));
+      // Nueva instancia del estado: el reloj publica el avance para que la
+      // pantalla (posición de Phoebe, tramo recorrido) se repinte.
+      _status = FoggTraveling(leg: leg);
       _emit();
       return;
     }
@@ -165,6 +190,7 @@ class GameSession {
     _fatigue = Fatigue(value: (_legStartFatigue - drain).clamp(0.0, 100.0));
     _currentCity = leg.to;
     _currentLeg = null;
+    _completedLegs.add(leg);
     _status = FoggArrived(
       currentCity: leg.to,
       options: _buildOptions(leg.to),
@@ -189,6 +215,7 @@ class GameSession {
     _legStartFatigue = _fatigue.value;
     _currentCity = traveling.leg.to;
     _currentLeg = null;
+    _completedLegs.add(traveling.leg);
     _status = FoggArrived(
       currentCity: traveling.leg.to,
       options: _buildOptions(traveling.leg.to),

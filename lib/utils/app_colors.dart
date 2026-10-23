@@ -22,4 +22,21 @@ class AppColors {
   /// Tokens M3 — usados por FoggAppBar y FoggBottomNav.
   static const surface = Color(0xFFFEF7FF);
   static const surfaceVariant = Color(0xFFF3EDF7);
+
+  // --- Paleta de rutas (SPEC 016) — mismos valores que el visor dev ---
+
+  /// Barco.
+  static const routeShip = Color(0xFF1E88E5);
+
+  /// Coche.
+  static const routeCar = Color(0xFFF9A825);
+
+  /// Tren.
+  static const routeTrain = Color(0xFF6A1B9A);
+
+  /// A pie — sin ruta real.
+  static const routeFoot = Color(0xFF9E9E9E);
+
+  /// Rutas candidatas — se usa con alpha 0.35.
+  static const routeCandidate = Color(0xFF9E9E9E);
 }

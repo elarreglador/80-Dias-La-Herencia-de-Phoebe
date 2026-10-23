@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pf/domain/entities/fogg_route.dart';
 import 'package:pf/presentation/providers/sun_terminator_provider.dart';
 import 'package:pf/presentation/widgets/world_map_widget.dart';
 import 'package:pf/services/sun_terminator_service.dart';
@@ -29,7 +28,7 @@ void main() {
               body: SizedBox(
                 width: 800,
                 height: 600,
-                child: WorldMapWidget(route: mockFoggRoute),
+                child: WorldMapWidget(),
               ),
             ),
           ),
@@ -66,7 +65,7 @@ void main() {
               body: SizedBox(
                 width: 800,
                 height: 600,
-                child: WorldMapWidget(route: mockFoggRoute),
+                child: WorldMapWidget(),
               ),
             ),
           ),
@@ -97,7 +96,7 @@ void main() {
               body: SizedBox(
                 width: 800,
                 height: 600,
-                child: WorldMapWidget(route: mockFoggRoute),
+                child: WorldMapWidget(),
               ),
             ),
           ),
@@ -127,7 +126,7 @@ void main() {
               body: SizedBox(
                 width: 800,
                 height: 600,
-                child: WorldMapWidget(route: mockFoggRoute),
+                child: WorldMapWidget(),
               ),
             ),
           ),
@@ -146,8 +145,8 @@ void main() {
       expect(lineIdx, greaterThan(polyIdx));
       expect(markerIdx, greaterThan(lineIdx));
       final polyLayer = tester.widget<PolylineLayer>(find.byType(PolylineLayer));
-      expect(polyLayer.polylines.first.color,
-          const Color(0xFFC0392B).withValues(alpha: 0.95));
+      expect(polyLayer.drawInSingleWorld, isTrue,
+          reason: 'las rutas se dibujan en un único mundo (SPEC 016)');
     });
 
     testWidgets('ruta roja y marcadores por encima del sombreado nocturno',
@@ -164,7 +163,7 @@ void main() {
               body: SizedBox(
                 width: 800,
                 height: 600,
-                child: WorldMapWidget(route: mockFoggRoute),
+                child: WorldMapWidget(),
               ),
             ),
           ),
@@ -195,7 +194,7 @@ void main() {
               body: SizedBox(
                 width: 800,
                 height: 600,
-                child: WorldMapWidget(route: mockFoggRoute),
+                child: WorldMapWidget(),
               ),
             ),
           ),
@@ -225,7 +224,7 @@ void main() {
               body: SizedBox(
                 width: 800,
                 height: 600,
-                child: WorldMapWidget(route: mockFoggRoute),
+                child: WorldMapWidget(),
               ),
             ),
           ),
@@ -305,7 +304,6 @@ void main() {
                   width: 800,
                   height: 600,
                   child: WorldMapWidget(
-                    route: mockFoggRoute,
                     initialZoom: zoom,
                   ),
                 ),
@@ -339,7 +337,7 @@ void main() {
               body: SizedBox(
                 width: 800,
                 height: 600,
-                child: WorldMapWidget(route: mockFoggRoute),
+                child: WorldMapWidget(),
               ),
             ),
           ),

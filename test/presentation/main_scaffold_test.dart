@@ -136,7 +136,6 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(WorldMapWidget), findsOneWidget);
       final returnedWidget = tester.widget<WorldMapWidget>(find.byType(WorldMapWidget));
-      expect(returnedWidget.route, initialWidget.route);
       expect(returnedWidget.initialZoom, initialWidget.initialZoom);
       // IndexedStack debe ser tipo correcto
       expect(find.byType(IndexedStack), findsOneWidget);

@@ -37,7 +37,7 @@ adb -s 5lcqy54d4l4ltspz shell am start -n eu.elarreglador.pf/.MainActivity
 ## Invariantes de dominio — verificados en código
 
 - **Regla del Este**: se valida con `assert` en `FoggRoute.validated` (`lib/domain/entities/fogg_route.dart:12`) vía `_isEastward`. Usa **longitud desenrollada**, así que cruzar el antimeridiano hacia el este es legal (Tokio → San Francisco) y `order` debe ser consecutivo. **Usa siempre `FoggRoute.validated(...)`** para rutas nuevas; el constructor `const` no valida. Cubierto por `test/domain/fogg_route_test.dart`.
-- **Sin avión**: `TransportMode` tiene exactamente 7 valores (`train, ship, car, balloon, horse, camel, motorcycle`). No añadas `flight`. `foot`/«A pie» se eliminó y no debe volver. Nota: `balloon` usa `Icons.air` y `camel` reutiliza `Icons.pets` (igual que `horse`); se distinguen por `label`. No lo "corrijas" sin consultar.
+- **Sin avión**: `TransportMode` tiene exactamente 7 valores (`train, ship, car, balloon, horse, camel, motorcycle`). No añadas `flight`. `foot`/«A pie» se eliminó y no debe volver; **decisión del Señor (2026-10-23): no se implementan rutas a pie** (ni `TransportMode.foot` ni `foot.json`). Nota: `balloon` usa `Icons.air` y `camel` reutiliza `Icons.pets` (igual que `horse`); se distinguen por `label`. No lo "corrijas" sin consultar.
 - **Naming**: `Fogg*` / `Phoebe` (`FoggRoute`, `FoggCity`, `FoggLeg`, `FoggStatus`, `foggPositionProvider`, `Ciclo Fogg`). Nunca `Traveler` genérico.
 - **Idioma**: identificadores y código en inglés; docstrings, comentarios y textos de UI en castellano.
 - **Hora civil**: `TimezoneService.init()` se llama una vez en `main()`; todo offset se **deriva** de IANA con `package:timezone` (DST-correcto), nunca se persiste.

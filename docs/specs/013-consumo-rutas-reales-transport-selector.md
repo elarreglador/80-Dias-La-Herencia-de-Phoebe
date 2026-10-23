@@ -8,6 +8,8 @@
 
 > **Objetivo:** Cargar en la app Flutter las rutas reales (mar, tierra, raíl) y construir un `TransportSelector` que ofrezca destinos hacia el Este con vehículos derivados de ellas, sustituyendo los mocks de `GameSession`.
 
+> **Nota de decisión (2026-10-23):** el modo «a pie» (`foot`) y las rutas peatonales quedan **descartados**. No se implementará `TransportMode.foot` ni se generará `foot.json`; las menciones a `foot` de esta spec se conservan como registro histórico.
+
 ---
 
 ## 1. Por qué existe esta especificación
@@ -227,6 +229,7 @@ Convenciones:
 - **Sí:** deduplicar vehículos por modo (si hay varias rutas marítimas al mismo destino, solo un ship). Por qué: la UI muestra un chip por modo; varias rutas al mismo destino se colapsan al más corto (menor `distanceKm`).
 - **No:** mostrar la ruta elegida en el mapa de juego. Por qué: consumo visual en `WorldMapWidget` es una spec mayor (fuera de alcance).
 - **Sí:** ignorar ficheros ausentes y rutas individuales inválidas (saltar, no lanzar). Por qué: robustez en dev; el catálogo parcial sigue siendo útil.
+- **No (decisión posterior, 2026-10-23):** implementar el modo «a pie» ni rutas peatonales. Se descarta por completo — ni `TransportMode.foot` ni `foot.json`. Sustituye a la decisión «foot siempre disponible» de esta spec (ver nota de cabecera).
 
 ---
 

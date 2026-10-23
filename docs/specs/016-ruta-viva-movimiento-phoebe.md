@@ -8,6 +8,8 @@
 >
 > **Objetivo:** Dibujar en el mapa el trayecto real que Phoebe recorre, con su geometría auténtica, y mover su marcador a lo largo de esa ruta en tiempo de juego.
 
+> **Nota de decisión (2026-10-23):** el modo «a pie» no se implementa; las referencias a `foot`/«a pie» de esta spec (color `routeFoot`, recta de fallback) son históricas.
+
 ---
 
 ## 1. Por qué existe esta especificación

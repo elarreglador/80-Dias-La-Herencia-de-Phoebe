@@ -32,89 +32,96 @@ class CityInfoCard extends ConsumerWidget {
       borderRadius: BorderRadius.circular(16),
       child: Material(
         color: AppColors.surface,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            SizedBox(
-              height: 140,
-              child: Image.asset(
+        child: SizedBox(
+          height: 210,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Image.asset(
                 'assets/images/ciudad_generica.jpg',
                 fit: BoxFit.cover,
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(14),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.schedule,
-                    size: 22,
-                    color: AppColors.foggRed.withValues(alpha: 0.8),
-                  ),
-                  const SizedBox(width: 8),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: Container(
+                  key: const ValueKey('city-info-strip'),
+                  width: double.infinity,
+                  color: AppColors.surface.withValues(alpha: 0.78),
+                  padding: const EdgeInsets.all(14),
+                  child: Row(
                     children: [
-                      Text(
-                        localTime,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.labelColor,
-                        ),
+                      Icon(
+                        Icons.schedule,
+                        size: 22,
+                        color: AppColors.foggRed.withValues(alpha: 0.8),
                       ),
-                      Text(
-                        'hora local',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: AppColors.labelColor.withValues(alpha: 0.55),
+                      const SizedBox(width: 8),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            localTime,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.labelColor,
+                            ),
+                          ),
+                          Text(
+                            'hora local',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: AppColors.labelColor.withValues(alpha: 0.55),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const Spacer(),
+                      Tooltip(
+                        message: 'Ver ${city.name} en el mapa',
+                        child: Material(
+                          color: Colors.transparent,
+                          shape: const StadiumBorder(),
+                          child: InkWell(
+                            onTap: () {
+                              HapticFeedback.lightImpact();
+                              ref.read(mapFocusProvider.notifier).request(city, zoom: 7.0);
+                              ref.read(bottomNavIndexProvider.notifier).state = 0;
+                            },
+                            customBorder: const StadiumBorder(),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.location_on,
+                                    size: 22,
+                                    color: AppColors.foggRed,
+                                    semanticLabel: 'Ver ${city.name} en el mapa',
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    city.name,
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.labelColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     ],
                   ),
-                  const Spacer(),
-                  Tooltip(
-                    message: 'Ver ${city.name} en el mapa',
-                    child: Material(
-                      color: Colors.transparent,
-                      shape: const StadiumBorder(),
-                      child: InkWell(
-                        onTap: () {
-                          HapticFeedback.lightImpact();
-                          ref.read(mapFocusProvider.notifier).request(city, zoom: 7.0);
-                          ref.read(bottomNavIndexProvider.notifier).state = 0;
-                        },
-                        customBorder: const StadiumBorder(),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.location_on,
-                                size: 22,
-                                color: AppColors.foggRed,
-                                semanticLabel: 'Ver ${city.name} en el mapa',
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                city.name,
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.labelColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

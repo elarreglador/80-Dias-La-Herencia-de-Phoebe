@@ -89,6 +89,8 @@ Cancelación (umbrales fijos):
 - **Coche**: visibilidad <200 m, nieve >0.20 m, viento ≥120 km/h, precipitación >30 mm/h, temp <-25 °C o >45 °C.
 - **A pie**: temp <-10 °C o >35 °C, visibilidad <500 m, precipitación >5 mm/h, viento ≥60 km/h, nieve >0.05 m.
 
+> **Nota de decisión (2026-10-23):** el modo «a pie» no se implementa en el juego; estas reglas se conservan como referencia y no se aplican a ningún vehículo real.
+
 Si cancelado, `reason` describe el motivo (ej. "Viento ≥63 km/h").
 
 ### 3.4 Servicio (`lib/services/weather_service.dart`)

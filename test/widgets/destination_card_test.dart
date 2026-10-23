@@ -95,6 +95,27 @@ void main() {
     expect(find.text('Iniciar trayecto'), findsNothing);
   });
 
+  testWidgets('los iconos van en la cabecera y la expansión se anima', (tester) async {
+    await _pump(tester, _option());
+
+    // Colapsada: iconos en la cabecera (a la altura del nombre), sin check.
+    expect(find.byKey(const ValueKey('vehicle-icon-Lisboa-ship')), findsOneWidget);
+    expect(find.byKey(const ValueKey('vehicle-icon-Lisboa-train')), findsOneWidget);
+    expect(find.byIcon(Icons.check_circle), findsNothing);
+    expect(find.byType(AnimatedSize), findsOneWidget);
+
+    final collapsedBody = tester.getSize(find.byType(AnimatedSize)).height;
+
+    // Tocar la tarjeta la expande con una transición de tamaño.
+    await tester.tap(find.byType(DestinationCard));
+    await tester.pumpAndSettle();
+
+    final expandedBody = tester.getSize(find.byType(AnimatedSize)).height;
+    expect(expandedBody, greaterThan(collapsedBody));
+    expect(find.byIcon(Icons.check_circle), findsOneWidget);
+    expect(find.text('Iniciar trayecto'), findsNWidgets(2));
+  });
+
   testWidgets('expandida muestra precio, duración, sleeper y botones deshabilitados',
       (tester) async {
     await _pump(tester, _option(), expanded: true);

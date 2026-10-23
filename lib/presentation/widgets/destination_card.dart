@@ -5,11 +5,14 @@ import '../../domain/entities/destination_option.dart';
 import '../../utils/app_colors.dart';
 import 'transport_icon.dart';
 
-/// Tarjeta de ciudad candidata — colapsada muestra solo iconos de vehículos.
+/// Tarjeta de ciudad candidata.
 ///
-/// Al expandirse ([selected]) despliega cada vehículo con precio, duración,
-/// chip sleeper y un botón «Iniciar trayecto» que solo se habilita cuando ese
-/// vehículo está seleccionado ([selectedVehicle]).
+/// Colapsada muestra el nombre de la ciudad y, alineados a la derecha y a su
+/// altura, solo los iconos de los vehículos disponibles. Al expandirse
+/// ([selected]) despliega cada vehículo con precio, duración, chip sleeper y un
+/// botón «Iniciar trayecto» que solo se habilita cuando ese vehículo está
+/// seleccionado ([selectedVehicle]). La transición colapsada ↔ expandida se
+/// anima con [AnimatedSize] para que la tarjeta crezca y encoja con fluidez.
 ///
 /// `onVehicleTap` selecciona un vehículo; `onStartTrip` inicia la ruta con el
 /// vehículo ya seleccionado. `onPinTap` navega al mapa sin elegir destino.
@@ -32,6 +35,8 @@ class DestinationCard extends StatelessWidget {
   final VehicleOption? selectedVehicle;
   final ValueChanged<VehicleOption> onStartTrip;
   final VoidCallback? onPinTap;
+
+  static const _expandDuration = Duration(milliseconds: 250);
 
   @override
   Widget build(BuildContext context) {
@@ -58,11 +63,12 @@ class DestinationCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _header(),
-              const SizedBox(height: 12),
-              if (selected)
-                ...option.vehicles.map(_vehicleRow)
-              else
-                _collapsedVehicles(),
+              AnimatedSize(
+                duration: _expandDuration,
+                curve: Curves.easeInOut,
+                alignment: Alignment.topCenter,
+                child: selected ? _expandedVehicles() : const SizedBox.shrink(),
+              ),
             ],
           ),
         ),
@@ -72,6 +78,7 @@ class DestinationCard extends StatelessWidget {
 
   Widget _header() {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         if (onPinTap != null)
           Tooltip(
@@ -102,7 +109,10 @@ class DestinationCard extends StatelessWidget {
             ),
           ),
         ),
-        if (selected) const Icon(Icons.check_circle, color: AppColors.foggRed, size: 22),
+        if (selected)
+          const Icon(Icons.check_circle, color: AppColors.foggRed, size: 22)
+        else
+          _collapsedIconsRow(),
       ],
     );
   }
@@ -124,31 +134,50 @@ class DestinationCard extends StatelessWidget {
     );
   }
 
-  /// Estado colapsado: solo los iconos de los vehículos disponibles.
-  Widget _collapsedVehicles() {
-    return Wrap(
-      spacing: 10,
-      runSpacing: 10,
-      children: option.vehicles.map((v) {
-        final cancelled = v.weatherImpact?.cancelled ?? false;
-        return Container(
-          key: ValueKey('vehicle-icon-${option.city.name}-${v.mode.name}'),
-          width: 38,
-          height: 38,
-          decoration: BoxDecoration(
-            color: AppColors.surfaceVariant,
-            shape: BoxShape.circle,
-            border: Border.all(color: AppColors.foggRed.withValues(alpha: 0.10)),
+  /// Estado colapsado: iconos de los vehículos alineados a la derecha, a la
+  /// altura del nombre de la ciudad.
+  Widget _collapsedIconsRow() {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (final vehicle in option.vehicles)
+          Padding(
+            padding: const EdgeInsets.only(left: 6),
+            child: _collapsedIcon(vehicle),
           ),
-          child: Icon(
-            v.mode.icon,
-            size: 20,
-            color: cancelled
-                ? AppColors.labelColor.withValues(alpha: 0.35)
-                : AppColors.foggRed,
-          ),
-        );
-      }).toList(),
+      ],
+    );
+  }
+
+  Widget _collapsedIcon(VehicleOption vehicle) {
+    final cancelled = vehicle.weatherImpact?.cancelled ?? false;
+    return Container(
+      key: ValueKey('vehicle-icon-${option.city.name}-${vehicle.mode.name}'),
+      width: 38,
+      height: 38,
+      decoration: BoxDecoration(
+        color: AppColors.surfaceVariant,
+        shape: BoxShape.circle,
+        border: Border.all(color: AppColors.foggRed.withValues(alpha: 0.10)),
+      ),
+      child: Icon(
+        vehicle.mode.icon,
+        size: 20,
+        color: cancelled
+            ? AppColors.labelColor.withValues(alpha: 0.35)
+            : AppColors.foggRed,
+      ),
+    );
+  }
+
+  /// Estado expandido: una fila por vehículo bajo la cabecera.
+  Widget _expandedVehicles() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: option.vehicles.map(_vehicleRow).toList(),
+      ),
     );
   }
 

@@ -43,7 +43,12 @@ class GameSession {
   }) : _cities = cities ?? _defaultCities,
        _transportSelector = transportSelector,
        _eventEngine = eventEngine,
-       _weatherSnapshot = weatherSnapshot;
+       _weatherSnapshot = weatherSnapshot {
+    _status = FoggArrived(
+      currentCity: _currentCity,
+      options: _buildOptions(_currentCity),
+    );
+  }
 
   final TimeEngine timeEngine;
   final BudgetService budget;
@@ -52,9 +57,7 @@ class GameSession {
   final EventEngine? _eventEngine;
   final WeatherSnapshot? _weatherSnapshot;
 
-  FoggStatus _status = FoggTraveling(
-    leg: _defaultLeg(),
-  );
+  late FoggStatus _status;
   FoggCity _currentCity = _defaultCities[0];
   Fatigue _fatigue = const Fatigue();
   double _legStartFatigue = 100.0;

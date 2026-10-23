@@ -10,6 +10,24 @@ import 'package:pf/services/game_session.dart';
 import 'package:pf/services/time_engine.dart';
 
 void main() {
+  test('GameSession arranca en Londres a la espera del primer trayecto', () {
+    final te = TimeEngine(
+      startUtc: DateTime.utc(2026, 1, 1, 12),
+      timeScale: 1.0,
+      clock: () => DateTime.utc(2026, 1, 1, 12),
+    );
+    final session = GameSession(
+      timeEngine: te,
+      budget: BudgetService(initial: 100000),
+    );
+
+    expect(session.status, isA<FoggArrived>());
+    expect(session.currentCity.name, 'Londres');
+    expect(session.currentLeg, isNull);
+    expect(session.completedLegs, isEmpty);
+    expect(session.options, isNotEmpty);
+  });
+
   test('GameSession inicia leg, gasta y llega', () {
     var now = DateTime.utc(2026, 1, 1, 12);
     final te = TimeEngine(startUtc: now, timeScale: 1.0, clock: () => now);

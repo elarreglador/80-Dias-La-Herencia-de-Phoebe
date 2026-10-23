@@ -5,23 +5,32 @@ import '../../domain/entities/destination_option.dart';
 import '../../utils/app_colors.dart';
 import 'transport_icon.dart';
 
-/// Tarjeta de ciudad candidata — muestra nombre + 1-3 vehículos.
+/// Tarjeta de ciudad candidata — colapsada muestra solo iconos de vehículos.
 ///
-/// `onPinTap` es el icono de chincheta que navega al mapa con zoom medio
-/// sobre [option.city]; no selecciona destino (eso lo hace la elección de
-/// vehículo en `FoggStatusPage`). Si es `null`, no se muestra el botón.
+/// Al expandirse ([selected]) despliega cada vehículo con precio, duración,
+/// chip sleeper y un botón «Iniciar trayecto» que solo se habilita cuando ese
+/// vehículo está seleccionado ([selectedVehicle]).
+///
+/// `onVehicleTap` selecciona un vehículo; `onStartTrip` inicia la ruta con el
+/// vehículo ya seleccionado. `onPinTap` navega al mapa sin elegir destino.
 class DestinationCard extends StatelessWidget {
   const DestinationCard({
     super.key,
     required this.option,
     required this.selected,
     required this.onTap,
+    required this.onVehicleTap,
+    required this.selectedVehicle,
+    required this.onStartTrip,
     this.onPinTap,
   });
 
   final DestinationOption option;
   final bool selected;
   final VoidCallback onTap;
+  final ValueChanged<VehicleOption> onVehicleTap;
+  final VehicleOption? selectedVehicle;
+  final ValueChanged<VehicleOption> onStartTrip;
   final VoidCallback? onPinTap;
 
   @override
@@ -48,201 +57,215 @@ class DestinationCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  // Círculo gris — ahora es el botón que navega al mapa (zoom medio).
-                  // No selecciona destino; la selección sigue siendo vía tarjeta/vehículo.
-                  if (onPinTap != null)
-                    Tooltip(
-                      message: 'Ver ${option.city.name} en el mapa',
-                      child: Material(
-                        color: Colors.transparent,
-                        shape: const CircleBorder(),
-                        child: InkWell(
-                          onTap: () {
-                            HapticFeedback.lightImpact();
-                            onPinTap!.call();
-                          },
-                          customBorder: const CircleBorder(),
-                          child: Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: selected ? AppColors.foggRed : AppColors.surfaceVariant,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.location_on,
-                              size: 22,
-                              color: selected ? Colors.white : AppColors.foggRed.withValues(alpha: 0.8),
-                              semanticLabel: 'Ver ${option.city.name} en el mapa',
-                            ),
-                          ),
-                        ),
-                      ),
-                    )
-                  else
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: selected ? AppColors.foggRed : AppColors.surfaceVariant,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.location_on,
-                        size: 22,
-                        color: selected ? Colors.white : AppColors.foggRed.withValues(alpha: 0.8),
-                      ),
-                    ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          option.city.name,
-                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.labelColor),
-                        ),
-                        Text(
-                          '${option.city.lat.toStringAsFixed(2)}, ${option.city.lng.toStringAsFixed(2)}',
-                          style: TextStyle(fontSize: 11, color: AppColors.labelColor.withValues(alpha: 0.55)),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (selected) const Icon(Icons.check_circle, color: AppColors.foggRed, size: 22),
-                ],
-              ),
+              _header(),
               const SizedBox(height: 12),
-              // Resumen vehículos — iconos + precio
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: option.vehicles.map((v) {
-                  return Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: AppColors.surfaceVariant,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: AppColors.foggRed.withValues(alpha: 0.10)),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(v.mode.icon, size: 14, color: AppColors.foggRed),
-                        const SizedBox(width: 4),
-                        Text(v.mode.label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
-                        const SizedBox(width: 6),
-                        Text('${v.price}€', style: TextStyle(fontSize: 11, color: AppColors.labelColor.withValues(alpha: 0.6))),
-                        if (v.weatherImpact?.cancelled ?? false) ...[
-                          const SizedBox(width: 4),
-                          const Icon(Icons.block, size: 12, color: AppColors.foggRed),
-                        ],
-                        if (v.sleeper) ...[
-                          const SizedBox(width: 4),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                            decoration: BoxDecoration(color: AppColors.foggRed.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(8)),
-                            child: const Text('sleeper', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: AppColors.foggRed)),
-                          ),
-                        ],
-                      ],
-                    ),
-                  );
-                }).toList(),
-              ),
+              if (selected)
+                ...option.vehicles.map(_vehicleRow)
+              else
+                _collapsedVehicles(),
             ],
           ),
         ),
       ),
     );
   }
-}
 
-/// Chip de vehículo individual — usado tras elegir ciudad.
-class VehicleChoiceChip extends StatelessWidget {
-  const VehicleChoiceChip({
-    super.key,
-    required this.vehicle,
-    required this.selected,
-    required this.onTap,
-  });
+  Widget _header() {
+    return Row(
+      children: [
+        if (onPinTap != null)
+          Tooltip(
+            message: 'Ver ${option.city.name} en el mapa',
+            child: Material(
+              color: Colors.transparent,
+              shape: const CircleBorder(),
+              child: InkWell(
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  onPinTap!.call();
+                },
+                customBorder: const CircleBorder(),
+                child: _pinCircle(),
+              ),
+            ),
+          )
+        else
+          _pinCircle(),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            option.city.name,
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: AppColors.labelColor,
+            ),
+          ),
+        ),
+        if (selected) const Icon(Icons.check_circle, color: AppColors.foggRed, size: 22),
+      ],
+    );
+  }
 
-  final VehicleOption vehicle;
-  final bool selected;
-  final VoidCallback onTap;
+  Widget _pinCircle() {
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        color: selected ? AppColors.foggRed : AppColors.surfaceVariant,
+        shape: BoxShape.circle,
+      ),
+      child: Icon(
+        Icons.location_on,
+        size: 22,
+        color: selected ? Colors.white : AppColors.foggRed.withValues(alpha: 0.8),
+        semanticLabel: 'Ver ${option.city.name} en el mapa',
+      ),
+    );
+  }
 
-  @override
-  Widget build(BuildContext context) {
+  /// Estado colapsado: solo los iconos de los vehículos disponibles.
+  Widget _collapsedVehicles() {
+    return Wrap(
+      spacing: 10,
+      runSpacing: 10,
+      children: option.vehicles.map((v) {
+        final cancelled = v.weatherImpact?.cancelled ?? false;
+        return Container(
+          key: ValueKey('vehicle-icon-${option.city.name}-${v.mode.name}'),
+          width: 38,
+          height: 38,
+          decoration: BoxDecoration(
+            color: AppColors.surfaceVariant,
+            shape: BoxShape.circle,
+            border: Border.all(color: AppColors.foggRed.withValues(alpha: 0.10)),
+          ),
+          child: Icon(
+            v.mode.icon,
+            size: 20,
+            color: cancelled
+                ? AppColors.labelColor.withValues(alpha: 0.35)
+                : AppColors.foggRed,
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _vehicleRow(VehicleOption vehicle) {
     final cancelled = vehicle.weatherImpact?.cancelled ?? false;
     final reason = vehicle.weatherImpact?.reason;
-    final delay = vehicle.weatherImpact?.delay;
-    return Material(
-      color: selected ? AppColors.foggRed : AppColors.surface,
-      borderRadius: BorderRadius.circular(14),
-      child: InkWell(
-        onTap: cancelled
-            ? null
-            : () {
-                HapticFeedback.lightImpact();
-                onTap();
-              },
-        borderRadius: BorderRadius.circular(14),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: cancelled ? AppColors.foggRed.withValues(alpha: 0.6) : (selected ? AppColors.foggRed : AppColors.foggRed.withValues(alpha: 0.14)), width: 1.2),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CompactTransportIcon(mode: vehicle.mode, selected: selected),
-              const SizedBox(width: 10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
+    final isSelected = selectedVehicle == vehicle;
+
+    return Opacity(
+      opacity: cancelled ? 0.55 : 1,
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Material(
+          color: isSelected ? AppColors.foggRed.withValues(alpha: 0.08) : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          child: InkWell(
+            key: ValueKey('vehicle-row-${option.city.name}-${vehicle.mode.name}'),
+            onTap: cancelled
+                ? () {}
+                : () {
+                    HapticFeedback.lightImpact();
+                    onVehicleTap(vehicle);
+                  },
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: Row(
                 children: [
-                  Text(
-                    vehicle.mode.label,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: selected ? Colors.white : AppColors.labelColor,
+                  CompactTransportIcon(mode: vehicle.mode, selected: isSelected),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          vehicle.mode.label,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.labelColor,
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            Text(
+                              '${vehicle.price}€',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.labelColor.withValues(alpha: 0.7),
+                              ),
+                            ),
+                            Text(
+                              ' · ${vehicle.durationLabel}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.labelColor.withValues(alpha: 0.55),
+                              ),
+                            ),
+                            if (vehicle.sleeper) ...[
+                              const SizedBox(width: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: AppColors.foggRed.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Text(
+                                  'sleeper',
+                                  style: TextStyle(
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.foggRed,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                        if (cancelled && reason != null)
+                          Text(
+                            reason,
+                            style: const TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.foggRed,
+                            ),
+                          ),
+                      ],
                     ),
                   ),
-                  Text(
-                    '${vehicle.durationLabel} · ${vehicle.price}€${vehicle.sleeper ? ' · sleeper' : ''}',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: selected ? Colors.white.withValues(alpha: 0.9) : AppColors.labelColor.withValues(alpha: 0.6),
+                  const SizedBox(width: 8),
+                  FilledButton(
+                    key: ValueKey('start-trip-${option.city.name}-${vehicle.mode.name}'),
+                    onPressed: (cancelled || !isSelected)
+                        ? null
+                        : () {
+                            HapticFeedback.lightImpact();
+                            onStartTrip(vehicle);
+                          },
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppColors.foggRed,
+                      disabledBackgroundColor: AppColors.foggRed.withValues(alpha: 0.30),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      minimumSize: const Size(0, 36),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    child: const Text(
+                      'Iniciar trayecto',
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
                     ),
                   ),
-                  if (cancelled && reason != null)
-                    Text(
-                      reason,
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        color: selected ? Colors.white : AppColors.foggRed,
-                      ),
-                    )
-                  else if (delay != null && delay > Duration.zero)
-                    Text(
-                      'Retraso ${delay.inMinutes} min',
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: selected ? Colors.white.withValues(alpha: 0.9) : AppColors.labelColor.withValues(alpha: 0.6),
-                      ),
-                    ),
                 ],
               ),
-              if (selected) ...[
-                const SizedBox(width: 10),
-                const Icon(Icons.check_circle, color: Colors.white, size: 18),
-              ],
-            ],
+            ),
           ),
         ),
       ),

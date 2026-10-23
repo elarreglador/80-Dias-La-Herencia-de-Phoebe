@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/destination_option.dart';
+import '../../domain/entities/fogg_city.dart';
 import '../../domain/entities/fogg_leg.dart';
 import '../../domain/entities/fogg_status.dart';
 import '../../utils/app_colors.dart';
@@ -10,6 +11,7 @@ import '../providers/countdown_provider.dart';
 import '../providers/fogg_status_provider.dart';
 import '../providers/game_notifier.dart';
 import '../providers/map_focus_provider.dart';
+import '../widgets/city_info_card.dart';
 import '../widgets/countdown_widget.dart';
 import '../widgets/destination_card.dart';
 import '../widgets/transport_icon.dart';
@@ -28,7 +30,7 @@ class FoggStatusPage extends ConsumerWidget {
     return switch (status) {
       FoggTraveling(:final leg) => _TravelingView(leg: leg),
       FoggArrived(:final currentCity, :final options) => _ArrivedView(
-          currentCityName: currentCity.name,
+          currentCity: currentCity,
           options: options,
         ),
     };
@@ -115,9 +117,6 @@ class _TravelingView extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 28),
-
-          // Debug toggle — solo estética ficticia
-          _DebugToggle(),
         ],
       ),
     );
@@ -136,20 +135,29 @@ class _TravelingView extends ConsumerWidget {
 // ---------------------------------------------------------------------------
 
 class _ArrivedView extends ConsumerWidget {
-  const _ArrivedView({required this.currentCityName, required this.options});
+  const _ArrivedView({required this.currentCity, required this.options});
 
-  final String currentCityName;
+  final FoggCity currentCity;
   final List<DestinationOption> options;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final selectedCity = ref.watch(selectedDestinationProvider);
+    final selectedDestination = ref.watch(selectedDestinationProvider);
     final selectedVehicle = ref.watch(selectedVehicleProvider);
 
-    // Vehículos disponibles según ciudad elegida
-    final vehicles = selectedCity?.vehicles ?? const <VehicleOption>[];
-
-    final canConfirm = selectedCity != null && selectedVehicle != null;
+    void startTrip(DestinationOption option, VehicleOption vehicle) {
+      // Transición real a viajando — el origen es la ciudad actual del estado.
+      ref.read(gameNotifierProvider.notifier).startLeg(
+            from: currentCity,
+            to: option.city,
+            vehicle: vehicle,
+          );
+      ref.read(selectedDestinationProvider.notifier).state = null;
+      ref.read(selectedVehicleProvider.notifier).state = null;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('¡En ruta a ${option.city.name} en ${vehicle.mode.label}!')),
+      );
+    }
 
     return SingleChildScrollView(
       key: const ValueKey('fogg-status-arrived'),
@@ -157,154 +165,55 @@ class _ArrivedView extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Header llegada
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: AppColors.foggRed.withValues(alpha: 0.06),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.foggRed.withValues(alpha: 0.12)),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: const BoxDecoration(color: AppColors.foggRed, shape: BoxShape.circle),
-                  child: const Icon(Icons.flag, color: Colors.white, size: 20),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('¡Phoebe ha llegado a $currentCityName!',
-                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.labelColor)),
-                      const SizedBox(height: 2),
-                      Text('Elige el próximo destino hacia el este',
-                          style: TextStyle(fontSize: 12, color: AppColors.labelColor.withValues(alpha: 0.6))),
-                    ],
-                  ),
-                ),
-              ],
+          CityInfoCard(city: currentCity),
+          const SizedBox(height: 18),
+          Text(
+            'Destinos disponibles',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: AppColors.labelColor.withValues(alpha: 0.7),
+              letterSpacing: 0.5,
             ),
           ),
-          const SizedBox(height: 18),
-          Text('Destinos disponibles',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.labelColor.withValues(alpha: 0.7), letterSpacing: 0.5)),
+          const SizedBox(height: 2),
+          Text(
+            'Elige el próximo destino hacia el este',
+            style: TextStyle(fontSize: 12, color: AppColors.labelColor.withValues(alpha: 0.6)),
+          ),
           const SizedBox(height: 10),
 
-          // 3 ciudades — chincheta solo navega al mapa, selección es vía vehículo
+          // Todas las opciones — la chincheta solo navega al mapa; la
+          // selección de destino expande su tarjeta.
           ...options.map((opt) {
-            final isSelected = selectedCity?.city == opt.city;
+            final isSelected = selectedDestination?.city == opt.city;
             return Padding(
               padding: const EdgeInsets.only(bottom: 10),
               child: DestinationCard(
                 option: opt,
                 selected: isSelected,
+                selectedVehicle: isSelected ? selectedVehicle : null,
                 onTap: () {
                   ref.read(selectedDestinationProvider.notifier).state = opt;
-                  // Resetea vehículo si no pertenece a la nueva ciudad
+                  // Resetea vehículo si no pertenece a la nueva ciudad.
                   final currentVehicle = ref.read(selectedVehicleProvider);
                   if (currentVehicle != null && !opt.vehicles.contains(currentVehicle)) {
                     ref.read(selectedVehicleProvider.notifier).state = null;
                   }
                 },
+                onVehicleTap: (vehicle) {
+                  ref.read(selectedVehicleProvider.notifier).state = vehicle;
+                },
+                onStartTrip: (vehicle) => startTrip(opt, vehicle),
                 onPinTap: () {
-                  // Solo navega al mapa con zoom medio; no selecciona destino/vehículo
+                  // Solo navega al mapa con zoom medio; no selecciona destino/vehículo.
                   ref.read(mapFocusProvider.notifier).request(opt.city);
                   ref.read(bottomNavIndexProvider.notifier).state = 0;
                 },
               ),
             );
           }),
-
-          if (selectedCity != null) ...[
-            const SizedBox(height: 14),
-            Text('Vehículos hacia ${selectedCity.city.name}',
-                style:
-                    TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.labelColor.withValues(alpha: 0.7), letterSpacing: 0.5)),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: vehicles.map((v) {
-                final isSelected = selectedVehicle == v;
-                return VehicleChoiceChip(
-                  vehicle: v,
-                  selected: isSelected,
-                  onTap: () => ref.read(selectedVehicleProvider.notifier).state = v,
-                );
-              }).toList(),
-            ),
-          ],
-
-          const SizedBox(height: 20),
-          // Botón confirmar
-          SizedBox(
-            height: 48,
-            child: FilledButton.icon(
-              onPressed: canConfirm
-                  ? () {
-                      // ignore: unnecessary_non_null_assertion
-                      final city = selectedCity!;
-                      // ignore: unnecessary_non_null_assertion
-                      final vehicle = selectedVehicle!;
-                       // Transición real a viajando
-                       ref.read(gameNotifierProvider.notifier).startLeg(
-                             from: options.firstWhere((o) => o.city.name == currentCityName,
-                                     orElse: () => options.first)
-                                 .city,
-                             to: city.city,
-                             vehicle: vehicle,
-                           );
-                      ref.read(selectedDestinationProvider.notifier).state = null;
-                      ref.read(selectedVehicleProvider.notifier).state = null;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('¡En ruta a ${city.city.name} en ${vehicle.mode.label}!')),
-                      );
-                    }
-                  : null,
-              icon: const Icon(Icons.arrow_forward, size: 18),
-              label: Text(canConfirm ? 'Confirmar viaje a ${selectedCity.city.name}' : 'Elige destino y vehículo'),
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.foggRed,
-                disabledBackgroundColor: AppColors.foggRed.withValues(alpha: 0.35),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-            ),
-          ),
-          const SizedBox(height: 14),
-          _DebugToggle(),
         ],
-      ),
-    );
-  }
-}
-
-/// Toggle debug para alternar estados sin backend — solo mock estético.
-class _DebugToggle extends ConsumerWidget {
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final status = ref.watch(gameNotifierProvider);
-    final isTraveling = status is FoggTraveling;
-    return OutlinedButton.icon(
-      onPressed: () {
-         if (isTraveling) {
-           ref.read(gameNotifierProvider.notifier).simulateArrival();
-           ref.read(selectedDestinationProvider.notifier).state = null;
-           ref.read(selectedVehicleProvider.notifier).state = null;
-         } else {
-           ref.read(gameNotifierProvider.notifier).simulateDeparture();
-         }
-      },
-      icon: Icon(isTraveling ? Icons.location_on_outlined : Icons.train_outlined, size: 16),
-      label: Text(isTraveling ? 'Simular llegada (debug)' : 'Simular salida (debug)', style: const TextStyle(fontSize: 12)),
-      style: OutlinedButton.styleFrom(
-        foregroundColor: AppColors.labelColor.withValues(alpha: 0.7),
-        side: BorderSide(color: AppColors.labelColor.withValues(alpha: 0.15)),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }

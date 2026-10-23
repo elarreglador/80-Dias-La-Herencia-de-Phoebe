@@ -66,6 +66,7 @@ flutter:
     - assets/data/sea_routes.json
     - assets/data/car_routes.json
     - assets/data/rail_routes.json
+    - assets/images/ciudad_generica.jpg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

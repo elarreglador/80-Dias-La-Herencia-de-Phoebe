@@ -65,11 +65,6 @@ class GameNotifier extends Notifier<FoggStatus> {
     _session.simulateArrival();
     state = _session.status;
   }
-
-  void simulateDeparture() {
-    _session.simulateDeparture();
-    state = _session.status;
-  }
 }
 
 final gameNotifierProvider =

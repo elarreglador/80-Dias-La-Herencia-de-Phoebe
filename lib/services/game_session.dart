@@ -226,13 +226,6 @@ class GameSession {
     _emit();
   }
 
-  void simulateDeparture() {
-    _status = FoggTraveling(leg: _defaultLeg());
-    _currentLeg = (_status as FoggTraveling).leg;
-    _legStartFatigue = _fatigue.value;
-    _emit();
-  }
-
   List<DestinationOption> _buildOptions(FoggCity current) {
     final selector = _transportSelector;
     if (selector != null) {
@@ -309,16 +302,4 @@ class GameSession {
         FoggCity(name: 'Savile Row', lat: 51.5107, lng: -0.1410, order: 7, timezone: 'Europe/London'),
       ];
 
-  static FoggLeg _defaultLeg() {
-    final now = DateTime.now().toUtc();
-    return FoggLeg(
-      from: _defaultCities[3],
-      to: _defaultCities[4],
-      transport: TransportMode.train,
-      departureUtc: now.subtract(const Duration(hours: 2)),
-      arrivalUtc: now.add(const Duration(days: 1, hours: 5)),
-      price: 4200,
-      sleeper: true,
-    );
-  }
 }

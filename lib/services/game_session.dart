@@ -159,7 +159,7 @@ class GameSession {
   }
 
   /// Geometría del tramo: la real del catálogo si el vehículo la trae,
-  /// si no una recta de origen a destino (a pie, mocks).
+  /// si no una recta de origen a destino (mocks).
   static RoutePath _buildPath(FoggCity from, FoggCity to, VehicleOption vehicle) {
     final route = vehicle.route;
     if (route != null) {

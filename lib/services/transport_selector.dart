@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import '../domain/entities/destination_option.dart';
 import '../domain/entities/fogg_city.dart';
 import '../domain/entities/transport_mode.dart';
@@ -21,7 +19,6 @@ class TariffTable {
     TransportMode.ship: Tariff(pricePerKm: 1.2, speedKmh: 25, sleeper: true),
     TransportMode.train: Tariff(pricePerKm: 0.8, speedKmh: 80, sleeper: true),
     TransportMode.car: Tariff(pricePerKm: 0.6, speedKmh: 60, sleeper: false),
-    TransportMode.foot: Tariff(pricePerKm: 0.5, speedKmh: 5, sleeper: false),
   };
 }
 
@@ -145,34 +142,6 @@ class TransportSelector {
       ));
     }
 
-    // Foot siempre.
-    final footTariff = tariffs[TransportMode.foot] ?? TariffTable.defaults[TransportMode.foot]!;
-    final footKm = _haversine(current.lat, current.lng, city.lat, city.lng);
-    final footBaseDuration = Duration(
-        microseconds: ((footKm / footTariff.speedKmh) * 3600000000).round());
-    final footPrice = (footKm * footTariff.pricePerKm).round();
-    var footDuration = footBaseDuration;
-    WeatherImpact? footImpact;
-    final fws = weatherService;
-    if (fws != null) {
-      var depUtc = DateTime.utc(baseNow.year, baseNow.month, baseNow.day, 6, 0);
-      if (depUtc.isBefore(baseNow)) depUtc = depUtc.add(const Duration(days: 1));
-      final arrUtc = depUtc.add(footBaseDuration);
-      final o = fws.fetchSync(current.lat, current.lng, depUtc);
-      final d = fws.fetchSync(city.lat, city.lng, arrUtc);
-      footImpact = WeatherImpact.forMode(TransportMode.foot, o, d, depUtc, arrUtc);
-      if (!footImpact.cancelled) footDuration = footBaseDuration + footImpact.delay;
-    }
-    vehicles.add(VehicleOption(
-      mode: TransportMode.foot,
-      duration: footDuration,
-      price: footPrice,
-      sleeper: false,
-      departureHour: 6,
-      departureMinute: 0,
-      weatherImpact: footImpact,
-    ));
-
     return DestinationOption(city: city, vehicles: vehicles);
   }
 
@@ -199,19 +168,6 @@ class TransportSelector {
       x += 360;
     }
     return x;
-  }
-
-  static double _haversine(double lat1, double lng1, double lat2, double lng2) {
-    const r = 6371.0;
-    final dLat = (lat2 - lat1) * math.pi / 180.0;
-    final dLng = (lng2 - lng1) * math.pi / 180.0;
-    final a = math.sin(dLat / 2) * math.sin(dLat / 2) +
-        math.cos(lat1 * math.pi / 180.0) *
-            math.cos(lat2 * math.pi / 180.0) *
-            math.sin(dLng / 2) *
-            math.sin(dLng / 2);
-    final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
-    return r * c;
   }
 }
 

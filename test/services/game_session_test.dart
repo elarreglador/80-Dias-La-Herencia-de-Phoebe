@@ -209,7 +209,7 @@ void main() {
       from: from,
       to: to,
       vehicle: const VehicleOption(
-        mode: TransportMode.foot,
+        mode: TransportMode.car,
         duration: Duration(hours: 2),
         price: 1000,
       ),

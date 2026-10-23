@@ -220,8 +220,7 @@ class _WorldMapWidgetState extends ConsumerState<WorldMapWidget>
         TransportMode.ship => AppColors.routeShip,
         TransportMode.train => AppColors.routeTrain,
         TransportMode.car => AppColors.routeCar,
-        TransportMode.foot => AppColors.routeFoot,
-        _ => AppColors.routeFoot,
+        _ => AppColors.routeCandidate,
       };
 
   /// Polilíneas del mapa — historial, tramo activo y candidatas.

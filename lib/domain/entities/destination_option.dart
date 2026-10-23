@@ -27,7 +27,7 @@ class VehicleOption {
   final WeatherImpact? weatherImpact;
 
   /// Ruta real del catálogo para este modo — conserva la geometría elegida.
-  /// `null` en los vehículos sin ruta real (a pie, mocks).
+  /// `null` en los vehículos sin ruta real (mocks).
   final RouteEntry? route;
 
   String get durationLabel {

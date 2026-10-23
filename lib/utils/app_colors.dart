@@ -34,9 +34,6 @@ class AppColors {
   /// Tren.
   static const routeTrain = Color(0xFF6A1B9A);
 
-  /// A pie — sin ruta real.
-  static const routeFoot = Color(0xFF9E9E9E);
-
   /// Rutas candidatas — se usa con alpha 0.35.
   static const routeCandidate = Color(0xFF9E9E9E);
 }

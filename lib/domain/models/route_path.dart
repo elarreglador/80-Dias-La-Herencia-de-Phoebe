@@ -55,7 +55,7 @@ class RoutePath {
     return _build(pts);
   }
 
-  /// Tramos sin ruta real (a pie, mocks): recta de origen a destino.
+  /// Tramos sin ruta real (mocks): recta de origen a destino.
   factory RoutePath.straight(LatLng from, LatLng to) => _build([from, to]);
 
   static RoutePath _build(List<LatLng> pts) {

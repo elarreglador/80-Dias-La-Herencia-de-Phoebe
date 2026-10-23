@@ -2,7 +2,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:pf/domain/entities/fogg_city.dart';
-import 'package:pf/domain/entities/transport_mode.dart';
 import 'package:pf/services/city_catalog.dart';
 import 'package:pf/services/route_catalog.dart';
 import 'package:pf/services/transport_selector.dart';
@@ -29,12 +28,11 @@ void main() {
     }
   });
 
-  test('foot siempre presente y price>0', () async {
+  test('cada vehículo tiene price>0 y hora de salida', () async {
     final catalog = await RouteCatalog.load(rootBundle);
     final selector = TransportSelector(catalog: catalog);
     final opts = selector.optionsFor(current);
     for (final o in opts) {
-      expect(o.vehicles.any((v) => v.mode == TransportMode.foot), isTrue);
       for (final v in o.vehicles) {
         expect(v.price, greaterThan(0));
         expect(v.departureHour, isNotNull);
@@ -49,10 +47,6 @@ void main() {
     final opts = selector.optionsFor(current);
     for (final o in opts) {
       for (final v in o.vehicles) {
-        if (v.mode == TransportMode.foot) {
-          expect(v.route, isNull, reason: 'a pie no hay ruta real');
-          continue;
-        }
         expect(v.route, isNotNull, reason: '${v.mode.label} conserva su ruta');
         expect(v.route!.geometry, isNotEmpty);
         expect(v.route!.destination, o.city.name);

@@ -9,7 +9,6 @@ enum TransportMode {
   balloon,
   horse,
   camel,
-  foot,
   motorcycle;
 
   /// Etiqueta humana en castellano (narrativa).
@@ -27,8 +26,6 @@ enum TransportMode {
         return 'Caballo';
       case TransportMode.camel:
         return 'Camello';
-      case TransportMode.foot:
-        return 'A pie';
       case TransportMode.motorcycle:
         return 'Moto';
     }
@@ -49,8 +46,6 @@ enum TransportMode {
         return Icons.pets; // caballo genérico
       case TransportMode.camel:
         return Icons.pets; // camello — fallback pets (distinguible por label)
-      case TransportMode.foot:
-        return Icons.directions_walk;
       case TransportMode.motorcycle:
         return Icons.two_wheeler;
     }
@@ -71,8 +66,6 @@ enum TransportMode {
         return Icons.pets_outlined;
       case TransportMode.camel:
         return Icons.pets_outlined;
-      case TransportMode.foot:
-        return Icons.directions_walk_outlined;
       case TransportMode.motorcycle:
         return Icons.two_wheeler_outlined;
     }

@@ -92,20 +92,6 @@ class WeatherImpact {
           cancelReason = 'Temperatura extrema';
         }
         break;
-      case TransportMode.foot:
-        if (w.temperatureC != null &&
-            (w.temperatureC! < -10 || w.temperatureC! > 35)) {
-          cancelReason = 'Temperatura extrema';
-        } else if (w.visibilityM < 500) {
-          cancelReason = 'Visibilidad <500 m';
-        } else if (w.precipitationMm > 5) {
-          cancelReason = 'Precipitacion >5 mm/h';
-        } else if (w.windSpeedKmh >= 60) {
-          cancelReason = 'Viento >=60 km/h';
-        } else if (w.snowDepthM > 0.05) {
-          cancelReason = 'Nieve >0.05 m';
-        }
-        break;
       default:
         break;
     }
@@ -128,10 +114,6 @@ class WeatherImpact {
       case TransportMode.car:
         hours = headwind * 0.02;
         if (hours > 2) hours = 2;
-        break;
-      case TransportMode.foot:
-        hours = headwind * 0.01;
-        if (hours > 1) hours = 1;
         break;
       default:
         hours = 0;

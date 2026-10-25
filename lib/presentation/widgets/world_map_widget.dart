@@ -4,11 +4,6 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 
-import '../../domain/entities/fogg_city.dart';
-import '../../domain/entities/fogg_status.dart';
-import '../../domain/entities/transport_mode.dart';
-import '../../domain/models/route_path.dart';
-import '../../services/city_catalog.dart';
 import '../../utils/app_colors.dart';
 import '../providers/fogg_position_provider.dart';
 import '../providers/game_notifier.dart';
@@ -16,9 +11,12 @@ import '../providers/map_focus_provider.dart';
 import '../providers/route_catalog_provider.dart';
 import '../providers/sun_terminator_provider.dart';
 import 'map_controls.dart';
+import 'map_crs.dart';
+import 'map_route_layer.dart';
+
+export 'map_crs.dart';
 
 /// Colores según spec.
-const _labelColor = Color(0xFF1A1A1A);
 const _offlineBg = Color(0xFFF5F0E8);
 const _offlineTextColor = Color(0xFF6B6B6B);
 
@@ -27,50 +25,6 @@ const _mapTileUrl = String.fromEnvironment(
   'MAP_TILE_URL',
   defaultValue: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
 );
-
-/// Límites mundiales — usados para contener la cámara sin salto antimeridiano.
-final _worldBounds = LatLngBounds(
-  const LatLng(-90, -180),
-  const LatLng(90, 180),
-);
-
-/// Contención híbrida: intenta `contain` (bordes dentro del mundo) y si
-/// el zoom es tan bajo que el mundo cabe entero en el viewport (`contain`
-/// devuelve null), cae a `containCenter` que siempre sujeta el centro.
-/// Así, por mucho que se arrastre horizontalmente, el mapa se detiene en
-/// el borde en lugar de saltar al otro extremo del antimeridiano.
-class _ContainWithFallback extends CameraConstraint {
-  const _ContainWithFallback(this.bounds);
-  final LatLngBounds bounds;
-
-  @override
-  MapCamera? constrain(MapCamera camera) {
-    final contain = CameraConstraint.contain(bounds: bounds).constrain(camera);
-    if (contain != null) return contain;
-    return CameraConstraint.containCenter(bounds: bounds).constrain(camera);
-  }
-
-  @override
-  bool operator ==(Object other) => other is _ContainWithFallback && other.bounds == bounds;
-
-  @override
-  int get hashCode => bounds.hashCode;
-
-  @override
-  String toString() => 'ContainWithFallback(bounds: $bounds) — wraps ContainCamera';
-}
-
-/// CRS Mercator sin repetición horizontal — mundo finito.
-/// `Epsg3857` por defecto tiene `replicatesWorldLongitude==true` y envuelve
-/// el mapa infinitamente (arrastrar más allá de 180 reaparece en -180).
-/// Sobrescribiendo a `false`, el mapa se detiene en el antimeridiano y
-/// muestra el `backgroundColor` más allá, sin salto.
-@immutable
-class Epsg3857NoRepeat extends Epsg3857 {
-  const Epsg3857NoRepeat();
-  @override
-  bool get replicatesWorldLongitude => false;
-}
 
 /// Widget reutilizable de mapamundi Fogg — Mercator EPSG:3857 con OSM.
 ///
@@ -115,15 +69,8 @@ class _WorldMapWidgetState extends ConsumerState<WorldMapWidget>
   late final void Function(MapCamera camera, bool hasGesture)
       _onPositionChangedCallback;
 
-  /// Centro inicial del mapa — el centro del mundo (primo meridiano).
-  ///
-  /// Es el único centro que siempre satisface la constraint de contención
-  /// a cualquier zoom: con el viewport más ancho que el mundo, `contain`
-  /// devuelve `null` y entra el `containCenter` de reserva.
-  ///
   /// El mapa **no** sigue a Phoebe (decisión de la SPEC 016); de eso se
   /// encarga el botón «Centrar en Phoebe».
-  static const LatLng _worldCenter = LatLng(0, 0);
 
   bool _tileError = false;
   bool _mapReady = false;
@@ -215,147 +162,6 @@ class _WorldMapWidgetState extends ConsumerState<WorldMapWidget>
     });
   }
 
-  /// Color del trazado según el modo de transporte.
-  static Color _routeColor(TransportMode mode) => switch (mode) {
-        TransportMode.ship => AppColors.routeShip,
-        TransportMode.train => AppColors.routeTrain,
-        TransportMode.car => AppColors.routeCar,
-        _ => AppColors.routeCandidate,
-      };
-
-  /// Polilíneas del mapa — historial, tramo activo y candidatas.
-  List<Polyline> _buildPolylines(FoggStatus status, DateTime now) {
-    final polylines = <Polyline>[];
-
-    // Historial — cada tramo ya recorrido en el color de su modo, 2 px.
-    for (final leg in ref.read(gameSessionProvider).completedLegs) {
-      final path = leg.path;
-      if (path == null) continue;
-      final color = _routeColor(leg.transport);
-      for (final segment in path.renderSegments()) {
-        polylines.add(Polyline(
-          points: segment,
-          color: color,
-          strokeWidth: 2.0,
-        ));
-      }
-    }
-
-    switch (status) {
-      case FoggTraveling(leg: final leg):
-        final path = leg.path;
-        if (path == null) break;
-        final color = _routeColor(leg.transport);
-        final parts = path.splitAt(leg.progressAt(now));
-        // Parte recorrida — sólida, 4 px.
-        for (final segment in RoutePath.splitAtAntimeridian(parts.traveled)) {
-          polylines.add(Polyline(
-            points: segment,
-            color: color,
-            strokeWidth: 4.0,
-          ));
-        }
-        // Parte pendiente — discontinua, 4 px.
-        for (final segment in RoutePath.splitAtAntimeridian(parts.pending)) {
-          polylines.add(Polyline(
-            points: segment,
-            color: color,
-            strokeWidth: 4.0,
-            pattern: StrokePattern.dashed(segments: const [12, 8]),
-          ));
-        }
-      case FoggArrived(options: final options):
-        // Candidatas — solo en ciudad y sin trayecto elegido.
-        for (final option in options) {
-          for (final vehicle in option.vehicles) {
-            final route = vehicle.route;
-            if (route == null) continue;
-            final path = RoutePath.fromGeometry(route.geometry);
-            if (path == null) continue;
-            for (final segment in path.renderSegments()) {
-              polylines.add(Polyline(
-                points: segment,
-                color: AppColors.routeCandidate.withValues(alpha: 0.35),
-                strokeWidth: 2.0,
-              ));
-            }
-          }
-        }
-    }
-
-    return polylines;
-  }
-
-  /// Marcadores del tramo activo — origen y destino.
-  List<Marker> _buildLegMarkers(FoggStatus status, CityCatalog? catalog) {
-    switch (status) {
-      case FoggTraveling(leg: final leg):
-        return [
-          _cityMarker(_canonical(leg.from, catalog)),
-          _cityMarker(_canonical(leg.to, catalog)),
-        ];
-      case FoggArrived():
-        return const [];
-    }
-  }
-
-  /// Ciudad canónica del catálogo — las coordenadas reales del city catalog
-  /// mandan sobre las de la partida, para que el marcador caiga exacto
-  /// sobre el vértice de la ruta.
-  static FoggCity _canonical(FoggCity city, CityCatalog? catalog) =>
-      catalog?.byName(city.name) ?? city;
-
-  /// Marcador de ciudad — punto rojo con etiqueta.
-  Marker _cityMarker(FoggCity city) {
-    return Marker(
-      point: LatLng(city.lat, city.lng),
-      width: 80,
-      height: 60,
-      alignment: Alignment.center,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // Punto rojo centrado exactamente en LatLng — la polyline pasa por aquí
-          Container(
-            width: 12,
-            height: 12,
-            decoration: BoxDecoration(
-              color: AppColors.foggRed,
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 2),
-            ),
-          ),
-          // Label 22px por encima del punto (dy -22) + halo blanco 0.6
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.6),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  city.name,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: _labelColor,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     // Escucha peticiones de foco desde la pantalla de Fogg (chincheta → mapa).
@@ -370,21 +176,25 @@ class _WorldMapWidgetState extends ConsumerState<WorldMapWidget>
     final effectiveFoggPos = widget.foggPosition ?? providerPos;
     final nightPolygons = ref.watch(sunTerminatorProvider);
     final cityCatalog = ref.watch(cityCatalogProvider).valueOrNull;
-    final polylines = _buildPolylines(status, now);
-    final legMarkers = _buildLegMarkers(status, cityCatalog);
+    final polylines = buildRoutePolylines(
+      status: status,
+      now: now,
+      completedLegs: ref.read(gameSessionProvider).completedLegs,
+    );
+    final legMarkers = buildLegMarkers(status: status, catalog: cityCatalog);
 
     // Si TileLayer reporta error, mostrar overlay offline sin bloquear UI
     final mapContent = FlutterMap(
       mapController: _mapController,
       options: MapOptions(
         crs: const Epsg3857NoRepeat(),
-        initialCenter: _worldCenter,
+        initialCenter: worldCenter,
         initialZoom: widget.initialZoom,
         initialRotation: 0.0,
         interactionOptions: const InteractionOptions(
           flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
         ),
-        cameraConstraint: _ContainWithFallback(_worldBounds),
+        cameraConstraint: ContainWithFallback(worldBounds),
         minZoom: 2.0,
         maxZoom: 18.0,
         backgroundColor: _offlineBg,
@@ -431,16 +241,16 @@ class _WorldMapWidgetState extends ConsumerState<WorldMapWidget>
             markers: [
               Marker(
                 point: effectiveFoggPos,
-                width: 28,
+                width: 14,
                 height: 28,
                 alignment: Alignment.center,
                 child: Container(
-                  width: 18,
-                  height: 18,
+                  width: 9,
+                  height: 9,
                   decoration: BoxDecoration(
                     color: Colors.white,
                     shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.foggRed, width: 3),
+                    border: Border.all(color: AppColors.foggRed, width: 1.5),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.2),
@@ -451,8 +261,8 @@ class _WorldMapWidgetState extends ConsumerState<WorldMapWidget>
                   ),
                   child: Center(
                     child: Container(
-                      width: 8,
-                      height: 8,
+                      width: 4,
+                      height: 4,
                       decoration: const BoxDecoration(
                         color: AppColors.foggRed,
                         shape: BoxShape.circle,

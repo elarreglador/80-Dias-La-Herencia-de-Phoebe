@@ -6,13 +6,13 @@ import '../domain/entities/destination_option.dart';
 import '../domain/entities/fogg_city.dart';
 import '../domain/entities/fogg_leg.dart';
 import '../domain/entities/fogg_status.dart';
-import '../domain/entities/transport_mode.dart';
 import '../domain/models/route_path.dart';
 import '../domain/models/travel_event.dart';
 import '../domain/models/weather_snapshot.dart';
 import 'event_engine.dart';
 import '../domain/models/fatigue.dart';
 import 'budget_service.dart';
+import 'default_cities.dart';
 import 'time_engine.dart';
 import 'transport_selector.dart';
 
@@ -40,7 +40,7 @@ class GameSession {
     TransportSelector? transportSelector,
     EventEngine? eventEngine,
     WeatherSnapshot? weatherSnapshot,
-  }) : _cities = cities ?? _defaultCities,
+  }) : _cities = cities ?? defaultCities,
        _transportSelector = transportSelector,
        _eventEngine = eventEngine,
        _weatherSnapshot = weatherSnapshot {
@@ -58,7 +58,7 @@ class GameSession {
   final WeatherSnapshot? _weatherSnapshot;
 
   late FoggStatus _status;
-  FoggCity _currentCity = _defaultCities[0];
+  FoggCity _currentCity = defaultCities[0];
   Fatigue _fatigue = const Fatigue();
   double _legStartFatigue = 100.0;
   FoggLeg? _currentLeg;
@@ -230,70 +230,7 @@ class GameSession {
         // fallback mock
       }
     }
-    final candidates = _cities
-        .where((c) => c != current && _isEast(current, c))
-        .toList()
-      ..sort((a, b) => _eastDistance(current, a).compareTo(_eastDistance(current, b)));
-    final top = candidates.take(3).toList();
-    return top
-        .map((city) => DestinationOption(
-              city: city,
-              vehicles: [
-                const VehicleOption(
-                  mode: TransportMode.ship,
-                  duration: Duration(hours: 18),
-                  price: 8200,
-                  sleeper: true,
-                  note: 'Sleeper',
-                  departureHour: 8,
-                  departureMinute: 0,
-                ),
-                const VehicleOption(
-                  mode: TransportMode.train,
-                  duration: Duration(hours: 14),
-                  price: 6400,
-                  sleeper: true,
-                  departureHour: 9,
-                  departureMinute: 30,
-                ),
-              ],
-            ))
-        .toList();
+    return mockDestinationOptions(current: current, cities: _cities);
   }
-
-  bool _isEast(FoggCity from, FoggCity to) {
-    double unfold(double lng, double base) {
-      var x = lng;
-      while (x <= base) {
-        x += 360;
-      }
-      return x;
-    }
-
-    return unfold(to.lng, from.lng) > from.lng;
-  }
-
-  double _eastDistance(FoggCity from, FoggCity to) {
-    double unfold(double lng, double base) {
-      var x = lng;
-      while (x <= base) {
-        x += 360;
-      }
-      return x;
-    }
-
-    return (unfold(to.lng, from.lng) - from.lng).abs();
-  }
-
-  static List<FoggCity> get _defaultCities => const [
-        FoggCity(name: 'Londres', lat: 51.5072, lng: -0.1276, order: 0, timezone: 'Europe/London'),
-        FoggCity(name: 'París', lat: 48.8566, lng: 2.3522, order: 1, timezone: 'Europe/Paris'),
-        FoggCity(name: 'Estambul', lat: 41.0082, lng: 28.9784, order: 2, timezone: 'Europe/Istanbul'),
-        FoggCity(name: 'Bombay', lat: 19.0760, lng: 72.8777, order: 3, timezone: 'Asia/Kolkata'),
-        FoggCity(name: 'Tokio', lat: 35.6762, lng: 139.6503, order: 4, timezone: 'Asia/Tokyo'),
-        FoggCity(name: 'San Francisco', lat: 37.7749, lng: -122.4194, order: 5, timezone: 'America/Los_Angeles'),
-        FoggCity(name: 'Nueva York', lat: 40.7128, lng: -74.0060, order: 6, timezone: 'America/New_York'),
-        FoggCity(name: 'Savile Row', lat: 51.5107, lng: -0.1410, order: 7, timezone: 'Europe/London'),
-      ];
 
 }

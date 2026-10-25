@@ -102,13 +102,7 @@ class GameSession {
 
     budget.spend(vehicle.price, '${from.name}->${to.name} ${vehicle.mode.label}');
 
-    final departure = timeEngine.nextScheduledDeparture(
-      timeEngine.now(),
-      originTimezone: from.timezone,
-      departureHour: vehicle.departureHour,
-      departureMinute: vehicle.departureMinute,
-      sleeper: vehicle.sleeper,
-    );
+    final departure = timeEngine.now();
     var arrival = departure.add(vehicle.duration);
 
     final engine = _eventEngine;

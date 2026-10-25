@@ -248,4 +248,30 @@ void main() {
     expect(session.completedLegs.first.to.name, 'Destino');
     expect(session.currentLeg, isNull);
   });
+
+  test('startLeg arranca de inmediato — el cuenta atrás no incluye descanso', () {
+    var now = DateTime.utc(2026, 1, 1, 12);
+    final te = TimeEngine(startUtc: now, timeScale: 1.0, clock: () => now);
+    final bs = BudgetService(initial: 100000);
+    const from = FoggCity(name: 'Londres', lat: 51.5, lng: -0.1, order: 0, timezone: 'Europe/London');
+    const to = FoggCity(name: 'París', lat: 48.8, lng: 2.3, order: 1, timezone: 'Europe/Paris');
+    final session = GameSession(timeEngine: te, budget: bs, cities: [from, to]);
+
+    session.startLeg(
+      from: from,
+      to: to,
+      vehicle: const VehicleOption(
+        mode: TransportMode.train,
+        duration: Duration(hours: 14),
+        price: 1000,
+        sleeper: true,
+      ),
+    );
+
+    final traveling = session.status as FoggTraveling;
+    expect(traveling.remainingAt(now), const Duration(hours: 14));
+
+    now = now.add(const Duration(hours: 1));
+    expect(traveling.remainingAt(now), const Duration(hours: 13));
+  });
 }

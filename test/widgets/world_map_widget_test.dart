@@ -112,8 +112,8 @@ void main() {
       final harness = _Harness();
       final container = harness.container();
       addTearDown(container.dispose);
-      // Mitad del trayecto: departure = start+5h (sleeper), arrival = start+15h.
-      harness.advance(const Duration(hours: 10));
+      // Mitad del trayecto: departure = start, arrival = start+10h.
+      harness.advance(const Duration(hours: 5));
 
       await tester.pumpWidget(
         UncontrolledProviderScope(
@@ -163,7 +163,7 @@ void main() {
       final harness = _Harness();
       final container = harness.container();
       addTearDown(container.dispose);
-      harness.advance(const Duration(hours: 10));
+      harness.advance(const Duration(hours: 5));
 
       await tester.pumpWidget(
         UncontrolledProviderScope(

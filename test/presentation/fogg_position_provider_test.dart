@@ -69,8 +69,8 @@ void main() {
     final harness = _Harness();
     final container = harness.container();
     addTearDown(container.dispose);
-    // Mitad del trayecto: departure = start+5h, arrival = start+15h.
-    harness.advance(const Duration(hours: 10));
+    // Mitad del trayecto: departure = start, arrival = start+10h.
+    harness.advance(const Duration(hours: 5));
 
     final pos = container.read(foggPositionProvider);
     expect(pos, isNotNull);

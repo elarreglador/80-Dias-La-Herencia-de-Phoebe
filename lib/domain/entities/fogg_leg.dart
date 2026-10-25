@@ -30,7 +30,8 @@ class FoggLeg {
   Duration get totalDuration => arrivalUtc.difference(departureUtc);
 
   Duration remainingAt(DateTime now) {
-    final d = arrivalUtc.difference(now);
+    final effectiveNow = now.isBefore(departureUtc) ? departureUtc : now;
+    final d = arrivalUtc.difference(effectiveNow);
     return d.isNegative ? Duration.zero : d;
   }
 

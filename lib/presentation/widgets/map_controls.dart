@@ -127,6 +127,10 @@ class CenterFoggButtonCompact extends StatelessWidget {
         context,
         'Centrando en Phoebe Fogg.',
       );
+      if (mapController.camera.zoom > 4.5) {
+        onAnimate(foggPosition!, mapController.camera.zoom);
+        return;
+      }
       onAnimate(foggPosition!, 4.5);
       return;
     }

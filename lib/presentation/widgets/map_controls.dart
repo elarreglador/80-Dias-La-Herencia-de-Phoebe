@@ -117,6 +117,7 @@ class CenterFoggButtonCompact extends StatelessWidget {
     );
   }
 
+  // Al pulsar btn centrar Phoebe / encuadrar tramo: encuadra el tramo si esta viajando, o centra en Phoebe.
   void _handlePressed(BuildContext context) {
     final leg = activeLeg;
     HapticFeedback.lightImpact();
@@ -124,10 +125,9 @@ class CenterFoggButtonCompact extends StatelessWidget {
     if (leg == null) {
       _snack(
         context,
-        'Centrando en Phoebe — ${foggPosition!.latitude.toStringAsFixed(2)}, '
-        '${foggPosition!.longitude.toStringAsFixed(2)} (la línea roja va hasta Tokio)',
+        'Centrando en Phoebe Fogg.',
       );
-      onAnimate(foggPosition!, mapController.camera.zoom);
+      onAnimate(foggPosition!, 4.5);
       return;
     }
 
@@ -140,7 +140,7 @@ class CenterFoggButtonCompact extends StatelessWidget {
       // No cabe a zoom >= 2 (tramo que cruza el antimeridiano) — fallback.
       _snack(
         context,
-        'Trayecto no cabe en pantalla — centrando en el origen (${leg.from.name})',
+        'Trayecto centrando en el origen (${leg.from.name})',
       );
       onAnimate(LatLng(leg.from.lat, leg.from.lng), mapController.camera.zoom);
       return;

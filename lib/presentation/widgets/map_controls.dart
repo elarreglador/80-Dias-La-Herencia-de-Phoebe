@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../domain/entities/fogg_leg.dart';
 import '../providers/fogg_position_provider.dart';
@@ -202,64 +201,6 @@ class CenterFoggButton extends StatelessWidget {
   }
 }
 
-/// Botón OSM sin Positioned — para agrupación vertical.
-class OpenInOsmButtonCompact extends StatelessWidget {
-  const OpenInOsmButtonCompact({super.key, required this.mapController});
-
-  final MapController mapController;
-
-  Future<void> _openOsm() async {
-    final center = mapController.camera.center;
-    final zoom = mapController.camera.zoom;
-    final lat = center.latitude.toStringAsFixed(5);
-    final lng = center.longitude.toStringAsFixed(5);
-    final z = zoom.toStringAsFixed(0);
-    final uri = Uri.parse('https://www.openstreetmap.org/#map=$z/$lat/$lng');
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return _ControlButton(
-      icon: Icons.open_in_new,
-      onPressed: _openOsm,
-    );
-  }
-}
-
-/// Wrapper legacy con Positioned — mantiene compatibilidad.
-class OpenInOsmButton extends StatelessWidget {
-  const OpenInOsmButton({super.key, required this.mapController});
-
-  final MapController mapController;
-
-  Future<void> _openOsm() async {
-    final center = mapController.camera.center;
-    final zoom = mapController.camera.zoom;
-    final lat = center.latitude.toStringAsFixed(5);
-    final lng = center.longitude.toStringAsFixed(5);
-    final z = zoom.toStringAsFixed(0);
-    final uri = Uri.parse('https://www.openstreetmap.org/#map=$z/$lat/$lng');
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Positioned(
-      right: 16,
-      bottom: 160,
-      child: _ControlButton(
-        icon: Icons.open_in_new,
-        onPressed: _openOsm,
-      ),
-    );
-  }
-}
-
 /// Agrupación vertical — 4 botones con 12 dp, sin solape y con SafeArea externa.
 /// Orden bottom→top visual dentro de Column: OSM arriba, Zoom medio, Center abajo.
 /// El [SafeArea] se aplica en WorldMapWidget (right+bottom) para respetar ◻○△.
@@ -284,8 +225,6 @@ class MapControlsOverlay extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        OpenInOsmButtonCompact(mapController: mapController),
-        const SizedBox(height: 12),
         ZoomControlsColumn(
           mapController: mapController,
           onZoomChanged: onZoomChanged,

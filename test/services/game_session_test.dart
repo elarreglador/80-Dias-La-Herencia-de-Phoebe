@@ -8,7 +8,7 @@ import 'package:pf/domain/models/price_breakdown.dart';
 import 'package:pf/domain/models/route_entry.dart';
 import 'package:pf/services/budget_service.dart';
 import 'package:pf/services/game_session.dart';
-import 'package:pf/services/rail_pricing.dart';
+import 'package:pf/services/geo_pricing.dart';
 import 'package:pf/services/time_engine.dart';
 
 void main() {
@@ -285,7 +285,7 @@ void main() {
     const to = FoggCity(name: 'Destino', lat: 4, lng: 10, order: 1, timezone: 'Asia/Tokyo');
     final session = GameSession(timeEngine: te, budget: bs, cities: [from, to]);
 
-    const breakdown = PriceBreakdown(
+    const breakdown = RailPriceBreakdown(
       basePricePerKm: 0.18,
       zone: GeoZone.asiaDeveloped,
       countryMultiplier: 1.2,
@@ -312,5 +312,39 @@ void main() {
     // Modos sin fórmula: el desglose queda null.
     expect(const VehicleOption(mode: TransportMode.car, duration: Duration(), price: 1)
         .priceBreakdown, isNull);
+  });
+
+  test('startLeg propaga priceBreakdown también para coche', () {
+    final now = DateTime.utc(2026, 1, 1, 12);
+    final te = TimeEngine(startUtc: now, timeScale: 1.0, clock: () => now);
+    final bs = BudgetService(initial: 100000);
+    const from = FoggCity(name: 'Origen', lat: 0, lng: 0, order: 0, timezone: 'Europe/Madrid');
+    const to = FoggCity(name: 'Destino', lat: 4, lng: 10, order: 1, timezone: 'Asia/Tokyo');
+    final session = GameSession(timeEngine: te, budget: bs, cities: [from, to]);
+
+    const breakdown = CarPriceBreakdown(
+      fuelBasePricePerKm: 0.10,
+      rentalBasePrice: 55,
+      zone: GeoZone.asiaDeveloped,
+      countryMultiplier: 1.2,
+      distanceKm: 1000,
+    );
+
+    session.startLeg(
+      from: from,
+      to: to,
+      vehicle: const VehicleOption(
+        mode: TransportMode.car,
+        duration: Duration(hours: 16),
+        price: 186,
+        sleeper: false,
+        priceBreakdown: breakdown,
+      ),
+    );
+
+    final leg = session.currentLeg!;
+    expect(leg.priceBreakdown, isA<CarPriceBreakdown>());
+    expect(leg.priceBreakdown!.zone, GeoZone.asiaDeveloped);
+    expect(leg.priceBreakdown!.total, closeTo(186.0, 1e-9));
   });
 }

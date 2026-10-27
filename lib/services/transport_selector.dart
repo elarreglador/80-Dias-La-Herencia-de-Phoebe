@@ -4,6 +4,8 @@ import '../domain/entities/transport_mode.dart';
 import '../domain/models/price_breakdown.dart';
 import '../domain/models/route_entry.dart';
 import 'city_catalog.dart';
+import 'car_pricing.dart';
+import 'geo_pricing.dart';
 import 'rail_pricing.dart';
 import 'route_catalog.dart';
 import 'weather_service.dart';
@@ -114,22 +116,33 @@ class TransportSelector {
       final baseDuration = route.durationHours != null
           ? Duration(microseconds: (route.durationHours! * 3600000000).round())
           : Duration(microseconds: ((route.distanceKm / tariff.speedKmh) * 3600000000).round());
-      // El tren usa la fórmula real; barco y coche mantienen la tarifa mock.
-      var pricePerKm = tariff.pricePerKm;
+      // El tren y el coche usan su fórmula real; el barco mantiene la tarifa mock.
       PriceBreakdown? priceBreakdown;
       if (mode == TransportMode.train) {
         // Zona y economía del país de llegada (destino).
-        final zone = RailPricing.zoneForTimezone(city.timezone);
-        final countryMult = RailPricing.countryMultiplierForTimezone(city.timezone);
-        pricePerKm = RailPricing.pricePerKm(zone: zone, countryMultiplier: countryMult);
-        priceBreakdown = PriceBreakdown(
+        final zone = GeoPricing.zoneForTimezone(city.timezone);
+        final countryMult = GeoPricing.countryMultiplierForTimezone(city.timezone);
+        priceBreakdown = RailPriceBreakdown(
           basePricePerKm: RailPricing.basePricePerKm[zone]!,
           zone: zone,
           countryMultiplier: countryMult,
           distanceKm: route.distanceKm,
         );
+      } else if (mode == TransportMode.car) {
+        final zone = GeoPricing.zoneForTimezone(city.timezone);
+        final countryMult = GeoPricing.countryMultiplierForTimezone(city.timezone);
+        priceBreakdown = CarPriceBreakdown(
+          fuelBasePricePerKm: CarPricing.fuelBasePricePerKm[zone]!,
+          rentalBasePrice: CarPricing.rentalBasePrice[zone]!,
+          zone: zone,
+          countryMultiplier: countryMult,
+          distanceKm: route.distanceKm,
+        );
       }
-      final price = (route.distanceKm * pricePerKm).round();
+      // Tren y coche fijan el precio desde `total`; el barco, desde la tarifa mock.
+      final price = priceBreakdown != null
+          ? priceBreakdown.total.round()
+          : (route.distanceKm * tariff.pricePerKm).round();
       final dep = _departure(mode);
       var duration = baseDuration;
       WeatherImpact? impact;

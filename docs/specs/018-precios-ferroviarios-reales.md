@@ -6,6 +6,8 @@
 
 > **Fecha:** 2026-10-27
 
+> **Nota (SPEC 019):** `GeoZone`, `zoneForTimezone` y `countryMultiplierForTimezone` pasan de `RailPricing` (`rail_pricing.dart`) a `GeoPricing` (`geo_pricing.dart`) con la SPEC 019 (`docs/specs/019-precios-coche-alquiler-combustible.md`), sin cambio de comportamiento. Esta spec sigue siendo la fuente de las reglas de derivación por huso; el propietario del código documentado en §3.1 y §3.2 cambió.
+
 > **Objetivo:** Sustituir el billete plano mock del tren (0.8 €/km) por el cálculo `precio base del km (por zona geográfica) × distancia de la ruta × multiplicador económico del país`, de modo que el billete mostrado sea el que se descuenta del presupuesto.
 
 ---

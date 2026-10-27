@@ -6,6 +6,7 @@ import '../domain/entities/destination_option.dart';
 import '../domain/entities/fogg_city.dart';
 import '../domain/entities/fogg_leg.dart';
 import '../domain/entities/fogg_status.dart';
+import '../domain/entities/transport_mode.dart';
 import '../domain/models/route_path.dart';
 import '../domain/models/travel_event.dart';
 import '../domain/models/weather_snapshot.dart';
@@ -225,7 +226,7 @@ class GameSession {
     final selector = _transportSelector;
     if (selector != null) {
       try {
-        final selected = selector.optionsFor(current);
+        final selected = selector.optionsFor(current, hasCar: _hasCar);
         if (selected.isNotEmpty) return selected;
       } catch (_) {
         // fallback mock
@@ -234,4 +235,10 @@ class GameSession {
     return mockDestinationOptions(current: current, cities: _cities);
   }
 
+  /// Phoebe conserva el coche solo si el último tramo completado fue en
+  /// coche. Si cambia de modo, el vehículo se queda (o se devuelve) y en el
+  /// siguiente destino vuelve a pagar alquiler (SPEC 019 addenda §11).
+  bool get _hasCar =>
+      _completedLegs.isNotEmpty &&
+      _completedLegs.last.transport == TransportMode.car;
 }

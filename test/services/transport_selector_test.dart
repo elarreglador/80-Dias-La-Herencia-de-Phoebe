@@ -152,6 +152,26 @@ void main() {
     expect(carSeen, isTrue, reason: 'algún destino debe ofrecer coche');
   });
 
+  test('con hasCar el alquiler se anula y solo se cobra el combustible', () async {
+    final selector = await buildSelector();
+    final opts = selector.optionsFor(current, hasCar: true);
+    expect(opts, isNotEmpty);
+    var carSeen = false;
+    for (final o in opts) {
+      for (final v in o.vehicles) {
+        if (v.mode != TransportMode.car) continue;
+        carSeen = true;
+        final b = v.priceBreakdown! as CarPriceBreakdown;
+        expect(b.rentalWaived, isTrue);
+        expect(b.rental, 0.0);
+        expect(b.fuel, greaterThan(0));
+        expect(b.total, closeTo(b.fuel, 1e-9));
+        expect(v.price, b.fuel.round());
+      }
+    }
+    expect(carSeen, isTrue, reason: 'algún destino debe ofrecer coche');
+  });
+
   test('el alquiler del coche es fijo: no escala con la distancia', () async {
     final selector = await buildSelector();
     final opts = selector.optionsFor(current);

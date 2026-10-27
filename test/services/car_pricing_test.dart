@@ -64,6 +64,23 @@ void main() {
       expect(corto.total, lessThan(largo.total));
     });
 
+    test('con rentalWaived no se cobra alquiler y el total es el combustible', () {
+      const b = CarPriceBreakdown(
+        fuelBasePricePerKm: 0.12,
+        rentalBasePrice: 50,
+        zone: GeoZone.europeDeveloped,
+        countryMultiplier: 1.2,
+        distanceKm: 300,
+        rentalWaived: true,
+      );
+      expect(b.rental, 0.0);
+      expect(b.fuel, closeTo(0.12 * 1.2 * 300, 1e-12));
+      expect(b.total, closeTo(b.fuel, 1e-12));
+      // La tarifa base de la zona sigue documentada aunque no se aplique.
+      expect(b.rentalBasePrice, 50);
+      expect(b.rentalWaived, isTrue);
+    });
+
     test('zona y multiplicador proceden de GeoPricing', () {
       final zone = GeoPricing.zoneForTimezone('Europe/Madrid');
       final mult = GeoPricing.countryMultiplierForTimezone('Europe/Madrid');

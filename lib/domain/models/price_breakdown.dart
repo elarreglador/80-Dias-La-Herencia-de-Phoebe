@@ -45,6 +45,10 @@ class RailPriceBreakdown extends PriceBreakdown {
 ///
 /// Ambos componentes se escalan por el multiplicador económico del país de
 /// llegada; el alquiler no depende de la distancia (SPEC 019, §6).
+///
+/// Si Phoebe llega a una ciudad en coche y sale de ella en coche, continúa
+/// con el mismo vehículo: no alquila uno nuevo y el alquiler se anula
+/// (`rentalWaived`, SPEC 019 addenda §11). Solo paga entonces el combustible.
 class CarPriceBreakdown extends PriceBreakdown {
   const CarPriceBreakdown({
     required this.fuelBasePricePerKm,
@@ -52,6 +56,7 @@ class CarPriceBreakdown extends PriceBreakdown {
     required super.zone,
     required super.countryMultiplier,
     required super.distanceKm,
+    this.rentalWaived = false,
   });
 
   /// €/km de combustible de la zona (sin multiplicador).
@@ -60,8 +65,11 @@ class CarPriceBreakdown extends PriceBreakdown {
   /// € fijos de alquiler de la zona (sin multiplicador).
   final double rentalBasePrice;
 
+  /// `true` si Phoebe conserva el coche del tramo anterior → sin alquiler.
+  final bool rentalWaived;
+
   double get fuel => fuelBasePricePerKm * countryMultiplier * distanceKm;
-  double get rental => rentalBasePrice * countryMultiplier;
+  double get rental => rentalWaived ? 0.0 : rentalBasePrice * countryMultiplier;
 
   @override
   double get total => rental + fuel;

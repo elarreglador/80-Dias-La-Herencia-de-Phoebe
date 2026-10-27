@@ -366,4 +366,24 @@ Cada uno de ellos, si aterriza, irá en su propia especificación.
 
 ---
 
+## Addenda
+
+### §1 — El botón encuadra el trayecto en curso (2026-10-27, decisión del Señor)
+
+Mientras hay un `FoggTraveling`, pulsar «Centrar en Phoebe» ajusta **centro y
+zoom** para mostrar en pantalla el **origen y el destino del tramo activo**
+(`active_leg_fit.dart`: `activeLegBounds` con longitudes crudas + `fitActiveLeg`
+con `CameraFit.bounds`, padding `fromLTRB(48, 48, 96, 96)` para despejar los
+controles, sin tope propio de zoom — rige el 18 del mapa).
+
+- **Fallback antimeridiano:** si el tramo cruza el antimeridiano y el zoom
+  necesario bajaría de 2 (viewport estrecho; en pantallas ≥ ~720 px sí cabe),
+  el botón **centra en el origen del tramo** y lo avisa por SnackBar.
+- **Sin trayecto** (`FoggArrived`) el comportamiento es el clásico: centro en
+  Phoebe con el zoom actual.
+- Tooltip y SnackBar dinámicos («Encuadrar trayecto» / «Centrar en Phoebe»).
+- Tests: `test/widgets/active_leg_fit_test.dart`, `test/widgets/center_fogg_button_test.dart`.
+
+---
+
 **Número:** 016. **Slug:** ruta-viva-movimiento-phoebe.

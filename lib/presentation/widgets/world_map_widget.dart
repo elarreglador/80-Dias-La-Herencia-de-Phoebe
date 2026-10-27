@@ -4,6 +4,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../../domain/entities/fogg_status.dart';
 import '../../utils/app_colors.dart';
 import '../providers/fogg_position_provider.dart';
 import '../providers/game_notifier.dart';
@@ -171,6 +172,7 @@ class _WorldMapWidgetState extends ConsumerState<WorldMapWidget>
     });
 
     final status = ref.watch(gameNotifierProvider);
+    final activeLeg = status is FoggTraveling ? status.leg : null;
     final now = ref.watch(timeEngineProvider).now();
     final providerPos = ref.watch(foggPositionProvider);
     final effectiveFoggPos = widget.foggPosition ?? providerPos;
@@ -324,6 +326,7 @@ class _WorldMapWidgetState extends ConsumerState<WorldMapWidget>
               foggPosition: effectiveFoggPos,
               onAnimate: _animateTo,
               onZoomChanged: _onZoomChanged,
+              activeLeg: activeLeg,
             ),
           ),
         ),

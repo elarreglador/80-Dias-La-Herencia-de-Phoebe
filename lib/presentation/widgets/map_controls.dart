@@ -5,7 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../domain/entities/fogg_leg.dart';
 import '../providers/fogg_position_provider.dart';
+import 'active_leg_fit.dart';
 
 /// Columna + / − sin Positioned — usada dentro de MapControlsOverlay.
 /// Mantiene clamp 2..18 con haptics y separación 12 dp.
@@ -82,44 +84,89 @@ class ZoomControls extends ConsumerWidget {
 }
 
 /// Botón centrar Phoebe sin Positioned — para agrupación vertical.
+///
+/// Con un trayecto en curso ([activeLeg] no nulo) encuadra el origen y el
+/// destino del tramo; si no caben en pantalla (cruza el antimeridiano en un
+/// viewport estrecho) cae al origen del tramo. Sin trayecto, centra en
+/// Phoebe manteniendo el zoom actual.
 class CenterFoggButtonCompact extends StatelessWidget {
   const CenterFoggButtonCompact({
     super.key,
     required this.mapController,
     required this.foggPosition,
     required this.onAnimate,
+    this.activeLeg,
   });
 
   final MapController mapController;
   final LatLng? foggPosition;
   final void Function(LatLng target, double zoom) onAnimate;
 
+  /// Tramo en curso — `null` si no hay trayecto en marcha.
+  final FoggLeg? activeLeg;
+
+  /// Padding del encuadre: los controles ocupan derecha + abajo.
+  static const _fitPadding = EdgeInsets.fromLTRB(48, 48, 96, 96);
+
+  void _snack(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  void _handlePressed(BuildContext context) {
+    final leg = activeLeg;
+    HapticFeedback.lightImpact();
+
+    if (leg == null) {
+      _snack(
+        context,
+        'Centrando en Phoebe — ${foggPosition!.latitude.toStringAsFixed(2)}, '
+        '${foggPosition!.longitude.toStringAsFixed(2)} (la línea roja va hasta Tokio)',
+      );
+      onAnimate(foggPosition!, mapController.camera.zoom);
+      return;
+    }
+
+    final fitted = fitActiveLeg(
+      mapController.camera,
+      leg,
+      padding: _fitPadding,
+    );
+    if (fitted == null) {
+      // No cabe a zoom >= 2 (tramo que cruza el antimeridiano) — fallback.
+      _snack(
+        context,
+        'Trayecto no cabe en pantalla — centrando en el origen (${leg.from.name})',
+      );
+      onAnimate(LatLng(leg.from.lat, leg.from.lng), mapController.camera.zoom);
+      return;
+    }
+
+    _snack(context, 'Encuadrando trayecto: ${leg.from.name} → ${leg.to.name}');
+    onAnimate(fitted.center, fitted.zoom);
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDisabled = foggPosition == null;
+    final message = isDisabled
+        ? 'Posición no disponible'
+        : activeLeg != null
+            ? 'Encuadrar trayecto'
+            : 'Centrar en Phoebe';
     return Tooltip(
-      message: isDisabled ? 'Posición no disponible' : 'Centrar en Phoebe',
+      message: message,
       child: _ControlButton(
         icon: Icons.my_location,
         backgroundColor: const Color(0xFFC0392B),
         foregroundColor: Colors.white,
         iconSize: 24,
-        onPressed: isDisabled
-            ? null
-            : () {
-                final currentZoom = mapController.camera.zoom;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Centrando en Phoebe — ${foggPosition!.latitude.toStringAsFixed(2)}, ${foggPosition!.longitude.toStringAsFixed(2)} (la línea roja va hasta Tokio)',
-                    ),
-                    duration: const Duration(seconds: 2),
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
-                HapticFeedback.lightImpact();
-                onAnimate(foggPosition!, currentZoom);
-              },
+        onPressed: isDisabled ? null : () => _handlePressed(context),
       ),
     );
   }
@@ -132,11 +179,13 @@ class CenterFoggButton extends StatelessWidget {
     required this.mapController,
     required this.foggPosition,
     required this.onAnimate,
+    this.activeLeg,
   });
 
   final MapController mapController;
   final LatLng? foggPosition;
   final void Function(LatLng target, double zoom) onAnimate;
+  final FoggLeg? activeLeg;
 
   @override
   Widget build(BuildContext context) {
@@ -147,6 +196,7 @@ class CenterFoggButton extends StatelessWidget {
         mapController: mapController,
         foggPosition: foggPosition,
         onAnimate: onAnimate,
+        activeLeg: activeLeg,
       ),
     );
   }
@@ -220,12 +270,14 @@ class MapControlsOverlay extends StatelessWidget {
     required this.foggPosition,
     required this.onAnimate,
     required this.onZoomChanged,
+    this.activeLeg,
   });
 
   final MapController mapController;
   final LatLng? foggPosition;
   final void Function(LatLng target, double zoom) onAnimate;
   final ValueChanged<double> onZoomChanged;
+  final FoggLeg? activeLeg;
 
   @override
   Widget build(BuildContext context) {
@@ -243,6 +295,7 @@ class MapControlsOverlay extends StatelessWidget {
           mapController: mapController,
           foggPosition: foggPosition,
           onAnimate: onAnimate,
+          activeLeg: activeLeg,
         ),
       ],
     );

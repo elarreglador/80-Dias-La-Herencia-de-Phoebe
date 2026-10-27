@@ -1,8 +1,10 @@
 import '../domain/entities/destination_option.dart';
 import '../domain/entities/fogg_city.dart';
 import '../domain/entities/transport_mode.dart';
+import '../domain/models/price_breakdown.dart';
 import '../domain/models/route_entry.dart';
 import 'city_catalog.dart';
+import 'rail_pricing.dart';
 import 'route_catalog.dart';
 import 'weather_service.dart';
 import '../domain/models/weather_impact.dart';
@@ -112,7 +114,22 @@ class TransportSelector {
       final baseDuration = route.durationHours != null
           ? Duration(microseconds: (route.durationHours! * 3600000000).round())
           : Duration(microseconds: ((route.distanceKm / tariff.speedKmh) * 3600000000).round());
-      final price = (route.distanceKm * tariff.pricePerKm).round();
+      // El tren usa la fórmula real; barco y coche mantienen la tarifa mock.
+      var pricePerKm = tariff.pricePerKm;
+      PriceBreakdown? priceBreakdown;
+      if (mode == TransportMode.train) {
+        // Zona y economía del país de llegada (destino).
+        final zone = RailPricing.zoneForTimezone(city.timezone);
+        final countryMult = RailPricing.countryMultiplierForTimezone(city.timezone);
+        pricePerKm = RailPricing.pricePerKm(zone: zone, countryMultiplier: countryMult);
+        priceBreakdown = PriceBreakdown(
+          basePricePerKm: RailPricing.basePricePerKm[zone]!,
+          zone: zone,
+          countryMultiplier: countryMult,
+          distanceKm: route.distanceKm,
+        );
+      }
+      final price = (route.distanceKm * pricePerKm).round();
       final dep = _departure(mode);
       var duration = baseDuration;
       WeatherImpact? impact;
@@ -139,6 +156,7 @@ class TransportSelector {
         departureMinute: dep.$2,
         weatherImpact: impact,
         route: route,
+        priceBreakdown: priceBreakdown,
       ));
     }
 

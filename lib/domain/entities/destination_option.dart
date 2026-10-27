@@ -1,5 +1,6 @@
 import 'fogg_city.dart';
 import 'transport_mode.dart';
+import '../models/price_breakdown.dart';
 import '../models/route_entry.dart';
 import '../models/weather_impact.dart';
 
@@ -15,6 +16,7 @@ class VehicleOption {
     this.departureMinute,
     this.weatherImpact,
     this.route,
+    this.priceBreakdown,
   });
 
   final TransportMode mode;
@@ -29,6 +31,9 @@ class VehicleOption {
   /// Ruta real del catálogo para este modo — conserva la geometría elegida.
   /// `null` en los vehículos sin ruta real (mocks).
   final RouteEntry? route;
+
+  /// Desglose del cálculo del precio — solo se rellena en `TransportMode.train`.
+  final PriceBreakdown? priceBreakdown;
 
   String get durationLabel {
     final h = duration.inHours;

@@ -144,6 +144,7 @@ class GameSession {
       price: vehicle.price,
       sleeper: vehicle.sleeper,
       path: _buildPath(from, to, vehicle),
+      priceBreakdown: vehicle.priceBreakdown,
     );
 
     _currentCity = from;

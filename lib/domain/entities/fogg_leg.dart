@@ -1,3 +1,4 @@
+import '../models/price_breakdown.dart';
 import '../models/route_path.dart';
 import 'fogg_city.dart';
 import 'transport_mode.dart';
@@ -13,6 +14,7 @@ class FoggLeg {
     required this.price,
     this.sleeper = false,
     this.path,
+    this.priceBreakdown,
   });
 
   final FoggCity from;
@@ -26,6 +28,9 @@ class FoggLeg {
   /// Geometría del tramo — la línea que recorre Phoebe.
   /// `null` en los tramos mock sin ruta real.
   final RoutePath? path;
+
+  /// Desglose del billete — `null` en modos sin fórmula (barco, coche, mocks).
+  final PriceBreakdown? priceBreakdown;
 
   Duration get totalDuration => arrivalUtc.difference(departureUtc);
 

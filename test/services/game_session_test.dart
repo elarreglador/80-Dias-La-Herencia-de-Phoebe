@@ -9,7 +9,39 @@ import 'package:pf/domain/models/route_entry.dart';
 import 'package:pf/services/budget_service.dart';
 import 'package:pf/services/game_session.dart';
 import 'package:pf/services/geo_pricing.dart';
+import 'package:pf/services/route_catalog.dart';
 import 'package:pf/services/time_engine.dart';
+import 'package:pf/services/transport_selector.dart';
+
+/// Selector que registra el `hasCar` recibido y devuelve siempre un único
+/// destino con coche y tren, para aislar el contrato de `GameSession`.
+class _RecordingSelector extends TransportSelector {
+  _RecordingSelector() : super(catalog: RouteCatalog(const {}));
+
+  final List<bool> hasCarCalls = [];
+
+  @override
+  List<DestinationOption> optionsFor(FoggCity current,
+      {int limit = 3, bool hasCar = false}) {
+    hasCarCalls.add(hasCar);
+    return const [
+      DestinationOption(
+        city: FoggCity(
+            name: 'Destino', lat: 4, lng: 10, order: 1, timezone: 'Europe/Paris'),
+        vehicles: [
+          VehicleOption(
+              mode: TransportMode.car,
+              duration: Duration(hours: 5),
+              price: 100),
+          VehicleOption(
+              mode: TransportMode.train,
+              duration: Duration(hours: 6),
+              price: 120),
+        ],
+      ),
+    ];
+  }
+}
 
 void main() {
   test('GameSession arranca en Londres a la espera del primer trayecto', () {
@@ -346,5 +378,68 @@ void main() {
     expect(leg.priceBreakdown, isA<CarPriceBreakdown>());
     expect(leg.priceBreakdown!.zone, GeoZone.asiaDeveloped);
     expect(leg.priceBreakdown!.total, closeTo(186.0, 1e-9));
+  });
+
+  group('coche conservado: exención de alquiler (SPEC 019 addenda §11)', () {
+    const from = FoggCity(
+        name: 'Londres', lat: 51.5, lng: -0.1, order: 0, timezone: 'Europe/London');
+    const to = FoggCity(
+        name: 'París', lat: 48.8, lng: 2.3, order: 1, timezone: 'Europe/Paris');
+
+    GameSession buildSession(_RecordingSelector selector) {
+      final te = TimeEngine(
+        startUtc: DateTime.utc(2026, 1, 1, 12),
+        timeScale: 1.0,
+        clock: () => DateTime.utc(2026, 1, 1, 12),
+      );
+      return GameSession(
+        timeEngine: te,
+        budget: BudgetService(initial: 100000),
+        cities: const [from, to],
+        transportSelector: selector,
+      );
+    }
+
+    test('al llegar en coche las siguientes opciones no exigen alquiler', () {
+      final selector = _RecordingSelector();
+      final session = buildSession(selector);
+
+      // Opciones del punto de partida: aún no hay tramo previo.
+      expect(selector.hasCarCalls, [false]);
+
+      session.startLeg(
+        from: from,
+        to: to,
+        vehicle: const VehicleOption(
+            mode: TransportMode.car, duration: Duration(hours: 5), price: 100),
+      );
+      session.simulateArrival();
+
+      expect(selector.hasCarCalls.last, isTrue,
+          reason: 'llegó en coche → continúa con el mismo y no paga alquiler');
+    });
+
+    test('al llegar en tren el siguiente alquiler de coche se vuelve a cobrar', () {
+      final selector = _RecordingSelector();
+      final session = buildSession(selector);
+
+      session.startLeg(
+        from: from,
+        to: to,
+        vehicle: const VehicleOption(
+            mode: TransportMode.train, duration: Duration(hours: 6), price: 120),
+      );
+      session.simulateArrival();
+
+      expect(selector.hasCarCalls.last, isFalse,
+          reason: 'cambió de modo → el coche se queda y hay que alquilar otro');
+    });
+
+    test('las opciones iniciales se construyen sin coche previo', () {
+      final selector = _RecordingSelector();
+      buildSession(selector);
+
+      expect(selector.hasCarCalls, [false]);
+    });
   });
 }

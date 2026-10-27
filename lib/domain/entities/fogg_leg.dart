@@ -29,7 +29,7 @@ class FoggLeg {
   /// `null` en los tramos mock sin ruta real.
   final RoutePath? path;
 
-  /// Desglose del billete — `null` en modos sin fórmula (barco, coche, mocks).
+  /// Desglose del billete — `null` en modos sin fórmula (barco, mocks).
   final PriceBreakdown? priceBreakdown;
 
   Duration get totalDuration => arrivalUtc.difference(departureUtc);

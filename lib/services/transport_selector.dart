@@ -46,7 +46,12 @@ class TransportSelector {
   final WeatherService? weatherService;
   final DateTime? now;
 
-  List<DestinationOption> optionsFor(FoggCity current, {int limit = 3}) {
+  /// Destinos hacia el Este con sus vehículos.
+  ///
+  /// `hasCar` indica que Phoebe conserva el coche con el que llegó a
+  /// [current]: el alquiler de este tramo se anula y solo se cobra el
+  /// combustible (SPEC 019 addenda §11).
+  List<DestinationOption> optionsFor(FoggCity current, {int limit = 3, bool hasCar = false}) {
     final routes = catalog.routesFrom(current.name);
     // Agrupa por destino.
     final byDestination = <String, List<RouteEntry>>{};
@@ -73,7 +78,7 @@ class TransportSelector {
         _unfold(a.city.lng, current.lng).compareTo(_unfold(b.city.lng, current.lng)));
 
     final top = candidates.take(limit).toList();
-    return top.map((c) => _buildOption(current, c)).toList();
+    return top.map((c) => _buildOption(current, c, hasCar: hasCar)).toList();
   }
 
   /// Ciudad destino derivada del último vértice de la geometría.
@@ -95,7 +100,7 @@ class TransportSelector {
     return null;
   }
 
-  DestinationOption _buildOption(FoggCity current, _Candidate c) {
+  DestinationOption _buildOption(FoggCity current, _Candidate c, {bool hasCar = false}) {
     final city = c.city;
     // Dedup por modo: menor distanceKm.
     final bestByMode = <TransportMode, RouteEntry>{};
@@ -137,6 +142,7 @@ class TransportSelector {
           zone: zone,
           countryMultiplier: countryMult,
           distanceKm: route.distanceKm,
+          rentalWaived: hasCar,
         );
       }
       // Tren y coche fijan el precio desde `total`; el barco, desde la tarifa mock.

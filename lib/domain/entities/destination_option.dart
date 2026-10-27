@@ -32,7 +32,8 @@ class VehicleOption {
   /// `null` en los vehículos sin ruta real (mocks).
   final RouteEntry? route;
 
-  /// Desglose del cálculo del precio — solo se rellena en `TransportMode.train`.
+  /// Desglose del cálculo del precio — se rellena en tren y coche;
+  /// `null` en el barco (tarifa mock) y en los vehículos mock.
   final PriceBreakdown? priceBreakdown;
 
   String get durationLabel {

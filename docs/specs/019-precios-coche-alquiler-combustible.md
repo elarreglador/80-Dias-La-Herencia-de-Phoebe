@@ -41,7 +41,7 @@ La dificultad del terreno no se modela como factor separado: si hay montañas, l
 - Alquiler escalado por días de uso (decisión explícita de mantenerlo fijo; ver §6).
 - Tarifas dinámicas por fecha/anticipación, tipo de vehículo, seguros.
 - Conversión multi-moneda (todo en €).
-- UI de desglose (solo datos).
+- UI de desglose (solo datos) — salvo el coche, incorporado en la addenda §11.
 
 ---
 
@@ -305,7 +305,7 @@ final price = priceBreakdown != null
 - Alquiler escalado por días de uso.
 - Tarifas dinámicas por fecha/anticipación, tipo de vehículo, seguros.
 - Conversión multi-moneda.
-- UI de desglose.
+- UI de desglose — salvo la del coche en la tarjeta (addenda §11).
 
 ---
 
@@ -327,3 +327,40 @@ final price = priceBreakdown != null
 ## 10. Nota para la SPEC 018
 
 En `docs/specs/018-precios-ferroviarios-reales.md` se añade una nota en la cabecera indicando que `GeoZone`, `zoneForTimezone` y `countryMultiplierForTimezone` pasan de `RailPricing` (`rail_pricing.dart`) a `GeoPricing` (`geo_pricing.dart`) con esta SPEC 019, sin cambio de comportamiento. La 018 sigue siendo la fuente de las reglas de derivación por huso.
+
+---
+
+## 11. Addenda (2026-10-27): desglose en la tarjeta y coche conservado
+
+Dos complementos incorporados después de marcar la spec como implementada, sobre el **mismo** modelo de precios (§3.2): no cambian ninguna fórmula, solo exponen y condicionan el componente de alquiler.
+
+### 11.1 Desglose visible en la tarjeta de destino
+
+`DestinationCard._vehicleLabel` (`lib/presentation/widgets/destination_card.dart`) compone el título del vehículo en la fila expandida:
+
+```
+Coche (alquiler 31€ + combustible 80€)   ← CarPriceBreakdown con alquiler
+Coche (combustible 80€)                   ← rentalWaived (§11.2)
+Tren / Barco                              ← sin desglose, etiqueta simple
+```
+
+- **Los dos componentes son los mismos que calculan el total**: se leen de `CarPriceBreakdown.rental` y `CarPriceBreakdown.fuel`, que son los que suman `total` → `price = total.round()` → `budget.spend(price)`.
+- **Redondeo**: en pantalla el alquiler se redondea a euros y el combustible se muestra como `price − alquiler`, de modo que las partes **suman exactamente** el precio de la línea inferior (evita el caso 31 + 80 ≠ 112 cuando `total` redondea hacia arriba). El cobro sigue redondeando una sola vez sobre `total` (§6).
+- **Moneda `€`**: coherente con el resto de la interfaz (`fogg_status_page` y la propia tarjeta). Descartado el «E» del boceto original.
+- Solo cambia la línea del modo; el precio/duración/sleeper y los iconos colapsados no se tocan. La vista «viajando» (`vía Coche · 111€`) queda fuera de alcance.
+
+### 11.2 Coche conservado → sin alquiler
+
+- **`CarPriceBreakdown.rentalWaived`** (bool, `false` por defecto): si es `true`, `rental = 0` y `total = fuel`. El `rentalBasePrice` de la zona sigue siendo el real (la tarifa documentada, aunque no se aplique).
+- **`TransportSelector.optionsFor(current, {limit, hasCar})`** propaga `hasCar` a la rama del coche (`rentalWaived: hasCar`). Tren y barco no lo usan. Por omisión `false`, así que ningún consumidor actual cambia de comportamiento sin pedirlo.
+- **`GameSession._hasCar`** = `_completedLegs.last.transport == TransportMode.car`. Se calcula en los tres puntos de construcción de opciones (constructor, `tick()` y `simulateArrival()`), siempre *después* de registrar el tramo, por lo que refleja el vehículo con el que **llegó** a la ciudad.
+- **Regla (decisión del Señor, 2026-10-27):** si llega en coche y sale en coche, continúa con el mismo → alquiler 0. Si cambia de modo (tren o barco), el coche se queda o se devuelve y **en el siguiente destino vuelve a pagar alquiler**: un solo booleano, sin estado persistente de flota.
+
+### 11.3 Tests de la addenda
+
+| Fichero | Cubre |
+|---|---|
+| `test/services/car_pricing_test.dart` | `rentalWaived` → `rental = 0`, `total = fuel`, tarifa base intacta |
+| `test/services/transport_selector_test.dart` | `optionsFor(current, hasCar: true)` → alquiler 0 y `price = fuel.round()` |
+| `test/services/game_session_test.dart` | doble `_RecordingSelector`: llegada en coche → `hasCar = true`; llegada en tren → `false`; opciones iniciales → `false` |
+| `test/widgets/destination_card_test.dart` | las tres etiquetas y la suma de las partes al total mostrado |

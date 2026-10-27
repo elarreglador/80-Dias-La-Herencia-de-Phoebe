@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../domain/entities/destination_option.dart';
+import '../../domain/entities/transport_mode.dart';
+import '../../domain/models/price_breakdown.dart';
 import '../../utils/app_colors.dart';
 import 'transport_icon.dart';
 
@@ -37,6 +39,27 @@ class DestinationCard extends StatelessWidget {
   final VoidCallback? onPinTap;
 
   static const _expandDuration = Duration(milliseconds: 250);
+
+  /// Título del vehículo en la fila expandida.
+  ///
+  /// Para el coche añade el desglose del precio (SPEC 019 addenda §11):
+  /// «Coche (alquiler 31€ + combustible 80€)» o, cuando Phoebe conserva el
+  /// coche del tramo anterior y no paga alquiler, «Coche (combustible 80€)».
+  /// El combustible se muestra como resto del total para que las dos partes
+  /// sumen exactamente el precio que aparece en la línea de abajo.
+  /// El resto de modos mantiene su etiqueta simple.
+  static String _vehicleLabel(VehicleOption vehicle) {
+    final breakdown = vehicle.priceBreakdown;
+    if (vehicle.mode != TransportMode.car || breakdown is! CarPriceBreakdown) {
+      return vehicle.mode.label;
+    }
+    final rentalPart = breakdown.rentalWaived ? 0 : breakdown.rental.round();
+    if (rentalPart == 0) {
+      return '${vehicle.mode.label} (combustible ${vehicle.price}€)';
+    }
+    final fuelPart = vehicle.price - rentalPart;
+    return '${vehicle.mode.label} (alquiler $rentalPart€ + combustible $fuelPart€)';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -214,7 +237,7 @@ class DestinationCard extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          vehicle.mode.label,
+                          _vehicleLabel(vehicle),
                           style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w700,

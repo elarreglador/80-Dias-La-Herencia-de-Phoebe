@@ -3,8 +3,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pf/domain/entities/destination_option.dart';
 import 'package:pf/domain/entities/fogg_city.dart';
 import 'package:pf/domain/entities/transport_mode.dart';
+import 'package:pf/domain/models/price_breakdown.dart';
 import 'package:pf/domain/models/weather_impact.dart';
 import 'package:pf/presentation/widgets/destination_card.dart';
+import 'package:pf/services/geo_pricing.dart';
 
 const _lisboa = FoggCity(
   name: 'Lisboa',
@@ -25,6 +27,35 @@ const _train = VehicleOption(
   mode: TransportMode.train,
   duration: Duration(hours: 14, minutes: 30),
   price: 6400,
+);
+
+/// Coche con alquiler: 31€ de alquiler + 80€ de combustible = 111€.
+const _car = VehicleOption(
+  mode: TransportMode.car,
+  duration: Duration(hours: 5, minutes: 30),
+  price: 111,
+  priceBreakdown: CarPriceBreakdown(
+    fuelBasePricePerKm: 0.12,
+    rentalBasePrice: 31,
+    zone: GeoZone.europeDeveloped,
+    countryMultiplier: 1.0,
+    distanceKm: 667,
+  ),
+);
+
+/// Coche conservado del tramo anterior: sin alquiler, solo combustible.
+const _carContinued = VehicleOption(
+  mode: TransportMode.car,
+  duration: Duration(hours: 5, minutes: 30),
+  price: 80,
+  priceBreakdown: CarPriceBreakdown(
+    fuelBasePricePerKm: 0.12,
+    rentalBasePrice: 31,
+    zone: GeoZone.europeDeveloped,
+    countryMultiplier: 1.0,
+    distanceKm: 667,
+    rentalWaived: true,
+  ),
 );
 
 DestinationOption _option({VehicleOption? vehicle}) => DestinationOption(
@@ -163,5 +194,31 @@ void main() {
 
     expect(key.currentState!.selectedVehicle, isNull);
     expect(_button(tester, 'Lisboa', TransportMode.train).onPressed, isNull);
+  });
+
+  testWidgets('la fila del coche muestra el desglose alquiler + combustible',
+      (tester) async {
+    await _pump(tester, _option(vehicle: _car), expanded: true);
+
+    expect(find.text('Coche (alquiler 31€ + combustible 80€)'), findsOneWidget);
+    // Las dos partes suman el total mostrado y cobrado.
+    expect(find.text('111€'), findsOneWidget);
+  });
+
+  testWidgets('el coche conservado solo muestra el combustible', (tester) async {
+    await _pump(tester, _option(vehicle: _carContinued), expanded: true);
+
+    expect(find.text('Coche (combustible 80€)'), findsOneWidget);
+    expect(find.text('80€'), findsOneWidget);
+    expect(find.textContaining('alquiler'), findsNothing);
+  });
+
+  testWidgets('los modos sin desglose mantienen su etiqueta simple',
+      (tester) async {
+    await _pump(tester, _option(), expanded: true);
+
+    expect(find.text('Barco'), findsOneWidget);
+    expect(find.text('Tren'), findsOneWidget);
+    expect(find.textContaining('combustible'), findsNothing);
   });
 }

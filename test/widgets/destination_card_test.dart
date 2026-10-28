@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pf/domain/entities/destination_option.dart';
 import 'package:pf/domain/entities/fogg_city.dart';
@@ -80,15 +81,17 @@ class _HarnessState extends State<_Harness> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        body: DestinationCard(
-          option: widget.option,
-          selected: expanded,
-          selectedVehicle: selectedVehicle,
-          onTap: () => setState(() => expanded = !expanded),
-          onVehicleTap: (v) => setState(() => selectedVehicle = v),
-          onStartTrip: (v) => started.add(v),
+    return ProviderScope(
+      child: MaterialApp(
+        home: Scaffold(
+          body: DestinationCard(
+            option: widget.option,
+            selected: expanded,
+            selectedVehicle: selectedVehicle,
+            onTap: () => setState(() => expanded = !expanded),
+            onVehicleTap: (v) => setState(() => selectedVehicle = v),
+            onStartTrip: (v) => started.add(v),
+          ),
         ),
       ),
     );

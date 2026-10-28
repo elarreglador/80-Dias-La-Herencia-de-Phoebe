@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/destination_option.dart';
 import '../../domain/entities/transport_mode.dart';
 import '../../domain/models/price_breakdown.dart';
 import '../../utils/app_colors.dart';
+import '../../utils/weather_formatter.dart';
+import '../providers/route_catalog_provider.dart';
+import '../providers/time_engine_provider.dart';
 import 'transport_icon.dart';
 
 /// Tarjeta de ciudad candidata.
@@ -18,7 +22,7 @@ import 'transport_icon.dart';
 ///
 /// `onVehicleTap` selecciona un vehículo; `onStartTrip` inicia la ruta con el
 /// vehículo ya seleccionado. `onPinTap` navega al mapa sin elegir destino.
-class DestinationCard extends StatelessWidget {
+class DestinationCard extends ConsumerWidget {
   const DestinationCard({
     super.key,
     required this.option,
@@ -39,6 +43,19 @@ class DestinationCard extends StatelessWidget {
   final VoidCallback? onPinTap;
 
   static const _expandDuration = Duration(milliseconds: 250);
+
+  DateTime _getArrivalTime(DateTime baseNow) {
+    if (option.vehicles.isEmpty) return baseNow;
+    final v = option.vehicles.first;
+    final dep = v.departureHour != null && v.departureMinute != null
+        ? (v.departureHour!, v.departureMinute!)
+        : (8, 0);
+    var departureUtc = DateTime.utc(baseNow.year, baseNow.month, baseNow.day, dep.$1, dep.$2);
+    if (departureUtc.isBefore(baseNow)) {
+      departureUtc = departureUtc.add(const Duration(days: 1));
+    }
+    return departureUtc.add(v.duration);
+  }
 
   /// Título del vehículo en la fila expandida.
   ///
@@ -62,7 +79,14 @@ class DestinationCard extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentTime = ref.watch(timeEngineProvider).now();
+    final arrivalTime = _getArrivalTime(currentTime);
+    final weatherService = ref.watch(weatherServiceProvider);
+    final weatherAsync = ref.watch(weatherSnapshotProvider((option.city.lat, option.city.lng, arrivalTime)));
+    final snapshot = weatherAsync.valueOrNull ?? weatherService.fetchSync(option.city.lat, option.city.lng, arrivalTime);
+    final weatherSummary = formatWeatherSummary(snapshot);
+
     return Material(
       color: selected ? AppColors.foggRed.withValues(alpha: 0.08) : AppColors.surface,
       borderRadius: BorderRadius.circular(16),
@@ -85,7 +109,7 @@ class DestinationCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _header(),
+              _header(weatherSummary),
               AnimatedSize(
                 duration: _expandDuration,
                 curve: Curves.easeInOut,
@@ -99,7 +123,7 @@ class DestinationCard extends StatelessWidget {
     );
   }
 
-  Widget _header() {
+  Widget _header(String? weatherSummary) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -123,13 +147,28 @@ class DestinationCard extends StatelessWidget {
           _pinCircle(),
         const SizedBox(width: 10),
         Expanded(
-          child: Text(
-            option.city.name,
-            style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              color: AppColors.labelColor,
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                option.city.name,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.labelColor,
+                ),
+              ),
+              if (weatherSummary != null)
+                Text(
+                  weatherSummary,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.labelColor,
+                  ),
+                ),
+            ],
           ),
         ),
         if (selected)

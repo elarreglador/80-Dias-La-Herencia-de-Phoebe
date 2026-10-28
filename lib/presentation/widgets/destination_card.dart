@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/destination_option.dart';
 import '../../domain/entities/transport_mode.dart';
 import '../../domain/models/price_breakdown.dart';
 import '../../utils/app_colors.dart';
+import '../../utils/weather_formatter.dart';
+import '../providers/route_catalog_provider.dart';
+import '../providers/time_engine_provider.dart';
 import 'transport_icon.dart';
 
 /// Tarjeta de ciudad candidata.
@@ -18,7 +22,7 @@ import 'transport_icon.dart';
 ///
 /// `onVehicleTap` selecciona un vehículo; `onStartTrip` inicia la ruta con el
 /// vehículo ya seleccionado. `onPinTap` navega al mapa sin elegir destino.
-class DestinationCard extends StatelessWidget {
+class DestinationCard extends ConsumerWidget {
   const DestinationCard({
     super.key,
     required this.option,
@@ -62,7 +66,11 @@ class DestinationCard extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentTime = ref.watch(timeEngineProvider).now();
+    final weatherService = ref.watch(weatherServiceProvider);
+    final snapshot = weatherService.fetchSync(option.city.lat, option.city.lng, currentTime);
+    final weatherSummary = formatWeatherSummary(snapshot);
     return Material(
       color: selected ? AppColors.foggRed.withValues(alpha: 0.08) : AppColors.surface,
       borderRadius: BorderRadius.circular(16),
@@ -85,7 +93,7 @@ class DestinationCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _header(),
+              _header(weatherSummary),
               AnimatedSize(
                 duration: _expandDuration,
                 curve: Curves.easeInOut,
@@ -99,7 +107,7 @@ class DestinationCard extends StatelessWidget {
     );
   }
 
-  Widget _header() {
+  Widget _header(String? weatherSummary) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -123,13 +131,27 @@ class DestinationCard extends StatelessWidget {
           _pinCircle(),
         const SizedBox(width: 10),
         Expanded(
-          child: Text(
-            option.city.name,
-            style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              color: AppColors.labelColor,
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                option.city.name,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.labelColor,
+                ),
+              ),
+              if (weatherSummary != null)
+                Text(
+                  weatherSummary,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: AppColors.labelColor.withValues(alpha: 0.7),
+                  ),
+                ),
+            ],
           ),
         ),
         if (selected)

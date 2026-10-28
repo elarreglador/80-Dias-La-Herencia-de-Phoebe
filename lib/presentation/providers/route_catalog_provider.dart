@@ -5,6 +5,7 @@ import '../../services/city_catalog.dart';
 import '../../services/route_catalog.dart';
 import '../../services/transport_selector.dart';
 import '../../services/weather_service.dart';
+import '../../domain/models/weather_snapshot.dart';
 
 final routeCatalogProvider = FutureProvider<RouteCatalog>((ref) async {
   return RouteCatalog.load(rootBundle);
@@ -27,4 +28,8 @@ final transportSelectorProvider = Provider<TransportSelector?>((ref) {
     cityCatalog: ref.watch(cityCatalogProvider).valueOrNull,
     weatherService: ref.watch(weatherServiceProvider),
   );
+});
+
+final weatherSnapshotProvider = FutureProvider.family<WeatherSnapshot, (double, double, DateTime)>((ref, params) async {
+  return ref.watch(weatherServiceProvider).fetch(params.$1, params.$2, params.$3);
 });

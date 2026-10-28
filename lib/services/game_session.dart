@@ -65,6 +65,16 @@ class GameSession {
   FoggLeg? _currentLeg;
   final List<FoggLeg> _completedLegs = [];
 
+  /// Auditoría del vehículo elegido para "Iniciar trayecto". Si startLeg()
+  /// lanza excepción, se restaura este vehículo en lugar de dejarlo cancelado
+  /// por impactos meteorológicos, de modo que el botón nunca parezca sin
+  /// respuesta ni el candidato de coche quede persistingemente deshabilitado.
+  VehicleOption? _selectedVehicle;
+
+  VehicleOption? get selectedVehicle => _selectedVehicle;
+
+  void setSelectedVehicle(VehicleOption v) => _selectedVehicle = v;
+
   FoggStatus get status => _status;
   FoggLeg? get currentLeg => _currentLeg;
   FoggCity get currentCity => _currentCity;

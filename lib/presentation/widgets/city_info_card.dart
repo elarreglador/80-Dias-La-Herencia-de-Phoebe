@@ -5,8 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/fogg_city.dart';
 import '../../services/timezone_service.dart';
 import '../../utils/app_colors.dart';
+import '../../utils/weather_formatter.dart';
 import '../providers/bottom_nav_provider.dart';
 import '../providers/map_focus_provider.dart';
+import '../providers/route_catalog_provider.dart';
 import '../providers/time_engine_provider.dart';
 
 /// Tarjeta de contexto de la ciudad actual — imagen, hora local y acceso al mapa.
@@ -22,10 +24,15 @@ class CityInfoCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final currentTime = ref.watch(timeEngineProvider).now();
     final localTime = TimezoneService.formatLocalTime(
-      ref.watch(timeEngineProvider).now(),
+      currentTime,
       city.timezone,
     );
+    final weatherService = ref.watch(weatherServiceProvider);
+    final weatherAsync = ref.watch(weatherSnapshotProvider((city.lat, city.lng, currentTime)));
+    final snapshot = weatherAsync.valueOrNull ?? weatherService.fetchSync(city.lat, city.lng, currentTime);
+    final weatherSummary = formatWeatherSummary(snapshot);
 
     return ClipRRect(
       key: const ValueKey('city-info-card'),
@@ -102,13 +109,28 @@ class CityInfoCard extends ConsumerWidget {
                                     semanticLabel: 'Ver ${city.name} en el mapa',
                                   ),
                                   const SizedBox(width: 4),
-                                  Text(
-                                    city.name,
-                                    style: const TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.labelColor,
-                                    ),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        city.name,
+                                        style: const TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w700,
+                                          color: AppColors.labelColor,
+                                        ),
+                                      ),
+                                      if (weatherSummary != null)
+                                        Text(
+                                          weatherSummary,
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppColors.labelColor,
+                                          ),
+                                        ),
+                                    ],
                                   ),
                                 ],
                               ),

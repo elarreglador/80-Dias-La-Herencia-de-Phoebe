@@ -44,6 +44,19 @@ class DestinationCard extends ConsumerWidget {
 
   static const _expandDuration = Duration(milliseconds: 250);
 
+  DateTime _getArrivalTime(DateTime baseNow) {
+    if (option.vehicles.isEmpty) return baseNow;
+    final v = option.vehicles.first;
+    final dep = v.departureHour != null && v.departureMinute != null
+        ? (v.departureHour!, v.departureMinute!)
+        : (8, 0);
+    var departureUtc = DateTime.utc(baseNow.year, baseNow.month, baseNow.day, dep.$1, dep.$2);
+    if (departureUtc.isBefore(baseNow)) {
+      departureUtc = departureUtc.add(const Duration(days: 1));
+    }
+    return departureUtc.add(v.duration);
+  }
+
   /// Título del vehículo en la fila expandida.
   ///
   /// Para el coche añade el desglose del precio (SPEC 019 addenda §11):
@@ -68,9 +81,12 @@ class DestinationCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentTime = ref.watch(timeEngineProvider).now();
+    final arrivalTime = _getArrivalTime(currentTime);
     final weatherService = ref.watch(weatherServiceProvider);
-    final snapshot = weatherService.fetchSync(option.city.lat, option.city.lng, currentTime);
+    final weatherAsync = ref.watch(weatherSnapshotProvider((option.city.lat, option.city.lng, arrivalTime)));
+    final snapshot = weatherAsync.valueOrNull ?? weatherService.fetchSync(option.city.lat, option.city.lng, arrivalTime);
     final weatherSummary = formatWeatherSummary(snapshot);
+
     return Material(
       color: selected ? AppColors.foggRed.withValues(alpha: 0.08) : AppColors.surface,
       borderRadius: BorderRadius.circular(16),
@@ -146,9 +162,10 @@ class DestinationCard extends ConsumerWidget {
               if (weatherSummary != null)
                 Text(
                   weatherSummary,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: AppColors.labelColor.withValues(alpha: 0.7),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.labelColor,
                   ),
                 ),
             ],

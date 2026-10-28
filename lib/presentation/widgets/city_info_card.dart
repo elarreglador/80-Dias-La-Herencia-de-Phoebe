@@ -30,7 +30,8 @@ class CityInfoCard extends ConsumerWidget {
       city.timezone,
     );
     final weatherService = ref.watch(weatherServiceProvider);
-    final snapshot = weatherService.fetchSync(city.lat, city.lng, currentTime);
+    final weatherAsync = ref.watch(weatherSnapshotProvider((city.lat, city.lng, currentTime)));
+    final snapshot = weatherAsync.valueOrNull ?? weatherService.fetchSync(city.lat, city.lng, currentTime);
     final weatherSummary = formatWeatherSummary(snapshot);
 
     return ClipRRect(
@@ -107,29 +108,30 @@ class CityInfoCard extends ConsumerWidget {
                                     color: AppColors.foggRed,
                                     semanticLabel: 'Ver ${city.name} en el mapa',
                                   ),
-                                   const SizedBox(width: 4),
-                                   Column(
-                                     crossAxisAlignment: CrossAxisAlignment.start,
-                                     mainAxisSize: MainAxisSize.min,
-                                     children: [
-                                       Text(
-                                         city.name,
-                                         style: const TextStyle(
-                                           fontSize: 15,
-                                           fontWeight: FontWeight.w700,
-                                           color: AppColors.labelColor,
-                                         ),
-                                       ),
-                                       if (weatherSummary != null)
-                                         Text(
-                                           weatherSummary,
-                                           style: TextStyle(
-                                             fontSize: 11,
-                                             color: AppColors.labelColor.withValues(alpha: 0.7),
-                                           ),
-                                         ),
-                                     ],
-                                   ),
+                                  const SizedBox(width: 4),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        city.name,
+                                        style: const TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w700,
+                                          color: AppColors.labelColor,
+                                        ),
+                                      ),
+                                      if (weatherSummary != null)
+                                        Text(
+                                          weatherSummary,
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppColors.labelColor,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
                                 ],
                               ),
                             ),

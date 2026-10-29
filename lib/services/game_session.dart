@@ -48,6 +48,7 @@ class GameSession {
     _status = FoggArrived(
       currentCity: _currentCity,
       options: _buildOptions(_currentCity),
+      fatigue: _fatigue,
     );
   }
 
@@ -160,7 +161,7 @@ class GameSession {
 
     _currentCity = from;
     _currentLeg = leg;
-    _status = FoggTraveling(leg: leg);
+    _status = FoggTraveling(leg: leg, fatigue: _fatigue);
     _emit();
   }
 
@@ -189,7 +190,7 @@ class GameSession {
       _fatigue = Fatigue(value: (_legStartFatigue - drain).clamp(0.0, 100.0));
       // Nueva instancia del estado: el reloj publica el avance para que la
       // pantalla (posición de Phoebe, tramo recorrido) se repinte.
-      _status = FoggTraveling(leg: leg);
+      _status = FoggTraveling(leg: leg, fatigue: _fatigue);
       _emit();
       return;
     }
@@ -203,6 +204,7 @@ class GameSession {
     _status = FoggArrived(
       currentCity: leg.to,
       options: _buildOptions(leg.to),
+      fatigue: _fatigue,
     );
     _emit();
   }
@@ -215,6 +217,14 @@ class GameSession {
           .clamp(0.0, 100.0);
       _fatigue = Fatigue(value: recovered);
     }
+    _status = switch (_status) {
+      FoggTraveling(:final leg) => FoggTraveling(leg: leg, fatigue: _fatigue),
+      FoggArrived(:final currentCity, :final options) => FoggArrived(
+          currentCity: currentCity,
+          options: options,
+          fatigue: _fatigue,
+        ),
+    };
     _emit();
   }
 
@@ -228,6 +238,7 @@ class GameSession {
     _status = FoggArrived(
       currentCity: traveling.leg.to,
       options: _buildOptions(traveling.leg.to),
+      fatigue: _fatigue,
     );
     _emit();
   }

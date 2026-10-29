@@ -21,7 +21,8 @@ flutter test --plain-name "nombre exacto del test"                   # un solo t
 
 # Teléfono Android (target que funciona). `flutter devices` da el serial exacto.
 flutter devices                                  # lista dispositivos/seriales
-flutter run -d 5lcqy54d4l4ltspz                  # build + instala + lanza en el Redmi
+flutter run -d 5lcqy54d4l4ltspz                  # build + instala + lanza en el Redmi version devel (velocidad de reloj de juego acelerada x60)
+flutter run -d 5lcqy54d4l4ltspz --release        # build + instala + lanza en el Redmi version release (reloj sin acelerar)
 flutter build apk --debug                        # solo APK: build/app/outputs/flutter-apk/app-debug.apk
 adb -s 5lcqy54d4l4ltspz install -r build/app/outputs/flutter-apk/app-debug.apk
 adb -s 5lcqy54d4l4ltspz shell am start -n eu.elarreglador.pf/.MainActivity

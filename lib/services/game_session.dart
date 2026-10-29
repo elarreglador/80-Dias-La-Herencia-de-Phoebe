@@ -76,6 +76,11 @@ class GameSession {
   /// Momento (reloj de juego, UTC) en que Phoebe llegó a la ciudad actual.
   DateTime? _arrivedAtUtc;
 
+  /// Momento de la última llamada a `tick()`, usado para calcular delta en la
+  /// rama de "llegado a ciudad": evita la acumulación super-lineal al aplicar
+  /// el drenaje/recuperación por intervalo de 1 segundo en lugar de total.
+  DateTime? _lastTickTime;
+
   /// Auditoría del vehículo elegido para "Iniciar trayecto". Si startLeg()
   /// lanza excepción, se restaura este vehículo en lugar de dejarlo cancelado
   /// por impactos meteorológicos, de modo que el botón nunca parezca sin
@@ -246,7 +251,10 @@ class GameSession {
 
     // En destino: descanso en hotel o espera en ciudad (drena).
     final now = timeEngine.now();
-    final elapsedHours = now.difference(_arrivedAtUtc!).inMinutes / 60.0;
+    final elapsedHours = _lastTickTime == null
+        ? now.difference(_arrivedAtUtc!).inMinutes / 60.0
+        : now.difference(_lastTickTime!).inMinutes / 60.0;
+    _lastTickTime = now;
     if (restingAtHotel) {
       _fatigue = _fatigue.recover(elapsedHours * Fatigue.hotelRecoverRate);
     } else {

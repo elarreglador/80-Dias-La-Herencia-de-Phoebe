@@ -42,7 +42,7 @@ class _HotelRestCardState extends State<HotelRestCard> {
         ? 'Descansando en el hotel...'
         : widget.fatigue.mustSleep
             ? 'Phoebe está agotada: debe descansar antes de continuar'
-            : 'Descanso en hotel: recuperación ${Fatigue.hotelRecoverRate}%/h';
+            : 'Descanso en hotel.';
   }
 
   void _doRest() {
@@ -54,7 +54,7 @@ class _HotelRestCardState extends State<HotelRestCard> {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.foggRed.withValues(alpha: 0.06),
+      color: _pressed ? Colors.grey.shade100 : AppColors.foggRed.withValues(alpha: 0.06),
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         key: const ValueKey('hotel-rest-card'),
@@ -70,9 +70,9 @@ class _HotelRestCardState extends State<HotelRestCard> {
                 children: [
                   const Icon(Icons.hotel, size: 22, color: AppColors.foggRed),
                   const SizedBox(width: 10),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'Ir al Hotel a descansar',
+                      _pressed ? 'Descansando' : 'Ir al Hotel a descansar',
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,

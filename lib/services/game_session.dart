@@ -14,6 +14,8 @@ import 'event_engine.dart';
 import '../domain/models/fatigue.dart';
 import 'budget_service.dart';
 import 'default_cities.dart';
+import 'geo_pricing.dart';
+import 'hotel_pricing.dart';
 import 'time_engine.dart';
 import 'transport_selector.dart';
 
@@ -50,6 +52,7 @@ class GameSession {
       options: _buildOptions(_currentCity),
       fatigue: _fatigue,
     );
+    _arrivedAtUtc = timeEngine.now().toUtc();
   }
 
   final TimeEngine timeEngine;
@@ -66,6 +69,18 @@ class GameSession {
   FoggLeg? _currentLeg;
   final List<FoggLeg> _completedLegs = [];
 
+  /// Descanso en hotel en curso — flag transitorio (SPEC 022 §6): no es un
+  /// `FoggStatus`, el descanso es una acción sobre el estado de llegada.
+  bool _restingAtHotel = false;
+
+  /// Momento (reloj de juego, UTC) en que Phoebe llegó a la ciudad actual.
+  DateTime? _arrivedAtUtc;
+
+  /// Momento de la última llamada a `tick()`, usado para calcular delta en la
+  /// rama de "llegado a ciudad": evita la acumulación super-lineal al aplicar
+  /// el drenaje/recuperación por intervalo de 1 segundo en lugar de total.
+  DateTime? _lastTickTime;
+
   /// Auditoría del vehículo elegido para "Iniciar trayecto". Si startLeg()
   /// lanza excepción, se restaura este vehículo en lugar de dejarlo cancelado
   /// por impactos meteorológicos, de modo que el botón nunca parezca sin
@@ -80,6 +95,29 @@ class GameSession {
   FoggLeg? get currentLeg => _currentLeg;
   FoggCity get currentCity => _currentCity;
   Fatigue get fatigue => _fatigue;
+
+  /// Descanso en hotel en curso — flag transitorio (SPEC 022 §6): no es un
+  /// `FoggStatus`, el descanso es una acción sobre el estado de llegada.
+  bool get restingAtHotel => _restingAtHotel;
+
+  /// Importe de la noche de hotel: tarifa por zona geográfica × multiplicador país.
+  int get hotelPrice {
+    final zone = GeoPricing.zoneForTimezone(_currentCity.timezone);
+    return HotelPricing.priceFor(
+      zone,
+      countryMultiplier: GeoPricing.countryMultiplierForTimezone(_currentCity.timezone),
+    );
+  }
+
+  /// Inicia el descanso en hotel en la ciudad actual: descuenta el importe
+  /// de la noche y fija el flag de descanso.
+  void beginRestAtHotel() {
+    budget.spend(hotelPrice, '${_currentCity.name} descanso en hotel');
+    _restingAtHotel = true;
+  }
+
+  /// Termina el descanso en hotel (al iniciar la ruta o al cancelar).
+  void endRestAtHotel() => _restingAtHotel = false;
 
   /// Tramos ya recorridos — el historial que se dibuja en el mapa.
   List<FoggLeg> get completedLegs => List<FoggLeg>.unmodifiable(_completedLegs);
@@ -100,6 +138,8 @@ class GameSession {
     required VehicleOption vehicle,
     WeatherSnapshot? weather,
   }) {
+    // El descanso se interrumpe al iniciar la ruta: arranca el viaje.
+    _restingAtHotel = false;
     if (_fatigue.mustSleep && !vehicle.sleeper) {
       throw const SleepRequiredException();
     }
@@ -181,32 +221,64 @@ class GameSession {
 
   void tick() {
     final traveling = _status;
-    if (traveling is! FoggTraveling) return;
-    final leg = traveling.leg;
-    final now = timeEngine.now();
-    if (now.isBefore(leg.arrivalUtc)) {
-      final elapsedHours = now.difference(leg.departureUtc).inMinutes / 60.0;
-      final drain = (elapsedHours * 5.0).clamp(0.0, 100.0);
-      _fatigue = Fatigue(value: (_legStartFatigue - drain).clamp(0.0, 100.0));
-      // Nueva instancia del estado: el reloj publica el avance para que la
-      // pantalla (posición de Phoebe, tramo recorrido) se repinte.
-      _status = FoggTraveling(leg: leg, fatigue: _fatigue);
+    if (traveling is FoggTraveling) {
+      final leg = traveling.leg;
+      final now = timeEngine.now();
+      if (now.isBefore(leg.arrivalUtc)) {
+        final elapsedHours = now.difference(leg.departureUtc).inMinutes / 60.0;
+        _fatigue = _advanceFatigue(elapsedHours, leg);
+        // Nueva instancia del estado: el reloj publica el avance para que la
+        // pantalla (posición de Phoebe, tramo recorrido) se repinte.
+        _status = FoggTraveling(leg: leg, fatigue: _fatigue);
+        _emit();
+        return;
+      }
+
+      final totalHours = leg.arrivalUtc.difference(leg.departureUtc).inMinutes / 60.0;
+      _fatigue = _advanceFatigue(totalHours, leg);
+      _currentCity = leg.to;
+      _currentLeg = null;
+      _completedLegs.add(leg);
+      _arrivedAtUtc = now;
+      _status = FoggArrived(
+        currentCity: leg.to,
+        options: _buildOptions(leg.to),
+        fatigue: _fatigue,
+      );
       _emit();
       return;
     }
 
-    final totalHours = leg.arrivalUtc.difference(leg.departureUtc).inMinutes / 60.0;
-    final drain = (totalHours * 5.0).clamp(0.0, 100.0);
-    _fatigue = Fatigue(value: (_legStartFatigue - drain).clamp(0.0, 100.0));
-    _currentCity = leg.to;
-    _currentLeg = null;
-    _completedLegs.add(leg);
+    // En destino: descanso en hotel o espera en ciudad (drena).
+    final now = timeEngine.now();
+    final elapsedHours = _lastTickTime == null
+        ? now.difference(_arrivedAtUtc!).inMinutes / 60.0
+        : now.difference(_lastTickTime!).inMinutes / 60.0;
+    _lastTickTime = now;
+    if (restingAtHotel) {
+      _fatigue = _fatigue.recover(elapsedHours * Fatigue.hotelRecoverRate);
+    } else {
+      _fatigue = _fatigue.drain(elapsedHours * Fatigue.cityDrainRate);
+    }
+    final arrived = _status as FoggArrived;
     _status = FoggArrived(
-      currentCity: leg.to,
-      options: _buildOptions(leg.to),
+      currentCity: arrived.currentCity,
+      options: arrived.options,
       fatigue: _fatigue,
     );
     _emit();
+  }
+
+  /// Avanza la fatiga a lo largo de un tramo: recupera en sleeper, drena en
+  /// coche o modos sin sleeper (mocks).
+  Fatigue _advanceFatigue(double elapsedHours, FoggLeg leg) {
+    if (leg.sleeper) {
+      return Fatigue(
+        value: (_legStartFatigue + elapsedHours * Fatigue.sleeperRecoverRate).clamp(0.0, 100.0),
+      );
+    }
+    final rate = leg.transport == TransportMode.car ? Fatigue.carDrainRate : Fatigue.genericDrainRate;
+    return Fatigue(value: (_legStartFatigue - elapsedHours * rate).clamp(0.0, 100.0));
   }
 
   void sleep({Duration? duration}) {
@@ -232,6 +304,7 @@ class GameSession {
     final traveling = _status;
     if (traveling is! FoggTraveling) return;
     _legStartFatigue = _fatigue.value;
+    _arrivedAtUtc = timeEngine.now().toUtc();
     _currentCity = traveling.leg.to;
     _currentLeg = null;
     _completedLegs.add(traveling.leg);

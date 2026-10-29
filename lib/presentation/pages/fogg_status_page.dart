@@ -5,6 +5,9 @@ import '../../domain/entities/destination_option.dart';
 import '../../domain/entities/fogg_city.dart';
 import '../../domain/entities/fogg_leg.dart';
 import '../../domain/entities/fogg_status.dart';
+import '../../domain/models/fatigue.dart';
+import '../../services/geo_pricing.dart';
+import '../../services/hotel_pricing.dart';
 import '../../utils/app_colors.dart';
 import '../providers/bottom_nav_provider.dart';
 import '../providers/countdown_provider.dart';
@@ -14,6 +17,7 @@ import '../providers/map_focus_provider.dart';
 import '../widgets/city_info_card.dart';
 import '../widgets/countdown_widget.dart';
 import '../widgets/destination_card.dart';
+import '../widgets/hotel_rest_card.dart';
 import '../widgets/transport_icon.dart';
 
 /// Pantalla «Qué hace la Srta. Fogg ahora» — dos estados según FoggStatus.
@@ -29,9 +33,10 @@ class FoggStatusPage extends ConsumerWidget {
 
     return switch (status) {
       FoggTraveling(:final leg) => _TravelingView(leg: leg),
-      FoggArrived(:final currentCity, :final options) => _ArrivedView(
+      FoggArrived(:final currentCity, :final options, :final fatigue) => _ArrivedView(
           currentCity: currentCity,
           options: options,
+          fatigue: fatigue,
         ),
     };
   }
@@ -135,15 +140,21 @@ class _TravelingView extends ConsumerWidget {
 // ---------------------------------------------------------------------------
 
 class _ArrivedView extends ConsumerWidget {
-  const _ArrivedView({required this.currentCity, required this.options});
+  const _ArrivedView({required this.currentCity, required this.options, required this.fatigue});
 
   final FoggCity currentCity;
   final List<DestinationOption> options;
+  final Fatigue fatigue;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedDestination = ref.watch(selectedDestinationProvider);
     final selectedVehicle = ref.watch(selectedVehicleProvider);
+
+    final hotelPrice = HotelPricing.priceFor(
+      GeoPricing.zoneForTimezone(currentCity.timezone),
+      countryMultiplier: GeoPricing.countryMultiplierForTimezone(currentCity.timezone),
+    );
 
     void startTrip(DestinationOption option, VehicleOption vehicle) {
       // Transición real a viajando — el origen es la ciudad actual del estado.
@@ -182,6 +193,18 @@ class _ArrivedView extends ConsumerWidget {
             style: TextStyle(fontSize: 12, color: AppColors.labelColor.withValues(alpha: 0.6)),
           ),
           const SizedBox(height: 10),
+
+          // Tarjeta independiente de descanso en hotel — primera opción de la
+          // lista, antes de los destinos candidatos.
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: HotelRestCard(
+              onRestAtHotel: () => ref.read(gameNotifierProvider.notifier).restAtHotel(),
+              hotelPrice: hotelPrice,
+              fatigue: fatigue,
+              isRestingAtHotel: ref.read(gameSessionProvider).restingAtHotel,
+            ),
+          ),
 
           // Todas las opciones — la chincheta solo navega al mapa; la
           // selección de destino expande su tarjeta.

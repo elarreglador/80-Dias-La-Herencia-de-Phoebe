@@ -107,7 +107,7 @@ void main() {
     expect(session.options.length, 3);
   });
 
-  test('GameSession drena fatiga mientras viaja', () {
+  test('GameSession recupera fatiga mientras viaja en sleeper', () {
     var now = DateTime.utc(2026, 1, 1, 12);
     final te = TimeEngine(startUtc: now, timeScale: 1.0, clock: () => now);
     final bs = BudgetService(initial: 100000);
@@ -128,7 +128,98 @@ void main() {
 
     now = now.add(const Duration(hours: 7));
     session.tick();
-    expect(session.fatigue.value, lessThan(100.0));
+    expect(session.fatigue.value, 100.0);
+    expect(session.status, isA<FoggTraveling>());
+  });
+
+  test('GameSession drena fatiga al esperar en ciudad sin descanso', () {
+    var now = DateTime.utc(2026, 1, 1, 12);
+    final te = TimeEngine(startUtc: now, timeScale: 1.0, clock: () => now);
+    final bs = BudgetService(initial: 100000);
+    final session = GameSession(timeEngine: te, budget: bs);
+
+    expect(session.status, isA<FoggArrived>());
+    now = now.add(const Duration(hours: 2));
+    session.tick();
+    expect(session.fatigue.value, closeTo(94.0, 0.001));
+  });
+
+  test('GameSession drena fatiga al viajar en coche', () {
+    var now = DateTime.utc(2026, 1, 1, 12);
+    final te = TimeEngine(startUtc: now, timeScale: 1.0, clock: () => now);
+    final bs = BudgetService(initial: 100000);
+    const from = FoggCity(name: 'Londres', lat: 51.5, lng: -0.1, order: 0, timezone: 'Europe/London');
+    const to = FoggCity(name: 'París', lat: 48.8, lng: 2.3, order: 1, timezone: 'Europe/Paris');
+    final session = GameSession(timeEngine: te, budget: bs, cities: [from, to]);
+
+    session.startLeg(
+      from: from,
+      to: to,
+      vehicle: const VehicleOption(
+        mode: TransportMode.car,
+        duration: Duration(hours: 5),
+        price: 100,
+      ),
+    );
+
+    now = now.add(const Duration(hours: 2));
+    session.tick();
+    expect(session.fatigue.value, closeTo(84.0, 0.001));
+    expect(session.status, isA<FoggTraveling>());
+  });
+
+  test('GameSession descansa en hotel recuperando la fatiga y descuenta importe', () {
+    var now = DateTime.utc(2026, 1, 1, 12);
+    final te = TimeEngine(startUtc: now, timeScale: 1.0, clock: () => now);
+    final bs = BudgetService(initial: 100000);
+    const from = FoggCity(name: 'Londres', lat: 51.5, lng: -0.1, order: 0, timezone: 'Europe/London');
+    const to = FoggCity(name: 'París', lat: 48.8, lng: 2.3, order: 1, timezone: 'Europe/Paris');
+    final session = GameSession(timeEngine: te, budget: bs, cities: [from, to]);
+    session.startLeg(
+      from: from,
+      to: to,
+      vehicle: const VehicleOption(
+        mode: TransportMode.train,
+        duration: Duration(hours: 40),
+        price: 1000,
+        sleeper: false,
+      ),
+    );
+    now = now.add(const Duration(hours: 45));
+    session.tick();
+    expect(session.status, isA<FoggArrived>());
+    expect(session.fatigue.value, 0.0);
+
+    session.beginRestAtHotel();
+    expect(session.restingAtHotel, isTrue);
+    expect(bs.balance, lessThan(100000));
+
+    now = now.add(const Duration(hours: 4));
+    session.tick();
+    expect(session.fatigue.value, closeTo(50.0, 0.001));
+  });
+
+  test('GameSession al iniciar la ruta interrumpe el descanso en hotel', () {
+    var now = DateTime.utc(2026, 1, 1, 12);
+    final te = TimeEngine(startUtc: now, timeScale: 1.0, clock: () => now);
+    final bs = BudgetService(initial: 100000);
+    const from = FoggCity(name: 'Londres', lat: 51.5, lng: -0.1, order: 0, timezone: 'Europe/London');
+    const to = FoggCity(name: 'París', lat: 48.8, lng: 2.3, order: 1, timezone: 'Europe/Paris');
+    final session = GameSession(timeEngine: te, budget: bs, cities: [from, to]);
+
+    session.beginRestAtHotel();
+    session.startLeg(
+      from: from,
+      to: to,
+      vehicle: const VehicleOption(
+        mode: TransportMode.train,
+        duration: Duration(hours: 2),
+        price: 100,
+        sleeper: true,
+      ),
+    );
+
+    expect(session.restingAtHotel, isFalse);
     expect(session.status, isA<FoggTraveling>());
   });
 

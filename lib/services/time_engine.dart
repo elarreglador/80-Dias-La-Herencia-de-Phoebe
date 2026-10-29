@@ -97,10 +97,10 @@ class TimeEngine {
     return candidateUtc.toUtc();
   }
 
-  Duration sleepNeeded(Fatigue fatigue, {bool sleeper = false}) {
+  Duration sleepNeeded(Fatigue fatigue, {required double rate}) {
     final missing = (100.0 - fatigue.value).clamp(0.0, 100.0);
     if (missing <= 0) return Duration.zero;
-    final hours = (missing / 20.0).ceil().clamp(1, 8);
+    final hours = (missing / rate).ceil().clamp(1, 8);
     return Duration(hours: hours);
   }
 }

@@ -58,6 +58,32 @@ void main() {
     expect(session.completedLegs.length, 1);
   });
 
+  test('GameNotifier restAtHotel inicia el descanso en hotel', () async {
+    var clockNow = DateTime.utc(2026, 1, 1, 12);
+    final engine = TimeEngine(
+      startUtc: clockNow,
+      timeScale: 1.0,
+      clock: () => clockNow,
+    );
+    final session = GameSession(
+      timeEngine: engine,
+      budget: BudgetService(initial: 100000),
+    );
+    final container = ProviderContainer(
+      overrides: [
+        gameSessionProvider.overrideWithValue(session),
+        timeEngineProvider.overrideWithValue(engine),
+      ],
+    );
+    addTearDown(container.dispose);
+    final sub = container.listen(gameNotifierProvider, (_, __) {});
+    addTearDown(sub.close);
+
+    container.read(gameNotifierProvider.notifier).restAtHotel();
+
+    expect(container.read(gameSessionProvider).restingAtHotel, isTrue);
+  });
+
   test('el reloj mantiene el estado mientras se viaja', () async {
     var clockNow = DateTime.utc(2026, 1, 1, 12);
     final engine = TimeEngine(

@@ -17,6 +17,7 @@ import '../providers/map_focus_provider.dart';
 import '../widgets/city_info_card.dart';
 import '../widgets/countdown_widget.dart';
 import '../widgets/destination_card.dart';
+import '../widgets/hotel_rest_card.dart';
 import '../widgets/transport_icon.dart';
 
 /// Pantalla «Qué hace la Srta. Fogg ahora» — dos estados según FoggStatus.
@@ -193,6 +194,18 @@ class _ArrivedView extends ConsumerWidget {
           ),
           const SizedBox(height: 10),
 
+          // Tarjeta independiente de descanso en hotel — primera opción de la
+          // lista, antes de los destinos candidatos.
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: HotelRestCard(
+              onRestAtHotel: () => ref.read(gameNotifierProvider.notifier).restAtHotel(),
+              hotelPrice: hotelPrice,
+              fatigue: fatigue,
+              isRestingAtHotel: ref.read(gameSessionProvider).restingAtHotel,
+            ),
+          ),
+
           // Todas las opciones — la chincheta solo navega al mapa; la
           // selección de destino expande su tarjeta.
           ...options.map((opt) {
@@ -220,10 +233,6 @@ class _ArrivedView extends ConsumerWidget {
                   ref.read(mapFocusProvider.notifier).request(opt.city);
                   ref.read(bottomNavIndexProvider.notifier).state = 0;
                 },
-                onRestAtHotel: () => ref.read(gameNotifierProvider.notifier).restAtHotel(),
-                hotelPrice: hotelPrice,
-                fatigue: fatigue,
-                isRestingAtHotel: ref.read(gameSessionProvider).restingAtHotel,
               ),
             );
           }),

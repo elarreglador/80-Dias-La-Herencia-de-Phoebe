@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/destination_option.dart';
 import '../../domain/entities/transport_mode.dart';
-import '../../domain/models/fatigue.dart';
 import '../../domain/models/price_breakdown.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/weather_formatter.dart';
@@ -33,10 +32,6 @@ class DestinationCard extends ConsumerWidget {
     required this.selectedVehicle,
     required this.onStartTrip,
     this.onPinTap,
-    this.onRestAtHotel,
-    this.hotelPrice,
-    this.fatigue = const Fatigue(),
-    this.isRestingAtHotel = false,
   });
 
   final DestinationOption option;
@@ -46,18 +41,6 @@ class DestinationCard extends ConsumerWidget {
   final VehicleOption? selectedVehicle;
   final ValueChanged<VehicleOption> onStartTrip;
   final VoidCallback? onPinTap;
-
-  /// Acción «Ir al Hotel a descansar» — inicia el descanso en hotel.
-  final VoidCallback? onRestAtHotel;
-
-  /// Importe de la noche de hotel (€) a mostrar.
-  final int? hotelPrice;
-
-  /// Fatiga actual de Phoebe — para el mensaje de estado del descanso.
-  final Fatigue fatigue;
-
-  /// Si el descanso en hotel está en curso.
-  final bool isRestingAtHotel;
 
   static const _expandDuration = Duration(milliseconds: 250);
 
@@ -133,7 +116,6 @@ class DestinationCard extends ConsumerWidget {
                 alignment: Alignment.topCenter,
                 child: selected ? _expandedVehicles() : const SizedBox.shrink(),
               ),
-              if (selected) _hotelRestSection(),
             ],
           ),
         ),
@@ -259,78 +241,6 @@ class DestinationCard extends ConsumerWidget {
         children: option.vehicles.map(_vehicleRow).toList(),
       ),
     );
-  }
-
-  /// Tarjeta de descanso en hotel — visible en el estado expandido.
-  /// Icono de hotel, label «Ir al Hotel a descansar», importe y mensaje de
-  /// estado; sin iconos de vehículo (es una acción de descanso, no una opción).
-  Widget _hotelRestSection() {
-    return Padding(
-      padding: const EdgeInsets.only(top: 12),
-      child: Material(
-        color: AppColors.foggRed.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(12),
-        child: InkWell(
-          key: const ValueKey('hotel-rest-card'),
-          onTap: onRestAtHotel == null
-              ? null
-              : () {
-                  HapticFeedback.lightImpact();
-                  onRestAtHotel!();
-                },
-          borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    const Icon(Icons.hotel, size: 22, color: AppColors.foggRed),
-                    const SizedBox(width: 10),
-                    const Expanded(
-                      child: Text(
-                        'Ir al Hotel a descansar',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.labelColor,
-                        ),
-                      ),
-                    ),
-                    if (hotelPrice != null)
-                      Text(
-                        '$hotelPrice€',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.foggRed,
-                        ),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  _restStatusMessage,
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.labelColor.withValues(alpha: 0.7),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  String get _restStatusMessage {
-    if (isRestingAtHotel) return 'Descansando en el hotel...';
-    if (fatigue.mustSleep) return 'Phoebe está agotada: debe descansar antes de continuar';
-    return 'Descanso en hotel: recuperación ${Fatigue.hotelRecoverRate}%/h';
   }
 
   Widget _vehicleRow(VehicleOption vehicle) {

@@ -143,4 +143,9 @@ La SPEC 021 añadió la visualización de la fatiga en la `FoggAppBar`. Falta la
 
 ---
 
+## Addenda — Tarjeta independiente (2026-10-29)
+
+- Tras la implementación de la SPEC 022, el diseño se revisó: la tarjeta «Ir al Hotel a descansar» **no** debe vivir dentro de cada `DestinationCard` como si fuera una opción o vehículo del destino; sino que debe ser **una tarjeta independiente similar a un destino, y la primera opción** de la lista.
+- El montaje se movió a `_ArrivedView` (`lib/presentation/pages/fogg_status_page.dart`) con el nuevo widget `HotelRestCard` (`lib/presentation/widgets/hotel_rest_card.dart`), renderizado como primera opción antes de los destinos candidatos.
+
 **Número:** 022. **Slug:** descansar-en-hotel.

@@ -5,6 +5,9 @@ import '../../domain/entities/destination_option.dart';
 import '../../domain/entities/fogg_city.dart';
 import '../../domain/entities/fogg_leg.dart';
 import '../../domain/entities/fogg_status.dart';
+import '../../domain/models/fatigue.dart';
+import '../../services/geo_pricing.dart';
+import '../../services/hotel_pricing.dart';
 import '../../utils/app_colors.dart';
 import '../providers/bottom_nav_provider.dart';
 import '../providers/countdown_provider.dart';
@@ -29,9 +32,10 @@ class FoggStatusPage extends ConsumerWidget {
 
     return switch (status) {
       FoggTraveling(:final leg) => _TravelingView(leg: leg),
-      FoggArrived(:final currentCity, :final options) => _ArrivedView(
+      FoggArrived(:final currentCity, :final options, :final fatigue) => _ArrivedView(
           currentCity: currentCity,
           options: options,
+          fatigue: fatigue,
         ),
     };
   }
@@ -135,15 +139,21 @@ class _TravelingView extends ConsumerWidget {
 // ---------------------------------------------------------------------------
 
 class _ArrivedView extends ConsumerWidget {
-  const _ArrivedView({required this.currentCity, required this.options});
+  const _ArrivedView({required this.currentCity, required this.options, required this.fatigue});
 
   final FoggCity currentCity;
   final List<DestinationOption> options;
+  final Fatigue fatigue;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedDestination = ref.watch(selectedDestinationProvider);
     final selectedVehicle = ref.watch(selectedVehicleProvider);
+
+    final hotelPrice = HotelPricing.priceFor(
+      GeoPricing.zoneForTimezone(currentCity.timezone),
+      countryMultiplier: GeoPricing.countryMultiplierForTimezone(currentCity.timezone),
+    );
 
     void startTrip(DestinationOption option, VehicleOption vehicle) {
       // Transición real a viajando — el origen es la ciudad actual del estado.
@@ -210,6 +220,10 @@ class _ArrivedView extends ConsumerWidget {
                   ref.read(mapFocusProvider.notifier).request(opt.city);
                   ref.read(bottomNavIndexProvider.notifier).state = 0;
                 },
+                onRestAtHotel: () => ref.read(gameNotifierProvider.notifier).restAtHotel(),
+                hotelPrice: hotelPrice,
+                fatigue: fatigue,
+                isRestingAtHotel: ref.read(gameSessionProvider).restingAtHotel,
               ),
             );
           }),

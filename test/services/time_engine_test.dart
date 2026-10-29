@@ -43,9 +43,13 @@ void main() {
     expect(dep.isAfter(arrival), isTrue);
   });
 
-  test('TimeEngine sleepNeeded recupera fatiga', () {
+  test('TimeEngine sleepNeeded calcula horas desde la tasa de recuperacion', () {
     final engine = TimeEngine(startUtc: DateTime.utc(2026, 1, 1));
-    expect(engine.sleepNeeded(const Fatigue(value: 100)), Duration.zero);
-    expect(engine.sleepNeeded(const Fatigue(value: 0)).inHours, greaterThan(0));
+    expect(
+      engine.sleepNeeded(const Fatigue(value: 100), rate: Fatigue.hotelRecoverRate),
+      Duration.zero,
+    );
+    expect(engine.sleepNeeded(const Fatigue(value: 0), rate: Fatigue.hotelRecoverRate).inHours, 8);
+    expect(engine.sleepNeeded(const Fatigue(value: 50), rate: Fatigue.sleeperRecoverRate).inHours, 5);
   });
 }

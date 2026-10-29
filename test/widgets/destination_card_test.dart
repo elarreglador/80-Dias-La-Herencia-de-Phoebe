@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pf/domain/entities/destination_option.dart';
 import 'package:pf/domain/entities/fogg_city.dart';
 import 'package:pf/domain/entities/transport_mode.dart';
+import 'package:pf/domain/models/fatigue.dart';
 import 'package:pf/domain/models/price_breakdown.dart';
 import 'package:pf/domain/models/weather_impact.dart';
 import 'package:pf/presentation/widgets/destination_card.dart';
@@ -78,6 +79,7 @@ class _HarnessState extends State<_Harness> {
   late bool expanded = widget.expanded;
   VehicleOption? selectedVehicle;
   final List<VehicleOption> started = [];
+  final List<String> rests = [];
 
   @override
   Widget build(BuildContext context) {
@@ -91,6 +93,10 @@ class _HarnessState extends State<_Harness> {
             onTap: () => setState(() => expanded = !expanded),
             onVehicleTap: (v) => setState(() => selectedVehicle = v),
             onStartTrip: (v) => started.add(v),
+            onRestAtHotel: () => rests.add('hotel'),
+            hotelPrice: 90,
+            fatigue: const Fatigue(value: 100),
+            isRestingAtHotel: false,
           ),
         ),
       ),
@@ -223,5 +229,31 @@ void main() {
     expect(find.text('Barco'), findsOneWidget);
     expect(find.text('Tren'), findsOneWidget);
     expect(find.textContaining('combustible'), findsNothing);
+  });
+
+  testWidgets('colapsada no muestra la tarjeta de descanso en hotel', (tester) async {
+    await _pump(tester, _option());
+
+    expect(find.byKey(const ValueKey('hotel-rest-card')), findsNothing);
+  });
+
+  testWidgets('expandida muestra la tarjeta de descanso en hotel con icono, precio y mensaje',
+      (tester) async {
+    await _pump(tester, _option(), expanded: true);
+
+    expect(find.byKey(const ValueKey('hotel-rest-card')), findsOneWidget);
+    expect(find.text('Ir al Hotel a descansar'), findsOneWidget);
+    expect(find.byIcon(Icons.hotel), findsOneWidget);
+    expect(find.text('90€'), findsOneWidget);
+    expect(find.textContaining('Descanso en hotel'), findsOneWidget);
+  });
+
+  testWidgets('la tarjeta de descanso en hotel invoca la accion al tocarla', (tester) async {
+    final key = await _pump(tester, _option(), expanded: true);
+
+    await tester.tap(find.byKey(const ValueKey('hotel-rest-card')));
+    await tester.pump();
+
+    expect(key.currentState!.rests, ['hotel']);
   });
 }

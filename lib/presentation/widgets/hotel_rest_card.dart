@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../../domain/models/fatigue.dart';
 import '../../utils/app_colors.dart';
@@ -73,7 +72,7 @@ class _HotelRestCardState extends State<HotelRestCard> {
                   Expanded(
                     child: Text(
                       _pressed ? 'Descansando' : 'Ir al Hotel a descansar',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
                         color: AppColors.labelColor,
@@ -83,7 +82,7 @@ class _HotelRestCardState extends State<HotelRestCard> {
                   if (widget.hotelPrice != null)
                     Text(
                       '${widget.hotelPrice}€',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w800,
                         color: AppColors.foggRed,

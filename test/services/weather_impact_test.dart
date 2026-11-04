@@ -46,7 +46,7 @@ void main() {
       DateTime.utc(2026, 1, 1, 12),
       DateTime.utc(2026, 1, 2, 12),
     );
-    expect(impact.delay, Duration(minutes: 36));
+    expect(impact.delay, const Duration(minutes: 36));
   });
 
   test('tope 2h coche', () {
@@ -79,6 +79,6 @@ void main() {
       DateTime.utc(2026, 1, 1, 12),
       DateTime.utc(2026, 1, 2, 12),
     );
-    expect(impact.delay, Duration(minutes: 180));
+    expect(impact.delay, const Duration(minutes: 180));
   });
 }

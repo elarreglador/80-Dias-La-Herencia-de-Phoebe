@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import "dart:io";
-import "dart:typed_data";
 
 import 'package:flutter_test/flutter_test.dart';
 
@@ -80,7 +79,16 @@ void main() {
   });
 
   test('fallback neutro si falla', () async {
-    final service = WeatherService();
-    // fuerza error usando host inválido? En su lugar cache miss -> red real puede fallar en CI.
-  });
+    // Simulamos una respuesta con error HTTP 500 para forzar el fallo tras los reintentos
+    final resp = _FakeHttpClientResponse('', 500);
+    final client = _FakeHttpClient(resp);
+    final service = WeatherService(client: client);
+
+    // Ejecutamos la petición con coordenadas y fecha de prueba
+    final snap = await service.fetch(0, 0, DateTime.utc(2026, 1, 1, 12, 0));
+
+    // Verificamos que al fallar devuelva el snapshot neutro esperado
+    expect(snap.timestampUtc, DateTime.utc(2026, 1, 1, 12, 0));
+    expect(snap.temperatureC, isNull); // El snapshot neutro inicializa temperatureC como null
+  }, timeout: const Timeout(Duration(seconds: 2))); // Evita bloqueos largos si reintenta con delays
 }

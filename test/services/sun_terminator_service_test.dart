@@ -288,7 +288,7 @@ void main() {
       }
       expect(pointInAnyPolygon(sub, polys), isFalse);
       // Noche debe contener antipoda (usar 179.9 para evitar borde exacto 180)
-      expect(pointInAnyPolygon(LatLng(0, 179.9), polys), isTrue);
+      expect(pointInAnyPolygon(const LatLng(0, 179.9), polys), isTrue);
     });
 
     test('visual solsticio verano polo sur noche (curvo, 2 polígonos)', () {

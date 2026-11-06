@@ -15,6 +15,9 @@ class Fatigue {
   /// Tasa de drenaje (puntos por hora) en coche (sleeper == false).
   static const double carDrainRate = 8.0;
 
+  /// Recuperación (puntos/hora) durmiendo en el coche (área de servicio / gasolinera).
+  static const double carRestRecoverRate = 6.0;
+
   /// Tasa de drenaje genérica (puntos por hora) en modos sin sleeper (mocks).
   static const double genericDrainRate = 5.0;
 

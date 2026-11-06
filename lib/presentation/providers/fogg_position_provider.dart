@@ -13,8 +13,9 @@ final foggPositionProvider = Provider<LatLng?>((ref) {
   final status = ref.watch(gameNotifierProvider);
   final now = ref.watch(timeEngineProvider).now();
   return switch (status) {
-    FoggTraveling(leg: final leg) => leg.path?.positionAt(leg.progressAt(now)) ??
-        LatLng(leg.from.lat, leg.from.lng),
+    FoggTraveling(leg: final leg) => (leg.restType != null && leg.restProgress != null)
+        ? (leg.path?.positionAt(leg.restProgress!) ?? LatLng(leg.from.lat, leg.from.lng))
+        : (leg.path?.positionAt(leg.progressAt(now)) ?? LatLng(leg.from.lat, leg.from.lng)),
     FoggArrived(currentCity: final city) => LatLng(city.lat, city.lng),
   };
 });

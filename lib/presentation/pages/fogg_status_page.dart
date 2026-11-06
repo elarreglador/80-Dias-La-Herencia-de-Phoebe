@@ -55,6 +55,86 @@ class _TravelingView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final countdownAsync = ref.watch(countdownProvider);
     final now = ref.watch(timeEngineProvider).now();
+    final status = ref.watch(gameNotifierProvider);
+    final fatigue = status is FoggTraveling ? status.fatigue : const Fatigue();
+
+    final isResting = leg.restType != null;
+
+    if (isResting) {
+      final progress = (leg.restProgress ?? 0.0).clamp(0.0, 1.0);
+      final restType = leg.restType!;
+      return SingleChildScrollView(
+        key: const ValueKey('fogg-status-traveling'),
+        padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              'Phoebe está descansando',
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.labelColor.withValues(alpha: 0.6), letterSpacing: 0.6),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              '${restType.label} · ${leg.from.name} → ${leg.to.name}',
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.labelColor),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+
+            Icon(restType.icon, size: 88, color: AppColors.foggRed),
+            const SizedBox(height: 24),
+
+            // Barra de cansancio
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: LinearProgressIndicator(
+                value: (fatigue.value / 100.0).clamp(0.0, 1.0),
+                minHeight: 8,
+                backgroundColor: AppColors.foggRed.withValues(alpha: 0.12),
+                valueColor: const AlwaysStoppedAnimation(AppColors.foggRed),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Cansancio: ${fatigue.value.toStringAsFixed(0)}%',
+              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.foggRed),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Se despertará sola al recuperarse',
+              style: TextStyle(fontSize: 12, color: AppColors.labelColor.withValues(alpha: 0.55)),
+            ),
+            const SizedBox(height: 24),
+
+            // Progreso congelado
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: LinearProgressIndicator(
+                value: progress,
+                minHeight: 8,
+                backgroundColor: AppColors.foggRed.withValues(alpha: 0.12),
+                valueColor: const AlwaysStoppedAnimation(AppColors.foggRed),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(leg.from.name, style: TextStyle(fontSize: 11, color: AppColors.labelColor.withValues(alpha: 0.55))),
+                Text('${(progress * 100).toStringAsFixed(0)}%', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.foggRed)),
+                Text(leg.to.name, style: TextStyle(fontSize: 11, color: AppColors.labelColor.withValues(alpha: 0.55))),
+              ],
+            ),
+            const SizedBox(height: 24),
+
+            ElevatedButton(
+              onPressed: () => ref.read(gameNotifierProvider.notifier).wakeUpOnRoute(),
+              child: const Text('Despertar y continuar'),
+            ),
+          ],
+        ),
+      );
+    }
 
     final remaining = countdownAsync.valueOrNull ?? leg.remainingAt(now);
     final progress = leg.progressAt(now).clamp(0.0, 1.0);

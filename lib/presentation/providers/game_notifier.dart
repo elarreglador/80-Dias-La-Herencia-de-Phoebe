@@ -66,6 +66,11 @@ class GameNotifier extends Notifier<FoggStatus> {
     state = _session.status;
   }
 
+  void wakeUpOnRoute() {
+    _session.wakeUpOnRoute();
+    state = _session.status;
+  }
+
   void simulateArrival() {
     _session.simulateArrival();
     state = _session.status;

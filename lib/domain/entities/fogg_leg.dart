@@ -1,4 +1,5 @@
 import '../models/price_breakdown.dart';
+import '../models/road_rest_type.dart';
 import '../models/route_path.dart';
 import 'fogg_city.dart';
 import 'transport_mode.dart';
@@ -15,6 +16,9 @@ class FoggLeg {
     this.sleeper = false,
     this.path,
     this.priceBreakdown,
+    this.restType,
+    this.restStartedAtUtc,
+    this.restProgress,
   });
 
   final FoggCity from;
@@ -31,6 +35,15 @@ class FoggLeg {
 
   /// Desglose del billete — `null` en modos sin fórmula (barco, mocks).
   final PriceBreakdown? priceBreakdown;
+
+  /// Tipo de descanso en ruta en curso — `null` si viaja normalmente (SPEC 023).
+  final RoadRestType? restType;
+
+  /// Inicio del descanso en ruta (UTC).
+  final DateTime? restStartedAtUtc;
+
+  /// Progreso congelado 0..1 durante el descanso.
+  final double? restProgress;
 
   Duration get totalDuration => arrivalUtc.difference(departureUtc);
 

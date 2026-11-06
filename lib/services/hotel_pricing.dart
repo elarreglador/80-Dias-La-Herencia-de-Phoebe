@@ -28,4 +28,9 @@ class HotelPricing {
   }) {
     return ((nightlyRatePerZone[zone] ?? 0) * countryMultiplier).round();
   }
+
+  /// Importe del hostel: 70% del hotel de la misma zona/país.
+  static int hostelPriceFor(GeoZone zone, {required double countryMultiplier}) {
+    return (priceFor(zone, countryMultiplier: countryMultiplier) * 0.7).round();
+  }
 }

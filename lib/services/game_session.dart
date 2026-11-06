@@ -345,6 +345,19 @@ class GameSession {
 
   void _resumeFromRest(FoggLeg leg, DateTime now) {
     final restDuration = now.difference(leg.restStartedAtUtc!);
+    // Tiempo ya recorrido hasta el punto de parada (se conserva al desplazar
+    // salida y llegada por la duración del descanso).
+    final elapsedAtStopHours =
+        leg.restStartedAtUtc!.difference(leg.departureUtc).inMinutes / 60.0;
+    // Tasa con signo: positiva si recupera (sleeper), negativa si drena (coche).
+    final double signedRate;
+    if (leg.sleeper) {
+      signedRate = Fatigue.sleeperRecoverRate;
+    } else if (leg.transport == TransportMode.car) {
+      signedRate = -Fatigue.carDrainRate;
+    } else {
+      signedRate = -Fatigue.genericDrainRate;
+    }
     final newLeg = FoggLeg(
       from: leg.from,
       to: leg.to,
@@ -357,7 +370,10 @@ class GameSession {
       priceBreakdown: leg.priceBreakdown,
     );
     _currentLeg = newLeg;
-    _legStartFatigue = _fatigue.value;
+    // _legStartFatigue es la fatiga en la nueva salida (hipotética): la fatiga
+    // al despertar ajustada por el tiempo ya recorrido hasta la parada, para
+    // que al reanudar no se aplique de nuevo el drenaje/recuperación previo.
+    _legStartFatigue = _fatigue.value - signedRate * elapsedAtStopHours;
     _lastTickTime = now;
   }
 
